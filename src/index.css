@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-logo: "Roboto Condensed", sans-serif;
   
   --color-aero-blue: #4ca5ff;
   --color-aero-green: #67c23a;

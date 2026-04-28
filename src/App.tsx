@@ -121,10 +121,22 @@ export default function App() {
   return (
     <div className="flex h-screen overflow-hidden font-sans">
       {/* Sidebar - Navigation Rail */}
-      <nav className="w-20 md:w-64 aero-glass m-4 rounded-3xl flex flex-col items-center py-8 gap-8 border shadow-2xl relative">
+      <nav className="w-20 md:w-64 aero-glass m-4 rounded-3xl flex flex-col items-center py-8 gap-6 border shadow-2xl relative">
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
-        <div className="flex flex-col items-center gap-2 mb-8">
+        {/* LOGO NewAra */}
+        <div className="mb-4 flex flex-col items-center gap-1">
+          <div 
+            className="font-logo text-3xl font-bold tracking-tighter flex items-baseline select-none"
+            style={{ textShadow: '0 2px 4px rgba(255,255,255,0.8)' }}
+          >
+            <span className="text-[#1a2b4b]">New</span>
+            <span className="bg-gradient-to-r from-[#00ff00] to-[#00f2ff] bg-clip-text text-transparent">Ara</span>
+          </div>
+          <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-20" />
+        </div>
+
+        <div className="flex flex-col items-center gap-2 mb-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-sky-600 shadow-inner flex items-center justify-center text-white ring-4 ring-white/30">
             <User size={24} />
           </div>
@@ -184,10 +196,10 @@ export default function App() {
               className="space-y-8"
             >
               <header className="flex flex-col gap-1">
-                <h1 className="text-4xl font-extrabold text-sky-950 tracking-tight flex items-center gap-3">
-                  Hola, <span className="text-blue-600 underline decoration-blue-200/50 underline-offset-8">Aero Estudiante</span> 🌊
+                <h1 className="text-4xl font-bold text-sky-950 tracking-tight font-logo uppercase">
+                  Inicio
                 </h1>
-                <p className="text-sky-800/60 font-medium">Gestiona tus materias con estilo.</p>
+                <p className="text-sky-800/60 font-medium">Gestiona tu aprendizaje en <span className="font-logo font-bold text-sky-900">NewAra</span>.</p>
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
