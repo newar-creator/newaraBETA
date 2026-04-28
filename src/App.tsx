@@ -29,6 +29,7 @@ import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
 import { GeographyGuide } from './components/GeographyGuide';
 import { BubbleBackground } from './components/BubbleBackground';
+import { playExternalBubble } from './lib/sounds';
 
 type View = 'home' | 'subject' | 'schedule' | 'exam';
 
@@ -83,6 +84,7 @@ export default function App() {
   const handleExerciseAnswer = (index: number) => {
     if (selectedAnswer !== null || !activeExercise) return;
     
+    playExternalBubble();
     setSelectedAnswer(index);
     const currentQ = exerciseState.shuffled[activeExercise.currentQuestion];
     const isCorrect = index === currentQ.correct;
@@ -114,6 +116,7 @@ export default function App() {
   };
 
   const handleSubjectClick = (subject: Subject) => {
+    playExternalBubble();
     setSelectedSubject(subject);
     setCurrentView('subject');
   };
@@ -233,6 +236,7 @@ export default function App() {
             <button 
               key={s.id}
               onClick={() => {
+                playExternalBubble();
                 setSelectedSubject(s);
                 setCurrentView('subject');
               }}
@@ -370,7 +374,10 @@ export default function App() {
                         {selectedSubject.units.map((unit, i) => (
                            <div 
                              key={i} 
-                             onClick={() => setExpandedUnit(expandedUnit === i ? null : i)}
+                             onClick={() => {
+                               playExternalBubble();
+                               setExpandedUnit(expandedUnit === i ? null : i);
+                             }}
                              className="group overflow-hidden bg-white/40 border border-white/60 rounded-3xl transition-all cursor-pointer shadow-sm hover:shadow-md"
                            >
                               <div className="p-5 flex items-center justify-between">
@@ -725,9 +732,14 @@ export default function App() {
 }
 
 function NavButton({ active, icon, label, onClick }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void }) {
+  const handleClick = () => {
+    playExternalBubble();
+    onClick();
+  };
+
   return (
     <button 
-      onClick={onClick}
+      onClick={handleClick}
       className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all relative group ${active ? 'bg-white/50 shadow-lg text-blue-600 scale-105 border border-white/50' : 'text-sky-900 hover:bg-white/30'}`}
     >
       <div className={`${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{icon}</div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { playExternalBubble } from '../lib/sounds';
 
 interface AeroCardProps {
   children: React.ReactNode;
@@ -34,10 +35,16 @@ interface GlossyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   variant?: 'blue' | 'green';
 }
 
-export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className = '', variant = 'blue', ...props }) => {
+export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className = '', variant = 'blue', onClick, ...props }) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    playExternalBubble();
+    if (onClick) onClick(e);
+  };
+
   return (
     <button 
       className={`aero-button ${variant === 'green' ? 'aero-button-green' : ''} ${className}`}
+      onClick={handleClick}
       {...props}
     >
       <div className="glossy-overlay opacity-40" />
