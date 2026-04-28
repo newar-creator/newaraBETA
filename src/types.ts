@@ -3,6 +3,8 @@ import React from 'react';
 export interface Unit {
   title: string;
   description: string;
+  explanation: string;
+  meanings: { term: string, definition: string }[];
   exercises: {
     question: string;
     options: string[];
@@ -30,6 +32,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Concepto de Sistema',
         description: 'Sistemas aislados (sin intercambio), cerrados (solo energía) y abiertos (materia y energía).',
+        explanation: 'En biología, un sistema es un conjunto de componentes que interactúan entre sí. Los seres vivos son sistemas abiertos porque intercambian constantemente materia (nutrientes, agua) y energía (calor, luz) con su entorno. Esta capacidad es vital para mantener el equilibrio interno u homeostasis.',
+        meanings: [
+          { term: 'Sistema Abierto', definition: 'Aquel que intercambia materia y energía con el ambiente.' },
+          { term: 'Homeostasis', definition: 'Capacidad de mantener condiciones internas constantes.' },
+          { term: 'Complejidad', definition: 'Presencia de múltiples niveles de organización coordinados.' }
+        ],
         exercises: [
           { question: '¿Qué intercambia un sistema abierto?', options: ['Nada', 'Solo energía', 'Materia y energía', 'Solo materia'], correct: 2 },
           { question: '¿Cuál es un ejemplo de sistema aislado ideal?', options: ['Un ser vivo', 'Un termo cerrado', 'Una botella abierta', 'Una planta'], correct: 1 },
@@ -41,6 +49,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Biomoléculas: Lípidos y Proteínas',
         description: 'Funciones energéticas, estructurales y reguladoras de las moléculas de la vida.',
+        explanation: 'Las biomoléculas son los ladrillos de la vida. Los lípidos no solo almacenan energía a largo plazo, sino que también actúan como aislantes térmicos. Las proteínas, por otro lado, son máquinas moleculares: transportan oxígeno (hemoglobina), defienden el cuerpo (anticuerpos) y forman estructuras (colágeno).',
+        meanings: [
+          { term: 'Aminoácidos', definition: 'Unidades básicas que forman las proteínas.' },
+          { term: 'Fosfolípidos', definition: 'Lípidos que forman la estructura de las membranas celulares.' },
+          { term: 'Enzimas', definition: 'Proteínas que aceleran las reacciones químicas en la célula.' }
+        ],
         exercises: [
           { question: '¿Cuál es una función de los lípidos?', options: ['Transporte de oxígeno', 'Reserva de energía', 'Código genético', 'Digestión'], correct: 1 },
           { question: '¿De qué están formadas las proteínas?', options: ['Monosacáridos', 'Ácidos grasos', 'Aminoácidos', 'Nucleótidos'], correct: 2 },
@@ -52,6 +66,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Hidratos de Carbono y ADN',
         description: 'Glúcidos para energía rápida y ácidos nucleicos para la herencia genética.',
+        explanation: 'Los glúcidos o hidratos de carbono son el combustible inmediato de la célula (glucosa). El ADN es el manual de instrucciones; contiene la secuencia de genes que determina desde el color de ojos hasta cómo fabricar proteínas específicas.',
+        meanings: [
+          { term: 'Glucosa', definition: 'Azúcar simple de uso energético inmediato.' },
+          { term: 'ADN', definition: 'Ácido desoxirribonucleico, base de la herencia genética.' },
+          { term: 'Doble Hélice', definition: 'Forma retorcida de la estructura del ADN.' }
+        ],
         exercises: [
           { question: '¿Qué molécula contiene la información genética?', options: ['Glucosa', 'Lípido', 'ADN', 'Almidón'], correct: 2 },
           { question: '¿Cuál es el azúcar más sencillo usado como fuente de energía?', options: ['Almidón', 'Celulosa', 'Glucosa', 'Quitina'], correct: 2 },
@@ -71,7 +91,13 @@ export const SUBJECTS: Subject[] = [
     units: [
       {
         title: 'Geografía y su Objeto de Estudio',
-        description: 'El espacio geográfico como producto social en permanente transformación. Conceptos de Paisaje, Ambiente, Territorio, Región y Recursos Naturales.',
+        description: 'El espacio geográfico como producto social en permanente transformación.',
+        explanation: 'El espacio geográfico no es solo la naturaleza, sino cómo la sociedad la organiza y transforma. Conceptos como Paisaje (lo que vemos), Ambiente (relación sociedad-naturaleza) y Territorio (espacio con poder) son claves para entender nuestro mundo.',
+        meanings: [
+          { term: 'Espacio Geográfico', definition: 'Construcción social a partir de la naturaleza.' },
+          { term: 'Recurso Natural', definition: 'Elemento de la naturaleza valorado por la sociedad.' },
+          { term: 'Región', definition: 'Área con características comunes que la distinguen.' }
+        ],
         exercises: [
           { question: '¿Qué diferencia a la Población de la Sociedad en Geografía?', options: ['Son sinónimos', 'Población es el grupo; Sociedad comparte vivencias y cultura', 'Sociedad es solo para ciudades', 'Población es para animales'], correct: 1 },
           { question: '¿Qué es el espacio geográfico?', options: ['La naturaleza virgen', 'El resultado de la interacción entre sociedad y ambiente', 'Solo los mapas', 'El espacio exterior'], correct: 1 },
@@ -82,7 +108,13 @@ export const SUBJECTS: Subject[] = [
       },
       {
         title: 'Esfera Terrestre y Líneas Imaginarias',
-        description: 'Eje terrestre (23° 27\'), Paralelos (Ecuador, Trópicos, Círculos Polares) y Meridianos (Greenwich, Antimeridiano).',
+        description: 'Eje terrestre (23° 27\'), Paralelos (Ecuador) y Meridianos (Greenwich).',
+        explanation: 'La Tierra no es una esfera perfecta (es un geoide). El eje terrestre está inclinado, lo que genera las estaciones. Los paralelos miden la latitud (Norte-Sur) y los meridianos la longitud (Este-Oeste).',
+        meanings: [
+          { term: 'Ecuador', definition: 'Paralelo 0° que divide la Tierra en Hemisferio N y S.' },
+          { term: 'Greenwich', definition: 'Meridiano 0° que divide la Tierra en Hemisferio E y O.' },
+          { term: 'Antimeridiano', definition: 'Meridiano de 180°, opuesto a Greenwich.' }
+        ],
         exercises: [
           { question: '¿Qué meridiano divide la Tierra en hemisferio Oriental y Occidental?', options: ['Ecuador', 'Círculo Polar', 'Meridiano de Greenwich', 'Trópico de Cáncer'], correct: 2 },
           { question: '¿Qué línea divide la Tierra en hemisferio Norte y Sur?', options: ['Eje terrestre', 'Ecuador', 'Greenwich', 'Antimeridiano'], correct: 1 },
@@ -93,7 +125,13 @@ export const SUBJECTS: Subject[] = [
       },
       {
         title: 'Orientación y Coordenadas',
-        description: 'Localización absoluta mediante Latitud (distancia al Ecuador) y Longitud (distancia a Greenwich). Localización relativa.',
+        description: 'Localización absoluta mediante Latitud (distancia al Ecuador) y Longitud (distancia a Greenwich).',
+        explanation: 'Para encontrar un punto exacto usamos las coordenadas geográficas. La Latitud es la separación respecto al Ecuador y la Longitud respecto a Greenwich. Si sabemos ambas, tenemos una localización absoluta.',
+        meanings: [
+          { term: 'Localización Absoluta', definition: 'Ubicación exacta mediante coordenadas.' },
+          { term: 'Puntos Cardinales', definition: 'Norte, Sur, Este y Oeste.' },
+          { term: 'Rosa de los Vientos', definition: 'Símbolo usado para marcar la orientación.' }
+        ],
         exercises: [
           { question: '¿De dónde a dónde se mide la Longitud?', options: ['De Norte a Sur', 'De Este a Oeste (desde Greenwich)', 'Del Ecuador a los Polos', 'De la base a la cima'], correct: 1 },
           { question: 'La distancia de un punto al Ecuador se llama:', options: ['Longitud', 'Altitud', 'Latitud', 'Localización relativa'], correct: 2 },
@@ -114,6 +152,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'El Método del Historiador',
         description: 'La Historia como ciencia social. Hechos, fuentes primarias/secundarias y líneas de tiempo.',
+        explanation: 'El historiador no inventa, reconstruye. Interroga fuentes (cartas, diarios, restos arqueológicos) para entender por qué las cosas sucedieron. Las líneas de tiempo ayudan a ver procesos y cambios a través de los siglos.',
+        meanings: [
+          { term: 'Fuente Primaria', definition: 'Documento o resto de la época estudiada.' },
+          { term: 'Fuente Secundaria', definition: 'Análisis hecho por historiadores posteriores.' },
+          { term: 'Cronología', definition: 'Ordenación de eventos en el tiempo.' }
+        ],
         exercises: [
           { question: '¿Cuál es el "puente" que une el presente con el pasado según Benedetto Croce?', options: ['Los libros', 'La memoria', 'Toda historia es historia del presente', 'Los museos'], correct: 2 },
           { question: '¿Qué es una fuente histórica?', options: ['Cualquier resto del pasado que aporte datos', 'Solo libros', 'Solo estatuas', 'Solo videos'], correct: 0 },
@@ -125,6 +169,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Poblamiento de América',
         description: 'Teorías sobre el origen del hombre americano: Asiática (Bering), Oceánica y Australiana.',
+        explanation: 'América fue el último continente en poblarse. La teoría más robusta es la Asiática (cruce por Bering). Los primeros americanos eran nómades, cazadores de megafauna y recolectores que se adaptaron a climas extremos.',
+        meanings: [
+          { term: 'Nómade', definition: 'Que no vive en un lugar fijo.' },
+          { term: 'Megafauna', definition: 'Animales gigantes del pleistoceno (mamuts, etc).' },
+          { term: 'Estrecho de Bering', definition: 'Puente terrestre temporal durante la glaciación.' }
+        ],
         exercises: [
           { question: '¿Qué teoría propuso que el hombre cruzó por el Estrecho de Bering?', options: ['Teoría Oceánica', 'Teoría Asiática', 'Teoría Australiana', 'Teoría Autoctonista'], correct: 1 },
           { question: '¿Quién propuso la Teoría Oceánica?', options: ['Alex Hrdlicka', 'Paul Rivet', 'Florentino Ameghino', 'Mendes Correia'], correct: 1 },
@@ -136,6 +186,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Civilización Caral',
         description: 'La civilización más antigua de América (3000 a.C.). Urbanismo planificado y quipus.',
+        explanation: 'En el valle de Supe surgió Caral. Sin murallas defensivas, parece haber sido un centro de paz y comercio. Usaban algodón para redes de pesca y quipus para registrar contabilidad mucho antes que los Incas.',
+        meanings: [
+          { term: 'Urbanismo', definition: 'Planificación de ciudades y edificios.' },
+          { term: 'Quipu', definition: 'Cuerdas anudadas para registro de datos.' },
+          { term: 'Teocracia', definition: 'Sistema donde los líderes eran figuras religiosas.' }
+        ],
         exercises: [
           { question: '¿Hace cuántos años surgió la civilización de Caral?', options: ['1000 años', '2000 años', '5000 años', '10000 años'], correct: 2 },
           { question: '¿Qué usaban en Caral para registrar información?', options: ['Papel', 'Computadoras', 'Quipus (cuerdas con nudos)', 'Tablillas de arcilla'], correct: 2 },
@@ -147,6 +203,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Egipto y Grecia',
         description: 'Primeros estados, escritura, religión politeísta y el origen de la democracia en Atenas.',
+        explanation: 'Egipto floreció junto al Nilo con faraones y pirámides. Grecia nos dio la Polis y la Democracia. Atenas fue la primera ciudad donde los ciudadanos debatían y votaban leyes en la plaza pública (Ágora).',
+        meanings: [
+          { term: 'Polis', definition: 'Ciudad-Estado griega independiente.' },
+          { term: 'Democracia', definition: 'Poder del pueblo (Demos: pueblo, Kratos: poder).' },
+          { term: 'Politeísmo', definition: 'Creencia en muchos dioses.' }
+        ],
         exercises: [
           { question: '¿En qué ciudad griega nació la Democracia?', options: ['Esparta', 'Atenas', 'Micenas', 'Corinto'], correct: 1 },
           { question: '¿Cómo se llama la escritura de los antiguos egipcios?', options: ['Cuneiforme', 'Jeroglífica', 'Alfabeto latino', 'Pictografía mixteca'], correct: 1 },
@@ -158,6 +220,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Roma e Invasiones',
         description: 'De la Monarquía a la República y el Imperio. La caída de Roma y las sociedades medievales.',
+        explanation: 'Roma pasó de aldea a imperio mundial. Su arquitectura y derecho son la base de Occidente. El imperio cayó ante la presión de pueblos germanos y hunos, dando inicio a la fragmentación de Europa (Edad Media).',
+        meanings: [
+          { term: 'República', definition: 'Cosa pública, sistema con magistrados y senado.' },
+          { term: 'Patricio', definition: 'Grupo social privilegiado en la antigua Roma.' },
+          { term: 'Hunos', definition: 'Pueblo nómade de Asia central liderado por Atila.' }
+        ],
         exercises: [
           { question: '¿En qué año cayó el Imperio Romano de Occidente?', options: ['310 d.C.', '476 d.C.', '1453 d.C.', '1789 d.C.'], correct: 1 },
           { question: '¿Cómo se llamaban los dos grupos sociales en la República Romana?', options: ['Ricos y Pobres', 'Patricios y Plebeyos', 'Senadores y Reyes', 'Soldados y Esclavos'], correct: 1 },
@@ -178,6 +246,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Libertad y Dignidad',
         description: 'La libertad individual y social. La dignidad humana como cualidad inherente.',
+        explanation: 'Ser digno significa ser valioso por sí mismo. La libertad nos permite ser dueños de nuestras acciones, pero tiene límites: no podemos violar los derechos de los demás. La libertad social depende de que todos tengan sus necesidades básicas cubiertas.',
+        meanings: [
+          { term: 'Dignidad Humana', definition: 'Valor supremo de la persona por ser humana.' },
+          { term: 'Empatía', definition: 'Capacidad de ponerse en el lugar del otro.' },
+          { term: 'Ética', definition: 'Reflexión sobre lo que es justo o correcto.' }
+        ],
         exercises: [
           { question: '¿Cuál es la libertad relacionada con pensamientos y deseos propios?', options: ['Libertad Social', 'Libertad Política', 'Libertad Individual', 'Libertad Económica'], correct: 2 },
           { question: 'La dignidad humana se funda en ser sujetos:', options: ['Ricos y poderosos', 'Conscientes, sociales, dotados de inteligencia y libertad', 'Solo obedientes', 'Sin derechos'], correct: 1 },
@@ -189,6 +263,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Las Normas',
         description: 'Reglas para la convivencia. Tipos: sociales, morales, culturales y jurídicas.',
+        explanation: 'Para vivir juntos necesitamos reglas. Las sociales son costumbres (saludar). Las morales son lo que nuestra conciencia dicta. Las jurídicas son las leyes: están escritas, son obligatorias y tienen sanciones si no se cumplen.',
+        meanings: [
+          { term: 'Ley', definition: 'Norma jurídica obligatoria dictada por autoridad.' },
+          { term: 'Sanción', definition: 'Consecuencia de incumplir una norma.' },
+          { term: 'Convivencia', definition: 'Vivir en armonía con otros en un mismo espacio.' }
+        ],
         exercises: [
           { question: '¿Qué tipo de normas son los "usos y costumbres" como saludar?', options: ['Morales', 'Sociales', 'Jurídicas', 'Religiosas'], correct: 1 },
           { question: 'Las normas que valoran lo correcto/incorrecto en la conciencia son:', options: ['Sociales', 'Morales', 'Jurídicas', 'Culturales'], correct: 1 },
@@ -200,6 +280,12 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'La Constitución Nacional',
         description: 'Ley Suprema de Argentina. Derechos, deberes y garantías fundamentales.',
+        explanation: 'Es la "madre" de todas las leyes. Establece la forma de gobierno (Representativa, Republicana y Federal) y protege nuestros derechos fundamentales. Ninguna ley puede ir en contra de ella (Supremacía).',
+        meanings: [
+          { term: 'Preámbulo', definition: 'Introducción que indica los objetivos del país.' },
+          { term: 'Garantía', definition: 'Mecanismo para proteger un derecho violado.' },
+          { term: 'Soberanía', definition: 'Poder supremo del pueblo para elegir su rumbo.' }
+        ],
         exercises: [
           { question: '¿Cómo se llama la introducción de la Constitución Nacional?', options: ['Declaración', 'Garantía', 'Preámbulo', 'Artículo 1'], correct: 2 },
           { question: '¿Qué artículo establece que la Constitución es la Ley Suprema?', options: ['Artículo 1', 'Artículo 14', 'Artículo 31', 'Artículo 75'], correct: 2 },
@@ -219,7 +305,13 @@ export const SUBJECTS: Subject[] = [
     units: [
       {
         title: 'Present and Past Tenses',
-        description: 'Review of Present Simple vs Continuous and Past Simple vs Continuous.',
+        description: 'Review of Tenses (Present and Past Simple/Continuous).',
+        explanation: 'We use Present Simple for habits and Past Simple for completed actions in the past. If an action was in progress while another happened, we use Past Continuous with "when" or "while".',
+        meanings: [
+          { term: 'Habit', definition: 'Something you do regularly.' },
+          { term: 'Auxiliary', definition: 'Helping verb like "do" or "did".' },
+          { term: 'Completed action', definition: 'Something that finished in the past.' }
+        ],
         exercises: [
           { question: 'Complete: "I ____ (watch) TV when he arrived."', options: ['watch', 'am watching', 'watched', 'was watching'], correct: 3 },
           { question: 'Which is correct for a daily habit?', options: ['I am going to school', 'I go to school', 'I went to school', 'I will go to school'], correct: 1 },
@@ -230,7 +322,13 @@ export const SUBJECTS: Subject[] = [
       },
       {
         title: 'Vocabulary: Environment',
-        description: 'Words related to ecology, pollution, and recycling.',
+        description: 'Ecology, pollution, and recycling terms.',
+        explanation: 'Our planet needs protection. Learning terms like Recycling (processing materials), Sustainability (using resources wisely) and Pollution (damage to nature) helps us discuss environmental solutions in English.',
+        meanings: [
+          { term: 'Pollution', definition: 'Contaminación del aire, agua o suelo.' },
+          { term: 'Recycle', definition: 'Convertir basura en nuevos materiales.' },
+          { term: 'Nature', definition: 'El mundo natural, plantas y animales.' }
+        ],
         exercises: [
           { question: 'What does "Pollution" mean?', options: ['Limpieza', 'Contaminación', 'Reciclaje', 'Naturaleza'], correct: 1 },
           { question: 'A synonym for "Ecology":', options: ['Environment', 'Economy', 'Education', 'Electronics'], correct: 0 },
@@ -250,7 +348,13 @@ export const SUBJECTS: Subject[] = [
     units: [
       {
         title: 'Números Naturales y Operaciones',
-        description: 'Definición de números naturales. Propiedades de la suma y multiplicación. División exacta e inexacta.',
+        description: 'Definición de números naturales. Propiedades de la suma y multiplicación.',
+        explanation: 'Los números naturales son los que usamos para contar objetos reales. La suma y la multiplicación son operaciones fundamentales. Tienen propiedades como la Conmutativa (5+2 = 2+5) y la Asociativa ((1+2)+3 = 1+(2+3)).',
+        meanings: [
+          { term: 'Cociente', definition: 'El resultado de una división.' },
+          { term: 'Resto', definition: 'Lo que sobra en una división inexacta.' },
+          { term: 'Materia', definition: 'Todo lo que tiene masa y ocupa espacio (relación con problemas reales).' }
+        ],
         exercises: [
           { question: '¿Qué números forman el conjunto de los Naturales (N)?', options: ['N={1,2,3...}', 'N={0,1,2,3...}', 'N={-1,0,1...}', 'N={2,4,6...}'], correct: 1 },
           { question: '¿Cuál es la propiedad que dice que a+b = b+a?', options: ['Asociativa', 'Distributiva', 'Conmutativa', 'Neutro'], correct: 2 },
@@ -262,32 +366,18 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Potencias y Orde de Prioridad',
         description: 'Propiedades de las potencias y el orden correcto para resolver operaciones combinadas.',
+        explanation: 'Una potencia es multiplicar la base por sí misma tantas veces como diga el exponente. Para resolver una cuenta larga (operación combinada), el orden es sagrado: 1° Paréntesis, 2° Potencias/Raíces, 3° Multiplicación/División, 4° Suma/Resta.',
+        meanings: [
+          { term: 'Base', definition: 'El número que se multiplica repetidamente.' },
+          { term: 'Exponente', definition: 'Indica cuántas veces se multiplica la base.' },
+          { term: 'JERARQUÍA', definition: 'Orden de importancia para resolver cuentas.' }
+        ],
         exercises: [
           { question: '¿Cuánto es cualquier número (distinto de 0) elevado a la 0?', options: ['0', '1', 'El mismo número', 'Infinito'], correct: 1 },
           { question: 'Al multiplicar potencias de igual base (aⁿ · aᵐ), los exponentes se:', options: ['Restan', 'Multiplican', 'Suman', 'Dividen'], correct: 2 },
           { question: 'En operaciones combinadas, ¿qué se debe resolver primero?', options: ['Sumas', 'Potencias', 'Paréntesis', 'Multiplicaciones'], correct: 2 },
           { question: '¿Cuál es la base en la potencia 3⁴?', options: ['3', '4', '81', '12'], correct: 0 },
           { question: '¿Cómo se resuelve (a·b)ˣ?', options: ['a+b+x', 'aˣ · bˣ', 'a·b·x', 'aˣ + bˣ'], correct: 1 }
-        ]
-      },
-      {
-        title: 'Divisibilidad y Números Primos',
-        description: 'Múltiplos y divisores. Números primos y compuestos. Descomposición en factores primos.',
-        exercises: [
-          { question: 'Si 26 = 2 · 13, entonces 2 es _____ de 26.', options: ['Múltiplo', 'Divisor', 'Potencia', 'Resultado'], correct: 1 },
-          { question: 'Un número primo es aquel que es divisible solo por:', options: ['2 y 3', 'El mismo y el 1', 'Números pares', 'Cualquier número'], correct: 1 },
-          { question: '¿Cuál de estos es un número primo?', options: ['4', '9', '7', '10'], correct: 2 },
-          { question: '¿A qué llamamos número compuesto?', options: ['Al que tiene solo un divisor', 'Al que tiene divisores distintos de sí mismo y la unidad', 'Al que es par', 'Al que termina en 0'], correct: 1 },
-          { question: 'La descomposición de 90 es 2 · 3² · 5. ¿Qué tipo de factores son 2, 3 y 5?', options: ['Primos', 'Compuestos', 'Pares', 'Impares'], correct: 0 }
-        ]
-      },
-      {
-        title: 'MCD, MCM y Divisibilidad',
-        description: 'Cálculo del Máximo Común Divisor y Mínimo Común Múltiplo. Criterios rápidos de divisibilidad.',
-        exercises: [
-          { question: '¿Cuándo un número es divisible por 3?', options: ['Cuando termina en 3', 'Cuando es par', 'Cuando la suma de sus cifras es múltiplo de 3', 'Cuando termina en 0'], correct: 2 },
-          { question: '¿Qué significa MCD?', options: ['Menor Común Divisor', 'Máximo Común Divisor', 'Mínimo Común Múltiplo', 'Mayor Cifra Disponible'], correct: 1 },
-          { question: 'Un número es divisible por 5 si:', options: ['Es par', 'Termina en 0 o 5', 'La suma de sus cifras es 5', 'Es primo'], correct: 1 }
         ]
       }
     ]

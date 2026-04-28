@@ -23,7 +23,12 @@ import {
   ChevronRight,
   User,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Book,
+  Lightbulb,
+  HelpCircle,
+  ArrowLeft,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
@@ -33,11 +38,12 @@ import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { playExternalBubble } from './lib/sounds';
 
-type View = 'home' | 'subject' | 'schedule' | 'exam';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number} | null>(null);
   const [exerciseState, setExerciseState] = useState({ 
@@ -121,6 +127,7 @@ export default function App() {
   const handleSubjectClick = (subject: Subject) => {
     playExternalBubble();
     setSelectedSubject(subject);
+    setSelectedUnitIndex(null);
     setCurrentView('subject');
   };
 
@@ -202,7 +209,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-3 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center">
             <span className="font-logo text-[10px] font-bold text-gray-800 tracking-wider flex items-center gap-1">
-              BETA 2.4
+              BETA 2.5
             </span>
           </div>
 
@@ -378,64 +385,16 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
-                    <AeroCard title="Unidades de Estudio">
-                      <div className="grid grid-cols-1 gap-4">
-                        {selectedSubject.units.map((unit, i) => (
-                           <div 
-                             key={i} 
-                             onClick={() => {
-                               playExternalBubble();
-                               setExpandedUnit(expandedUnit === i ? null : i);
-                             }}
-                             className="group overflow-hidden bg-white/40 border border-white/60 rounded-3xl transition-all cursor-pointer shadow-sm hover:shadow-md"
-                           >
-                              <div className="p-5 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 font-bold text-xl shadow-inner">
-                                    {i + 1}
-                                  </div>
-                                  <span className="text-lg font-bold text-sky-900">{unit.title}</span>
-                                </div>
-                                <motion.div 
-                                  animate={{ rotate: expandedUnit === i ? 90 : 0 }}
-                                  className="text-sky-300 group-hover:text-sky-600 transition-colors"
-                                >
-                                  <ChevronRight />
-                                </motion.div>
-                              </div>
-                              <AnimatePresence>
-                                {expandedUnit === i && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="px-5 pb-5 text-sky-800/80 font-medium border-t border-white/20 pt-4 bg-white/10"
-                                  >
-                                    <p>{unit.description}</p>
-                                    <div className="mt-4 flex gap-2">
-                                      <GlossyButton 
-                                        variant="green" 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          startExercise(i);
-                                        }}
-                                        className="text-[10px] py-1 px-4"
-                                      >
-                                        EJERCICIOS
-                                      </GlossyButton>
-                                      <button 
-                                        onClick={() => playExternalBubble()}
-                                        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1 rounded-full font-bold text-blue-600 uppercase transition-all"
-                                      >
-                                        Ver Más
-                                      </button>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                           </div>
-                        ))}
-                      </div>
+                    <AeroCard title="Ruta de Aprendizaje">
+                      <DuolingoPath 
+                        units={selectedSubject.units} 
+                        subjectColor={selectedSubject.color}
+                        onUnitClick={(index) => {
+                           playExternalBubble();
+                           setSelectedUnitIndex(index);
+                           setCurrentView('unit-study');
+                        }}
+                      />
                     </AeroCard>
                   </div>
 
@@ -470,6 +429,15 @@ export default function App() {
                   </div>
                 </div>
              </motion.div>
+          )}
+
+          {currentView === 'unit-study' && selectedSubject && selectedUnitIndex !== null && (
+             <UnitStudyView 
+               unit={selectedSubject.units[selectedUnitIndex]} 
+               color={selectedSubject.color}
+               onBack={() => setCurrentView('subject')}
+               onStartExercise={() => startExercise(selectedUnitIndex)}
+             />
           )}
 
           {currentView === 'schedule' && (
@@ -511,22 +479,6 @@ export default function App() {
                   </table>
                </AeroCard>
 
-               <div className="flex gap-4">
-                  <div className="flex-1 aero-glass p-4 rounded-3xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-lg">📍</div>
-                    <div>
-                      <p className="text-[10px] uppercase font-black text-sky-900/40">Ubicación Actual</p>
-                      <p className="text-sm font-bold text-sky-950">Aula 104 - Sector Norte</p>
-                    </div>
-                  </div>
-                  <div className="flex-1 aero-glass p-4 rounded-3xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-green-500 flex items-center justify-center text-white shadow-lg">🔔</div>
-                    <div>
-                      <p className="text-[10px] uppercase font-black text-sky-900/40">Próximo Recreo</p>
-                      <p className="text-sm font-bold text-sky-950">En 15 minutos</p>
-                    </div>
-                  </div>
-               </div>
             </motion.div>
           )}
 
@@ -811,6 +763,195 @@ function ScheduleRow({ time, items, colors, highlight = false }: { time: string,
         </td>
       ))}
     </tr>
+  );
+}
+
+function UnitButton({ number, title, color, onClick }: { number: number, title: string, color: string, onClick: () => void }) {
+  const getColorClasses = (color: string) => {
+    switch (color) {
+      case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
+      case 'blue': return 'from-blue-400 to-blue-600 shadow-blue-500/50';
+      case 'amber': return 'from-amber-400 to-amber-600 shadow-amber-500/50';
+      case 'indigo': return 'from-indigo-400 to-indigo-600 shadow-indigo-500/50';
+      case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';
+      case 'violet': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
+      default: return 'from-sky-400 to-sky-600 shadow-sky-500/50';
+    }
+  };
+
+  return (
+    <motion.div 
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      className="flex flex-col items-center gap-4 group cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="relative">
+        {/* Ring */}
+        <div className="absolute inset-0 rounded-full border-4 border-white/40 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-150 blur-sm" />
+        
+        {/* Main Button */}
+        <div className={`w-20 h-20 rounded-full bg-gradient-to-b ${getColorClasses(color)} flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_0_rgb(0,0,0,0.1),0_15px_20px_-5px_rgba(0,0,0,0.3)] border-4 border-white/60 relative overflow-hidden active:translate-y-1 active:shadow-[0_4px_0_rgb(0,0,0,0.1)] transition-all`}>
+           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 to-transparent opacity-50" />
+           {number}
+        </div>
+
+        {/* Floating Tooltip */}
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-2xl shadow-xl border border-white opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0">
+          <span className="text-xs font-bold text-sky-950 uppercase tracking-tighter">{title}</span>
+          <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void }) {
+  return (
+    <div className="flex flex-col items-center py-12 gap-16 relative">
+      {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
+      {units.map((unit, i) => {
+        // Calculate horizontal offset for a zigzag path
+        const offset = Math.sin(i * 1.2) * 80;
+        
+        return (
+          <div 
+            key={i} 
+            style={{ transform: `translateX(${offset}px)` }}
+            className="relative z-10"
+          >
+            <UnitButton 
+              number={i + 1} 
+              title={unit.title} 
+              color={subjectColor} 
+              onClick={() => onUnitClick(i)} 
+            />
+            
+            {/* Connector dots */}
+            {i < units.length - 1 && (
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 top-24 h-12 flex flex-col gap-2 items-center opacity-30"
+                style={{
+                   transform: `translateX(${-offset/2}px) rotate(${offset > 0 ? '-15deg' : '15deg'})`
+                }}
+              >
+                <div className="w-2 h-2 rounded-full bg-sky-900" />
+                <div className="w-2 h-2 rounded-full bg-sky-900" />
+                <div className="w-2 h-2 rounded-full bg-sky-900" />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void }) {
+  const getGradient = (color: string) => {
+    switch (color) {
+      case 'green': return 'from-green-400 to-green-600';
+      case 'blue': return 'from-blue-400 to-blue-600';
+      case 'amber': return 'from-amber-400 to-amber-600';
+      case 'indigo': return 'from-indigo-400 to-indigo-600';
+      case 'red': return 'from-red-400 to-red-600';
+      case 'violet': return 'from-violet-400 to-violet-600';
+      default: return 'from-sky-400 to-sky-600';
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="max-w-4xl mx-auto space-y-8"
+    >
+      <header className="flex items-center gap-6">
+        <button 
+          onClick={onBack}
+          className="p-3 rounded-full aero-glass hover:bg-white/60 transition-all text-sky-900"
+        >
+          <ArrowLeft />
+        </button>
+        <div>
+          <h2 className="text-4xl font-black text-sky-950 tracking-tighter">{unit.title}</h2>
+          <p className="text-sky-800/60 font-bold uppercase text-xs tracking-widest">{unit.description}</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-8">
+          <AeroCard title="Explicación">
+            <div className="flex gap-4">
+              <div className="p-3 rounded-2xl bg-amber-100 text-amber-600 h-fit">
+                <Lightbulb size={24} />
+              </div>
+              <div className="space-y-4">
+                <p className="text-lg text-sky-900 font-medium leading-relaxed">
+                  {unit.explanation}
+                </p>
+                <div className="bg-sky-50/50 p-6 rounded-3xl border border-sky-100">
+                  <h4 className="text-sm font-black text-sky-900 mb-4 flex items-center gap-2">
+                    <Book className="text-sky-500" size={16} /> Conceptos Clave
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    {unit.meanings.map((m: any, i: number) => (
+                      <div key={i} className="flex gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-2 shrink-0" />
+                        <div>
+                          <strong className="text-sky-950 block">{m.term}</strong>
+                          <span className="text-sm text-sky-800/70">{m.definition}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AeroCard>
+
+          <AeroCard title="Significados Rápidos">
+             <div className="flex flex-wrap gap-3">
+                {unit.meanings.map((m: any, i: number) => (
+                   <div key={i} className="px-4 py-2 rounded-2xl bg-white/40 border border-white/60 shadow-sm flex items-center gap-2 group hover:bg-white transition-colors">
+                      <CheckCircle2 className="text-green-500" size={16} />
+                      <span className="text-sm font-bold text-sky-900">{m.term}</span>
+                   </div>
+                ))}
+             </div>
+          </AeroCard>
+        </div>
+
+        <div className="space-y-6">
+          <AeroCard className={`bg-gradient-to-br ${getGradient(color)} text-white border-0 shadow-2xl`}>
+             <div className="space-y-6 flex flex-col items-center text-center">
+                <div className="p-4 rounded-3xl bg-white/20 border border-white/30">
+                  <HelpCircle size={48} />
+                </div>
+                <div className="space-y-2">
+                   <h3 className="text-2xl font-black">¿Listo para practicar?</h3>
+                   <p className="text-white/80 font-medium text-sm">Pon a prueba lo aprendido con los ejercicios interactivos de esta unidad.</p>
+                </div>
+                <GlossyButton 
+                  onClick={onStartExercise}
+                  className="w-full bg-white text-sky-900 py-4 font-black shadow-xl"
+                >
+                  EMPEZAR EJERCICIOS
+                </GlossyButton>
+             </div>
+          </AeroCard>
+
+          <AeroCard title="Tips Pro">
+             <ul className="space-y-3 text-sm font-medium text-sky-900/70">
+                <li className="flex gap-2">✨ Repasa los conceptos antes de empezar.</li>
+                <li className="flex gap-2">✨ Presta atención a las definiciones en negrita.</li>
+                <li className="flex gap-2">✨ Si fallas, ¡no te preocupes! Puedes reintentar.</li>
+             </ul>
+          </AeroCard>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
