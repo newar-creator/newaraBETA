@@ -64,6 +64,11 @@ export default function App() {
     setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions });
   };
 
+  const handleSubjectClick = (subject: Subject) => {
+    setSelectedSubject(subject);
+    setCurrentView('subject');
+  };
+
   const getIcon = (name: string, size = 20) => {
     switch (name) {
       case 'Leaf': return <Leaf size={size} />;
@@ -356,15 +361,14 @@ export default function App() {
                     {selectedSubject.id === 'geografia' && (
                        <GlossyButton 
                         onClick={() => setShowGeoGuide(true)}
-                        className="w-full py-8 text-xl flex-col gap-1 border-4 border-white/40"
+                        className="w-full py-3 text-sm gap-2 border-2 border-white/40"
                        >
-                         <div className="flex items-center gap-3">📖 GUÍA VISUAL</div>
-                         <p className="text-[10px] opacity-60 font-black">CONTENIDO DEL ARCHIVO .HTML</p>
+                         <div className="flex items-center gap-2">📖 Guía Visual <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
                        </GlossyButton>
                     )}
                     
-                    <GlossyButton className="w-full py-4 text-lg opacity-40 grayscale" disabled>
-                      <BookOpen size={20} /> Ver Programas
+                    <GlossyButton className="w-full py-3 text-sm opacity-40 grayscale" disabled>
+                      <BookOpen size={16} /> Ver Programas
                     </GlossyButton>
                   </div>
                 </div>
