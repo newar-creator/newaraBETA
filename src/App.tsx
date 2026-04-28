@@ -20,7 +20,9 @@ import {
   ClipboardCheck, 
   Home,
   ChevronRight,
-  User
+  User,
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
@@ -130,14 +132,22 @@ export default function App() {
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra */}
-        <div className="mb-4 flex flex-col items-center gap-1">
+        <div className="mb-4 flex flex-col items-center gap-2">
           <div 
-            className="font-logo text-3xl font-bold tracking-tighter flex items-baseline select-none"
+            className="font-logo text-3xl font-bold tracking-tighter flex items-baseline select-none relative"
             style={{ textShadow: '0 2px 4px rgba(255,255,255,0.8)' }}
           >
             <span className="text-[#1a2b4b]">New</span>
             <span className="bg-gradient-to-r from-[#00ff00] to-[#00f2ff] bg-clip-text text-transparent">Ara</span>
           </div>
+          
+          {/* Version Badge */}
+          <div className="px-3 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center">
+            <span className="font-logo text-[10px] font-bold text-gray-800 tracking-wider flex items-center gap-1">
+              BETA 2.4
+            </span>
+          </div>
+
           <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-20" />
         </div>
 
@@ -208,21 +218,30 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AeroCard title="Resumen del Día">
+                <AeroCard title="Estado NewAra">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-white/30 rounded-2xl border border-white/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white"><Leaf size={16} /></div>
-                        <span className="font-bold text-sky-900">Biología</span>
+                    <div className="p-4 rounded-2xl bg-white/40 border border-white/60 shadow-inner">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="text-amber-500" size={16} />
+                        <span className="text-xs font-bold text-sky-950 uppercase">Progreso Global</span>
                       </div>
-                      <span className="text-xs bg-white py-1 px-2 rounded-full font-bold shadow-sm">14:00 - 15:30</span>
+                      <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden border border-white/20">
+                        <div className="h-full bg-gradient-to-r from-blue-400 to-green-400 w-[65%] shadow-[0_0_10px_rgba(59,130,246,0.2)]"></div>
+                      </div>
+                      <div className="flex justify-between mt-2">
+                        <p className="text-[10px] text-sky-800/60 font-bold uppercase">Nivel 4</p>
+                        <p className="text-[10px] text-sky-800/60 font-bold uppercase">65%</p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-white/30 rounded-2xl border border-white/50 opacity-60">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"><Globe size={16} /></div>
-                        <span className="font-bold text-sky-900">Geografía</span>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-white/20 rounded-2xl border border-white/30 hover:bg-white/40 transition-colors cursor-pointer group">
+                      <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                        <TrendingUp size={16} />
                       </div>
-                      <span className="text-xs bg-white py-1 px-2 rounded-full font-bold shadow-sm">15:45 - 17:00</span>
+                      <div className="flex-1">
+                        <p className="text-[10px] font-black text-indigo-900/40 uppercase leading-none">Próxima Sugerencia</p>
+                        <p className="text-xs font-bold text-sky-950">Repasar Unidad 2 de Biología</p>
+                      </div>
                     </div>
                   </div>
                 </AeroCard>
