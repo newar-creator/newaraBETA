@@ -45,139 +45,188 @@ export const MathGuide: React.FC<MathGuideProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12">
-          {/* Section 1: Operaciones */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-3 border-b-2 border-violet-100 pb-2">
-              <span className="text-2xl">➕</span>
-              <h3 className="text-xl font-black text-violet-900">Operaciones y Propiedades</h3>
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12 bg-white/20">
+          
+          {/* Hero Illustration Section */}
+          <div className="relative h-48 rounded-[2.5rem] overflow-hidden group shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-indigo-500 to-violet-600 animate-gradient-xy"></div>
+            {/* Animated Bubbles inside Hero */}
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-4 left-10 w-20 h-20 bg-white rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-10 right-20 w-32 h-32 bg-white rounded-full blur-2xl animate-pulse delay-700"></div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-5 rounded-3xl bg-violet-50 border border-violet-100 shadow-sm">
-                <h4 className="font-black text-violet-800 mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-violet-200 flex items-center justify-center text-xs">1</span>
-                  Suma o Adición
-                </h4>
-                <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                  <li className="flex justify-between"><span>• Conmutativa:</span> <code className="bg-white px-2 rounded font-bold">a + b = b + a</code></li>
-                  <li className="flex justify-between"><span>• Asociativa:</span> <code className="bg-white px-2 rounded font-bold">(a+b)+c = a+(b+c)</code></li>
-                  <li className="flex justify-between"><span>• Elemento Neutro (0):</span> <code className="bg-white px-2 rounded font-bold">a + 0 = a</code></li>
-                </ul>
+            <div className="relative h-full flex items-center justify-between px-10">
+              <div className="max-w-md">
+                <h3 className="text-4xl font-black text-white drop-shadow-lg mb-2">¡Mundo Natural!</h3>
+                <p className="text-white/80 font-bold text-sm">Explora las bases de toda la matemática moderna con estilo NewAra.</p>
               </div>
-
-              <div className="p-5 rounded-3xl bg-indigo-50 border border-indigo-100 shadow-sm">
-                <h4 className="font-black text-indigo-800 mb-3 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-indigo-200 flex items-center justify-center text-xs">2</span>
-                  Multiplicación
-                </h4>
-                <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                  <li className="flex justify-between"><span>• Conmutativa:</span> <code className="bg-white px-2 rounded font-bold">a · b = b · a</code></li>
-                  <li className="flex justify-between"><span>• Elemento Neutro (1):</span> <code className="bg-white px-2 rounded font-bold">a · 1 = a</code></li>
-                  <li className="flex justify-between"><span>• Distributiva:</span> <code className="bg-white px-2 rounded font-bold">a·(b+c) = a·b + a·c</code></li>
-                </ul>
+              <div className="hidden md:flex gap-4">
+                {['0', '1', '2', '3'].map((n, idx) => (
+                  <motion.div 
+                    key={n}
+                    animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                    transition={{ duration: 3, delay: idx * 0.5, repeat: Infinity }}
+                    className="w-16 h-16 bg-white/30 backdrop-blur-xl border border-white/40 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-2xl"
+                  >
+                    {n}
+                  </motion.div>
+                ))}
               </div>
             </div>
-          </section>
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/20 to-transparent"></div>
+          </div>
 
-          {/* Section 2: Division */}
+          {/* Section 1: Operaciones */}
           <section className="space-y-6">
-            <div className="flex items-center gap-3 border-b-2 border-sky-100 pb-2">
-              <span className="text-2xl">➗</span>
-              <h3 className="text-xl font-black text-sky-900">La División</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 shadow-lg flex items-center justify-center text-2xl text-white">➕</div>
+              <h3 className="text-2xl font-black text-violet-900 drop-shadow-sm">Operaciones y Propiedades</h3>
             </div>
-            <div className="bg-sky-50 p-6 rounded-[2rem] border border-sky-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">D = d·c+r</div>
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="text-center p-4 bg-white rounded-2xl shadow-inner border border-sky-100">
-                  <div className="text-3xl font-black text-sky-600 mb-1">D = d · c + r</div>
-                  <p className="text-[10px] uppercase font-black text-slate-400">Algoritmo de la División</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4 flex-1">
-                  <div className="flex flex-col"><span className="text-[10px] uppercase font-black opacity-40">Dividendo (D)</span><span className="font-bold">Total a repartir</span></div>
-                  <div className="flex flex-col"><span className="text-[10px] uppercase font-black opacity-40">Divisor (d)</span><span className="font-bold">Partes a hacer</span></div>
-                  <div className="flex flex-col"><span className="text-[10px] uppercase font-black opacity-40">Cociente (c)</span><span className="font-bold">Cantidad por parte</span></div>
-                  <div className="flex flex-col"><span className="text-[10px] uppercase font-black opacity-40">Resto (r)</span><span className="font-bold">Lo que sobra</span></div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-violet-400 to-indigo-400 rounded-[2rem] blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative p-6 rounded-[2rem] bg-white border border-white/50 shadow-sm">
+                  <h4 className="font-black text-violet-800 mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center text-sm">Σ</span>
+                    Suma o Adición
+                  </h4>
+                  <div className="space-y-4">
+                    <PropertyItem title="Conmutativa" formula="a + b = b + a" example="13 + 19 = 19 + 13" color="violet" />
+                    <PropertyItem title="Asociativa" formula="(a+b)+c = a+(b+c)" example="(1+2)+3 = 1+(2+3)" color="violet" />
+                    <PropertyItem title="Elemento Neutro" formula="a + 0 = a" example="7 + 0 = 7" color="violet" />
+                  </div>
                 </div>
               </div>
+
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-400 to-blue-400 rounded-[2rem] blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative p-6 rounded-[2rem] bg-white border border-white/50 shadow-sm">
+                  <h4 className="font-black text-indigo-800 mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-sm">Π</span>
+                    Multiplicación
+                  </h4>
+                  <div className="space-y-4">
+                    <PropertyItem title="Conmutativa" formula="a · b = b · a" example="5 · 4 = 4 · 5" color="indigo" />
+                    <PropertyItem title="Elemento Neutro" formula="a · 1 = a" example="12 · 1 = 12" color="indigo" />
+                    <PropertyItem title="Distributiva" formula="a·(b+c) = a·b + a·c" example="2·(3+4) = 2·3+2·4" color="indigo" />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Section 3: Potencias */}
+          {/* Section 2: Division - Visual Diagram */}
           <section className="space-y-6">
-            <div className="flex items-center gap-3 border-b-2 border-emerald-100 pb-2">
-              <span className="text-2xl">⚡</span>
-              <h3 className="text-xl font-black text-emerald-900">Potencias y Prioridades</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 shadow-lg flex items-center justify-center text-2xl text-white">➗</div>
+              <h3 className="text-2xl font-black text-sky-900 drop-shadow-sm">El Diagrama de la División</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase text-slate-400">Propiedades Clave</h4>
-                  <div className="p-4 rounded-2xl bg-white border border-emerald-100 flex items-center justify-between shadow-sm">
-                    <span className="text-sm font-bold">Igual base (Multiplicar)</span>
-                    <code className="bg-emerald-50 px-2 py-1 rounded text-emerald-700 font-bold">aⁿ · aᵐ = aⁿ⁺ᵐ</code>
+            
+            <div className="bg-sky-50/50 p-10 rounded-[3rem] border-2 border-white shadow-inner relative overflow-hidden flex flex-col items-center">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-sky-200 rounded-full blur-3xl opacity-30"></div>
+              
+              <div className="grid grid-cols-2 gap-4 max-w-lg w-full relative">
+                {/* Dividend */}
+                <div className="col-span-1 p-6 rounded-3xl bg-white shadow-lg border border-sky-100 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                  <span className="text-4xl font-black text-sky-600 mb-2">D</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">Dividendo</span>
+                </div>
+                {/* Divisor */}
+                <div className="col-span-1 p-6 rounded-3xl bg-white shadow-lg border border-sky-100 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                  <span className="text-4xl font-black text-sky-400 mb-2">d</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">Divisor</span>
+                </div>
+                {/* Cociente */}
+                <div className="col-span-1 p-6 rounded-3xl bg-white shadow-lg border border-sky-100 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                  <span className="text-4xl font-black text-sky-800 mb-2">c</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">Cociente</span>
+                </div>
+                {/* Resto */}
+                <div className="col-span-1 p-6 rounded-3xl bg-white shadow-lg border border-sky-100 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                  <span className="text-4xl font-black text-rose-500 mb-2">r</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">Resto</span>
+                </div>
+
+                {/* Formula Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-white/90 backdrop-blur-md px-6 py-2 rounded-full border border-sky-200 shadow-2xl text-xl font-black text-sky-900 border-b-4 border-b-sky-300">
+                    D = d · c + r
                   </div>
-                  <div className="p-4 rounded-2xl bg-white border border-emerald-100 flex items-center justify-between shadow-sm">
-                    <span className="text-sm font-bold">Igual base (Dividir)</span>
-                    <code className="bg-emerald-50 px-2 py-1 rounded text-emerald-700 font-bold">aⁿ : aᵐ = aⁿ⁻ᵐ</code>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white border border-emerald-100 flex items-center justify-between shadow-sm">
-                    <span className="text-sm font-bold">Base con exponente 0</span>
-                    <code className="bg-emerald-50 px-2 py-1 rounded text-emerald-700 font-bold">a⁰ = 1</code>
-                  </div>
-               </div>
-               <div className="p-6 rounded-[2rem] bg-amber-50 border border-amber-100">
-                  <h4 className="text-xs font-black uppercase text-amber-700 mb-4">Orden de Prioridad</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-md">1</div>
-                      <span className="font-bold text-amber-900">Paréntesis</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs font-bold shadow-md">2</div>
-                      <span className="font-bold text-amber-900">Potencias y Raíces</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-amber-300 text-white flex items-center justify-center text-xs font-bold shadow-md">3</div>
-                      <span className="font-bold text-amber-900">Multiplicación y División</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-amber-200 text-white flex items-center justify-center text-xs font-bold shadow-md">4</div>
-                      <span className="font-bold text-amber-900">Suma y Resta</span>
-                    </div>
-                  </div>
-               </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Section 4: Criterios de Divisibilidad */}
+          {/* Section 4: Criterios de Divisibilidad - Image-like cards */}
           <section className="space-y-6">
-            <div className="flex items-center gap-3 border-b-2 border-rose-100 pb-2">
-              <span className="text-2xl">📏</span>
-              <h3 className="text-xl font-black text-rose-900">Criterios de Divisibilidad</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-lg flex items-center justify-center text-2xl text-white">📏</div>
+              <h3 className="text-2xl font-black text-rose-900 drop-shadow-sm">Flashcards de Divisibilidad</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <DivisibilityCard num="2" rule="Termina en 0 o cifra par" />
-              <DivisibilityCard num="3" rule="Suma de cifras es múltiplo de 3" />
-              <DivisibilityCard num="5" rule="Termina en 0 o 5" />
-              <DivisibilityCard num="9" rule="Suma de cifras es múltiplo de 9" />
-              <DivisibilityCard num="10" rule="Termina en 0" />
-              <DivisibilityCard num="4" rule="Últimas dos cifras son 00 o múltiplo de 4" />
-              <DivisibilityCard num="6" rule="Divisible por 2 y 3 a la vez" />
-              <DivisibilityCard num="8" rule="Últimas tres cifras son 000 o múltiplo de 8" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <ModernDivCard num="2" rule="Pares" desc="Termina en 0, 2, 4, 6 u 8" color="rose" />
+              <ModernDivCard num="3" rule="Sumas" desc="Suma de cifras da múltiplo de 3" color="orange" />
+              <ModernDivCard num="5" rule="Ceros" desc="Termina en 0 o 5" color="emerald" />
+              <ModernDivCard num="9" rule="Nueves" desc="Suma de cifras da múltiplo de 9" color="blue" />
             </div>
           </section>
         </div>
 
         {/* Footer */}
         <div className="p-4 bg-white/50 border-t border-white/20 backdrop-blur-md flex justify-center sticky bottom-0">
-          <GlossyButton onClick={onClose} className="px-12 py-3 rounded-full">
-            ENTENDIDO
+          <GlossyButton onClick={onClose} className="px-12 py-3 rounded-full shadow-xl">
+            ENTENDIDO, ¡A ESTUDIAR!
           </GlossyButton>
         </div>
       </motion.div>
     </motion.div>
   );
 };
+
+function PropertyItem({ title, formula, example, color }: { title: string, formula: string, example: string, color: string }) {
+  const colorClasses = {
+    violet: 'bg-violet-50 text-violet-700',
+    indigo: 'bg-indigo-50 text-indigo-700',
+  }[color as 'violet' | 'indigo'];
+
+  return (
+    <div className={`p-4 rounded-2xl ${colorClasses} border border-black/5 flex flex-col gap-1`}>
+      <div className="flex justify-between items-center">
+        <span className="text-xs font-black uppercase opacity-60">{title}</span>
+        <code className="bg-white/60 px-2 py-0.5 rounded font-black text-[10px]">{formula}</code>
+      </div>
+      <p className="text-xs font-bold mt-1">Ej: {example}</p>
+    </div>
+  );
+}
+
+function ModernDivCard({ num, rule, desc, color }: { num: string, rule: string, desc: string, color: string }) {
+  const colors: Record<string, string> = {
+    rose: 'from-rose-400 to-rose-600 shadow-rose-200',
+    orange: 'from-orange-400 to-orange-600 shadow-orange-200',
+    emerald: 'from-emerald-400 to-emerald-600 shadow-emerald-200',
+    blue: 'from-blue-400 to-blue-600 shadow-blue-200',
+  };
+
+  return (
+    <motion.div 
+      whileHover={{ y: -5, scale: 1.02 }}
+      className="relative aspect-[4/5] rounded-[2.5rem] bg-white border border-white shadow-xl overflow-hidden group cursor-help"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${colors[color]} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+      <div className="absolute top-4 left-4 w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center font-black text-2xl text-slate-800">
+        {num}
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col gap-1">
+        <span className="text-[10px] font-black uppercase opacity-40">Regla</span>
+        <h4 className="text-lg font-black text-slate-800 leading-tight">{rule}</h4>
+        <p className="text-[10px] font-bold text-slate-500 leading-tight mt-1">{desc}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 function DivisibilityCard({ num, rule }: { num: string, rule: string }) {
   return (
