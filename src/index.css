@@ -12,7 +12,6 @@
 
 @layer base {
   body {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
     @apply min-h-screen text-slate-800 antialiased;
   }
 }
@@ -51,6 +50,24 @@
       rgba(255,255,255,0.4) 0%, 
       rgba(255,255,255,0) 50%
     );
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(76, 165, 255, 0.4) rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(76, 165, 255, 0.4);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 }
 

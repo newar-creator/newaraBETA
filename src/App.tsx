@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
 import { GeographyGuide } from './components/GeographyGuide';
+import { BubbleBackground } from './components/BubbleBackground';
 
 type View = 'home' | 'subject' | 'schedule' | 'exam';
 
@@ -36,7 +37,19 @@ export default function App() {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number} | null>(null);
-  const [exerciseState, setExerciseState] = useState({ score: 0, finished: false, shuffled: [] as any[] });
+  const [exerciseState, setExerciseState] = useState({ 
+    score: 0, 
+    finished: false, 
+    shuffled: [] as any[],
+    userAnswers: [] as {
+      question: string;
+      selected: number;
+      correct: number;
+      isCorrect: boolean;
+      options: string[];
+    }[]
+  });
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showGeoGuide, setShowGeoGuide] = useState(false);
 
   const shuffleArray = (array: any[]) => {
@@ -63,7 +76,41 @@ export default function App() {
     });
 
     setActiveExercise({ unitIndex, subjectId: selectedSubject.id, currentQuestion: 0 });
-    setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions });
+    setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions, userAnswers: [] });
+    setSelectedAnswer(null);
+  };
+
+  const handleExerciseAnswer = (index: number) => {
+    if (selectedAnswer !== null || !activeExercise) return;
+    
+    setSelectedAnswer(index);
+    const currentQ = exerciseState.shuffled[activeExercise.currentQuestion];
+    const isCorrect = index === currentQ.correct;
+    const newScore = isCorrect ? exerciseState.score + 1 : exerciseState.score;
+    
+    const answerLog = {
+      question: currentQ.question,
+      selected: index,
+      correct: currentQ.correct,
+      isCorrect,
+      options: currentQ.options
+    };
+
+    setExerciseState(prev => ({
+      ...prev,
+      score: newScore,
+      userAnswers: [...prev.userAnswers, answerLog]
+    }));
+
+    // Short delay for feedback visibility
+    setTimeout(() => {
+      setSelectedAnswer(null);
+      if (activeExercise.currentQuestion < exerciseState.shuffled.length - 1) {
+        setActiveExercise({ ...activeExercise, currentQuestion: activeExercise.currentQuestion + 1 });
+      } else {
+        setExerciseState(prev => ({ ...prev, finished: true }));
+      }
+    }, 1000);
   };
 
   const handleSubjectClick = (subject: Subject) => {
@@ -126,7 +173,8 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans">
+    <div className="flex h-screen overflow-hidden font-sans relative">
+      <BubbleBackground />
       {/* Sidebar - Navigation Rail */}
       <nav className="w-20 md:w-64 aero-glass m-4 rounded-3xl flex flex-col items-center py-8 gap-6 border shadow-2xl relative">
         <div className="glossy-overlay opacity-20 pointer-events-none" />
@@ -577,26 +625,33 @@ export default function App() {
                         {exerciseState.shuffled[activeExercise.currentQuestion].question}
                       </p>
                       <div className="grid grid-cols-1 gap-3">
-                        {exerciseState.shuffled[activeExercise.currentQuestion].options.map((opt: string, i: number) => (
-                          <button 
-                            key={i}
-                            onClick={() => {
-                              const isCorrect = i === exerciseState.shuffled[activeExercise.currentQuestion].correct;
-                              const newScore = isCorrect ? exerciseState.score + 1 : exerciseState.score;
-                              
-                              if (activeExercise.currentQuestion < exerciseState.shuffled.length - 1) {
-                                setActiveExercise({ ...activeExercise, currentQuestion: activeExercise.currentQuestion + 1 });
-                                setExerciseState({ ...exerciseState, score: newScore });
-                              } else {
-                                setExerciseState({ ...exerciseState, score: newScore, finished: true });
-                              }
-                            }}
-                            className="p-4 rounded-2xl text-left font-bold transition-all border-2 bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900 shadow-sm flex items-center justify-between group"
-                          >
-                            <span>{opt}</span>
-                            <div className="w-4 h-4 rounded-full border-2 border-sky-200 group-hover:border-blue-400 transition-colors" />
-                          </button>
-                        ))}
+                        {exerciseState.shuffled[activeExercise.currentQuestion].options.map((opt: string, i: number) => {
+                          const isCorrect = i === exerciseState.shuffled[activeExercise.currentQuestion].correct;
+                          const isSelected = i === selectedAnswer;
+                          
+                          let bgClass = "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
+                          if (selectedAnswer !== null) {
+                            if (isSelected) {
+                              bgClass = isCorrect ? "bg-green-400/60 border-green-400 text-white" : "bg-red-400/60 border-red-400 text-white";
+                            } else if (isCorrect) {
+                              bgClass = "bg-green-400/20 border-green-400/50 text-green-700";
+                            } else {
+                              bgClass = "bg-white/20 border-white/20 opacity-40";
+                            }
+                          }
+
+                          return (
+                            <button 
+                              key={i}
+                              disabled={selectedAnswer !== null}
+                              onClick={() => handleExerciseAnswer(i)}
+                              className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
+                            >
+                              <span>{opt}</span>
+                              <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : 'border-sky-200 group-hover:border-blue-400'}`} />
+                            </button>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   ) : (
@@ -610,6 +665,28 @@ export default function App() {
                           {Math.round((exerciseState.score / exerciseState.shuffled.length) * 100)}%
                         </div>
                       </div>
+                      
+                      <div className="w-full space-y-4 max-h-[40vh] overflow-y-auto px-2 custom-scrollbar">
+                        <h4 className="text-xs font-black text-sky-900/40 uppercase tracking-widest text-center sticky top-0 bg-transparent py-2 backdrop-blur-md">Resumen de Actividades</h4>
+                        {exerciseState.userAnswers.map((ans, idx) => (
+                          <div key={idx} className={`p-4 rounded-2xl border-2 transition-all ${ans.isCorrect ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`}>
+                            <p className="text-xs font-bold text-sky-950 mb-2">{idx + 1}. {ans.question}</p>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="font-black opacity-40 uppercase">Tu respuesta:</span>
+                                <span className={`font-bold ${ans.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{ans.options[ans.selected]}</span>
+                              </div>
+                              {!ans.isCorrect && (
+                                <div className="flex items-center gap-2 text-[10px]">
+                                  <span className="font-black opacity-40 uppercase">Correcta:</span>
+                                  <span className="font-bold text-green-600">{ans.options[ans.correct]}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
                       <div className="text-center">
                         <h3 className="text-2xl font-black text-sky-950">
                           {exerciseState.score === exerciseState.shuffled.length ? '¡Puntaje Perfecto!' : 
