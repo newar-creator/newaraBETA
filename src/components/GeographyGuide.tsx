@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AeroCard } from './AeroUI';
 import { ChevronRight, ChevronLeft, MapPin } from 'lucide-react';
+import { playExternalBubble } from '../lib/sounds';
 
 const FICHAS = [
   {
@@ -48,7 +49,10 @@ export const GeographyGuide: React.FC<{ onClose: () => void }> = ({ onClose }) =
     >
       <div className="max-w-2xl w-full relative">
         <button 
-          onClick={onClose}
+          onClick={() => {
+            playExternalBubble();
+            onClose();
+          }}
           className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center border border-white/30 shadow-xl hover:bg-white/40 z-20"
         >
           ×
@@ -88,7 +92,10 @@ export const GeographyGuide: React.FC<{ onClose: () => void }> = ({ onClose }) =
               <div className="flex justify-between items-center mt-8">
                 <button 
                   disabled={index === 0}
-                  onClick={() => setIndex(i => i - 1)}
+                  onClick={() => {
+                    playExternalBubble();
+                    setIndex(i => i - 1);
+                  }}
                   className="p-4 rounded-full bg-white/40 disabled:opacity-20 hover:bg-white/60 transition-all"
                 >
                   <ChevronLeft />
@@ -100,7 +107,10 @@ export const GeographyGuide: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 </div>
                 <button 
                   disabled={index === FICHAS.length - 1}
-                  onClick={() => setIndex(i => i + 1)}
+                  onClick={() => {
+                    playExternalBubble();
+                    setIndex(i => i + 1);
+                  }}
                   className="p-4 rounded-full bg-white/40 disabled:opacity-20 hover:bg-white/60 transition-all"
                 >
                   <ChevronRight />

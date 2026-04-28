@@ -164,6 +164,7 @@ export default function App() {
   ];
 
   const handleAnswer = (index: number) => {
+    playExternalBubble();
     if (index === questions[examState.currentQuestion].r) {
       setExamState(prev => ({ ...prev, score: prev.score + 1 }));
     }
@@ -176,6 +177,7 @@ export default function App() {
   };
 
   const resetExam = () => {
+    playExternalBubble();
     setExamState({ active: true, currentQuestion: 0, score: 0, finished: false });
     setCurrentView('exam');
   };
@@ -421,7 +423,12 @@ export default function App() {
                                       >
                                         EJERCICIOS
                                       </GlossyButton>
-                                      <button className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1 rounded-full font-bold text-blue-600 uppercase transition-all">Ver Más</button>
+                                      <button 
+                                        onClick={() => playExternalBubble()}
+                                        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1 rounded-full font-bold text-blue-600 uppercase transition-all"
+                                      >
+                                        Ver Más
+                                      </button>
                                     </div>
                                   </motion.div>
                                 )}
@@ -585,7 +592,15 @@ export default function App() {
                         </div>
                         <div className="flex gap-4">
                            <GlossyButton onClick={resetExam}>Reintentar</GlossyButton>
-                           <button onClick={() => setCurrentView('home')} className="text-sky-950 font-bold hover:underline">Volver al Inicio</button>
+                           <button 
+                             onClick={() => {
+                               playExternalBubble();
+                               setCurrentView('home');
+                             }} 
+                             className="text-sky-950 font-bold hover:underline"
+                           >
+                             Volver al Inicio
+                           </button>
                         </div>
                       </motion.div>
                     )}
