@@ -190,14 +190,14 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans relative">
+    <div className="flex h-screen overflow-hidden font-sans relative flex-col md:flex-row">
       <BubbleBackground />
-      {/* Sidebar - Navigation Rail */}
-      <nav className="w-20 md:w-64 aero-glass m-4 rounded-3xl flex flex-col items-center py-8 gap-6 border shadow-2xl relative">
+      {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
+      <nav className="fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40">
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
-        {/* LOGO NewAra */}
-        <div className="mb-4 flex flex-col items-center gap-2">
+        {/* LOGO NewAra - Hidden on Mobile to save space */}
+        <div className="hidden md:flex flex-col items-center gap-2 mb-4">
           <div 
             className="font-logo text-3xl font-bold tracking-tighter flex items-baseline select-none relative"
             style={{ textShadow: '0 2px 4px rgba(255,255,255,0.8)' }}
@@ -216,36 +216,36 @@ export default function App() {
           <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-20" />
         </div>
 
-        <div className="flex flex-col items-center gap-2 mb-4">
+        <div className="hidden md:flex flex-col items-center gap-2 mb-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-sky-600 shadow-inner flex items-center justify-center text-white ring-4 ring-white/30">
             <User size={24} />
           </div>
           <span className="hidden md:block text-xs font-bold text-sky-900/60 uppercase tracking-widest">Estudiante</span>
         </div>
 
-        <div className="flex-1 w-full px-4 overflow-y-auto custom-scrollbar flex flex-col gap-8">
-          <div className="flex flex-col gap-4 w-full">
+        <div className="flex-1 w-full md:px-4 md:overflow-y-auto md:custom-scrollbar flex md:flex-col flex-row justify-around md:justify-start items-center gap-1 md:gap-8">
+          <div className="flex md:flex-col flex-row gap-1 md:gap-4 w-full md:w-full items-center">
             <NavButton 
               active={currentView === 'home'} 
               onClick={() => setCurrentView('home')} 
-              icon={<Home size={24} />} 
+              icon={<Home size={22} />} 
               label="Inicio" 
             />
             <NavButton 
               active={currentView === 'schedule'} 
               onClick={() => setCurrentView('schedule')} 
-              icon={<CalendarIcon size={24} />} 
+              icon={<CalendarIcon size={22} />} 
               label="Horario" 
             />
             <NavButton 
               active={currentView === 'exam'} 
               onClick={() => setCurrentView('exam')} 
-              icon={<ClipboardCheck size={24} />} 
+              icon={<ClipboardCheck size={22} />} 
               label="Examen" 
             />
           </div>
 
-          <div className="flex flex-col gap-2 w-full pb-8">
+          <div className="hidden md:flex flex-col gap-2 w-full pb-8">
             <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">Materias</p>
             {SUBJECTS.map(s => (
               <button 
@@ -260,7 +260,7 @@ export default function App() {
                 <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
                   {getIcon(s.icon, 16)}
                 </div>
-                <span className="hidden md:block text-sm font-semibold text-sky-900">{s.name}</span>
+                <span className="text-sm font-semibold text-sky-900">{s.name}</span>
               </button>
             ))}
           </div>
@@ -268,7 +268,7 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8">
         <AnimatePresence mode="wait">
           {currentView === 'home' && (
             <motion.div 
@@ -278,12 +278,12 @@ export default function App() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-8"
             >
-              <header className="flex flex-col gap-1">
-                <h1 className="text-4xl font-bold text-sky-950 tracking-tight font-logo uppercase">
-                  Inicio
-                </h1>
-                <p className="text-sky-800/60 font-medium">Gestiona tu aprendizaje en <span className="font-logo font-bold text-sky-900">NewAra</span>.</p>
-              </header>
+      <header className="flex flex-col gap-1">
+        <h1 className="text-3xl md:text-4xl font-bold text-sky-950 tracking-tight font-logo uppercase">
+          Inicio
+        </h1>
+        <p className="text-sm md:text-base text-sky-800/60 font-medium">Gestiona tu aprendizaje en <span className="font-logo font-bold text-sky-900">NewAra</span>.</p>
+      </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AeroCard title="Estado NewAra">
@@ -373,15 +373,12 @@ export default function App() {
                exit={{ opacity: 0, scale: 0.9 }}
                className="space-y-6"
              >
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setCurrentView('home')} className="p-3 rounded-full aero-glass hover:bg-white/60 transition-all text-sky-900">
-                    <ChevronRight className="rotate-180" />
-                  </button>
-                  <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 text-white shadow-xl">
-                    {getIcon(selectedSubject.icon, 32)}
-                  </div>
-                  <h1 className="text-5xl font-black text-sky-950 tracking-tighter">{selectedSubject.name}</h1>
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 text-white shadow-xl flex-shrink-0">
+                  {getIcon(selectedSubject.icon, 24)}
                 </div>
+                <h1 className="text-3xl md:text-5xl font-black text-sky-950 tracking-tighter text-center md:text-left">{selectedSubject.name}</h1>
+              </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
@@ -453,8 +450,10 @@ export default function App() {
                  <p className="text-sky-800/60 font-medium">Ciclo Lectivo 2026 - 1º 1ª</p>
                </div>
 
-               <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40">
-                  <table className="w-full text-left border-collapse min-w-[800px]">
+               <div className="space-y-4">
+                 <p className="md:hidden text-[10px] text-sky-800/40 text-center animate-pulse font-black uppercase tracking-widest">↔ Desliza la tabla para ver más</p>
+                 <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                       <tr className="bg-white/30 backdrop-blur-xl">
                         <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 uppercase tracking-tighter w-24">Hora</th>
@@ -478,6 +477,7 @@ export default function App() {
                     </tbody>
                   </table>
                </AeroCard>
+              </div>
 
             </motion.div>
           )}
@@ -577,17 +577,17 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sky-900/40 backdrop-blur-xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-sky-900/40 backdrop-blur-xl"
           >
-            <AeroCard className="max-w-xl w-full border-4 border-white/50 shadow-2xl overflow-visible">
+            <AeroCard className="max-w-xl w-full max-h-[95vh] overflow-y-auto border-4 border-white/50 shadow-2xl">
               <button 
                 onClick={() => setActiveExercise(null)}
-                className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-2xl z-20"
+                className="absolute top-2 right-2 md:-top-4 md:-right-4 w-10 h-10 md:w-12 md:h-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-xl md:text-2xl z-20"
               >
                 ×
               </button>
               
-              <div className="space-y-6 relative z-10">
+              <div className="space-y-6 relative z-10 pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(selectedSubject.color)}`}>
@@ -724,11 +724,11 @@ function NavButton({ active, icon, label, onClick }: { active: boolean, icon: Re
   return (
     <button 
       onClick={handleClick}
-      className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all relative group ${active ? 'bg-white/50 shadow-lg text-blue-600 scale-105 border border-white/50' : 'text-sky-900 hover:bg-white/30'}`}
+      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all relative group ${active ? 'bg-white/50 shadow-lg text-blue-600 scale-105 border border-white/50' : 'text-sky-900 hover:bg-white/30'}`}
     >
       <div className={`${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{icon}</div>
-      <span className={`hidden md:block font-bold transition-all ${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{label}</span>
-      {active && <div className="absolute right-2 w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
+      <span className={`text-[10px] md:text-sm font-bold transition-all ${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{label}</span>
+      {active && <div className="hidden md:block absolute right-2 w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
     </button>
   );
 }
@@ -808,11 +808,12 @@ function UnitButton({ number, title, color, onClick }: { number: number, title: 
 
 function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void }) {
   return (
-    <div className="flex flex-col items-center py-12 gap-16 relative">
+    <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
       {units.map((unit, i) => {
-        // Calculate horizontal offset for a zigzag path
-        const offset = Math.sin(i * 1.2) * 80;
+        // Calculate horizontal offset for a zigzag path - reduced for mobile
+        const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 80;
+        const offset = Math.sin(i * 1.2) * offsetMultiplier;
         
         return (
           <div 
@@ -830,14 +831,14 @@ function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subj
             {/* Connector dots */}
             {i < units.length - 1 && (
               <div 
-                className="absolute left-1/2 -translate-x-1/2 top-24 h-12 flex flex-col gap-2 items-center opacity-30"
+                className="absolute left-1/2 -translate-x-1/2 top-20 md:top-24 h-8 md:h-12 flex flex-col gap-2 items-center opacity-30"
                 style={{
                    transform: `translateX(${-offset/2}px) rotate(${offset > 0 ? '-15deg' : '15deg'})`
                 }}
               >
-                <div className="w-2 h-2 rounded-full bg-sky-900" />
-                <div className="w-2 h-2 rounded-full bg-sky-900" />
-                <div className="w-2 h-2 rounded-full bg-sky-900" />
+                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
+                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
+                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
               </div>
             )}
           </div>
@@ -867,31 +868,31 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
       exit={{ opacity: 0, y: -20 }}
       className="max-w-4xl mx-auto space-y-8"
     >
-      <header className="flex items-center gap-6">
+      <header className="flex items-center gap-4 md:gap-6">
         <button 
           onClick={onBack}
-          className="p-3 rounded-full aero-glass hover:bg-white/60 transition-all text-sky-900"
+          className="p-2 md:p-3 rounded-full aero-glass hover:bg-white/60 transition-all text-sky-900"
         >
-          <ArrowLeft />
+          <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-4xl font-black text-sky-950 tracking-tighter">{unit.title}</h2>
-          <p className="text-sky-800/60 font-bold uppercase text-xs tracking-widest">{unit.description}</p>
+          <h2 className="text-2xl md:text-4xl font-black text-sky-950 tracking-tighter leading-tight">{unit.title}</h2>
+          <p className="text-sky-800/60 font-bold uppercase text-[10px] md:text-xs tracking-widest">{unit.description}</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           <AeroCard title="Explicación">
-            <div className="flex gap-4">
-              <div className="p-3 rounded-2xl bg-amber-100 text-amber-600 h-fit">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="p-3 rounded-2xl bg-amber-100 text-amber-600 w-fit h-fit">
                 <Lightbulb size={24} />
               </div>
               <div className="space-y-4">
-                <p className="text-lg text-sky-900 font-medium leading-relaxed">
+                <p className="text-base md:text-lg text-sky-900 font-medium leading-relaxed">
                   {unit.explanation}
                 </p>
-                <div className="bg-sky-50/50 p-6 rounded-3xl border border-sky-100">
+                <div className="bg-sky-50/50 p-4 md:p-6 rounded-3xl border border-sky-100">
                   <h4 className="text-sm font-black text-sky-900 mb-4 flex items-center gap-2">
                     <Book className="text-sky-500" size={16} /> Conceptos Clave
                   </h4>
