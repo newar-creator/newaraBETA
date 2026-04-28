@@ -240,5 +240,56 @@ export const SUBJECTS: Subject[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'matematica',
+    name: 'Matemática',
+    icon: 'Calculator',
+    color: 'violet',
+    description: 'Exploración de los números naturales, sus operaciones, propiedades y el fascinante mundo de la divisibilidad.',
+    units: [
+      {
+        title: 'Números Naturales y Operaciones',
+        description: 'Definición de números naturales. Propiedades de la suma y multiplicación. División exacta e inexacta.',
+        exercises: [
+          { question: '¿Qué números forman el conjunto de los Naturales (N)?', options: ['N={1,2,3...}', 'N={0,1,2,3...}', 'N={-1,0,1...}', 'N={2,4,6...}'], correct: 1 },
+          { question: '¿Cuál es la propiedad que dice que a+b = b+a?', options: ['Asociativa', 'Distributiva', 'Conmutativa', 'Neutro'], correct: 2 },
+          { question: 'En la división D = d·c + r, ¿qué representa la "D"?', options: ['Divisor', 'Dividendo', 'Cociente', 'Resto'], correct: 1 },
+          { question: '¿Cuál es el elemento neutro de la multiplicación?', options: ['0', '1', '10', '-1'], correct: 1 },
+          { question: '¿Cuándo una división es exacta?', options: ['Cuando el resto es 1', 'Cuando el divisor es 0', 'Cuando el resto es 0', 'Siempre'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Potencias y Orde de Prioridad',
+        description: 'Propiedades de las potencias y el orden correcto para resolver operaciones combinadas.',
+        exercises: [
+          { question: '¿Cuánto es cualquier número (distinto de 0) elevado a la 0?', options: ['0', '1', 'El mismo número', 'Infinito'], correct: 1 },
+          { question: 'Al multiplicar potencias de igual base (aⁿ · aᵐ), los exponentes se:', options: ['Restan', 'Multiplican', 'Suman', 'Dividen'], correct: 2 },
+          { question: 'En operaciones combinadas, ¿qué se debe resolver primero?', options: ['Sumas', 'Potencias', 'Paréntesis', 'Multiplicaciones'], correct: 2 },
+          { question: '¿Cuál es la base en la potencia 3⁴?', options: ['3', '4', '81', '12'], correct: 0 },
+          { question: '¿Cómo se resuelve (a·b)ˣ?', options: ['a+b+x', 'aˣ · bˣ', 'a·b·x', 'aˣ + bˣ'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Divisibilidad y Números Primos',
+        description: 'Múltiplos y divisores. Números primos y compuestos. Descomposición en factores primos.',
+        exercises: [
+          { question: 'Si 26 = 2 · 13, entonces 2 es _____ de 26.', options: ['Múltiplo', 'Divisor', 'Potencia', 'Resultado'], correct: 1 },
+          { question: 'Un número primo es aquel que es divisible solo por:', options: ['2 y 3', 'El mismo y el 1', 'Números pares', 'Cualquier número'], correct: 1 },
+          { question: '¿Cuál de estos es un número primo?', options: ['4', '9', '7', '10'], correct: 2 },
+          { question: '¿A qué llamamos número compuesto?', options: ['Al que tiene solo un divisor', 'Al que tiene divisores distintos de sí mismo y la unidad', 'Al que es par', 'Al que termina en 0'], correct: 1 },
+          { question: 'La descomposición de 90 es 2 · 3² · 5. ¿Qué tipo de factores son 2, 3 y 5?', options: ['Primos', 'Compuestos', 'Pares', 'Impares'], correct: 0 }
+        ]
+      },
+      {
+        title: 'MCD, MCM y Divisibilidad',
+        description: 'Cálculo del Máximo Común Divisor y Mínimo Común Múltiplo. Criterios rápidos de divisibilidad.',
+        exercises: [
+          { question: '¿Cuándo un número es divisible por 3?', options: ['Cuando termina en 3', 'Cuando es par', 'Cuando la suma de sus cifras es múltiplo de 3', 'Cuando termina en 0'], correct: 2 },
+          { question: '¿Qué significa MCD?', options: ['Menor Común Divisor', 'Máximo Común Divisor', 'Mínimo Común Múltiplo', 'Mayor Cifra Disponible'], correct: 1 },
+          { question: 'Un número es divisible por 5 si:', options: ['Es par', 'Termina en 0 o 5', 'La suma de sus cifras es 5', 'Es primo'], correct: 1 }
+        ]
+      }
+    ]
   }
 ];

@@ -15,6 +15,7 @@ import {
   Scroll, 
   ShieldCheck, 
   Languages, 
+  Calculator,
   Calendar as CalendarIcon, 
   BookOpen, 
   ClipboardCheck, 
@@ -28,6 +29,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
 import { GeographyGuide } from './components/GeographyGuide';
+import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { playExternalBubble } from './lib/sounds';
 
@@ -52,6 +54,7 @@ export default function App() {
   });
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showGeoGuide, setShowGeoGuide] = useState(false);
+  const [showMathGuide, setShowMathGuide] = useState(false);
 
   const shuffleArray = (array: any[]) => {
     const newArr = [...array];
@@ -128,6 +131,7 @@ export default function App() {
       case 'Scroll': return <Scroll size={size} />;
       case 'ShieldCheck': return <ShieldCheck size={size} />;
       case 'Languages': return <Languages size={size} />;
+      case 'Calculator': return <Calculator size={size} />;
       default: return <BookOpen size={size} />;
     }
   };
@@ -139,6 +143,7 @@ export default function App() {
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
+      case 'violet': return 'from-violet-400 to-violet-600';
       default: return 'from-sky-400 to-sky-600';
     }
   };
@@ -209,45 +214,47 @@ export default function App() {
           <span className="hidden md:block text-xs font-bold text-sky-900/60 uppercase tracking-widest">Estudiante</span>
         </div>
 
-        <div className="flex flex-col gap-4 w-full px-4">
-          <NavButton 
-            active={currentView === 'home'} 
-            onClick={() => setCurrentView('home')} 
-            icon={<Home size={24} />} 
-            label="Inicio" 
-          />
-          <NavButton 
-            active={currentView === 'schedule'} 
-            onClick={() => setCurrentView('schedule')} 
-            icon={<CalendarIcon size={24} />} 
-            label="Horario" 
-          />
-          <NavButton 
-            active={currentView === 'exam'} 
-            onClick={() => setCurrentView('exam')} 
-            icon={<ClipboardCheck size={24} />} 
-            label="Examen" 
-          />
-        </div>
+        <div className="flex-1 w-full px-4 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+          <div className="flex flex-col gap-4 w-full">
+            <NavButton 
+              active={currentView === 'home'} 
+              onClick={() => setCurrentView('home')} 
+              icon={<Home size={24} />} 
+              label="Inicio" 
+            />
+            <NavButton 
+              active={currentView === 'schedule'} 
+              onClick={() => setCurrentView('schedule')} 
+              icon={<CalendarIcon size={24} />} 
+              label="Horario" 
+            />
+            <NavButton 
+              active={currentView === 'exam'} 
+              onClick={() => setCurrentView('exam')} 
+              icon={<ClipboardCheck size={24} />} 
+              label="Examen" 
+            />
+          </div>
 
-        <div className="mt-auto flex flex-col gap-2 w-full px-4">
-          <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">Materias</p>
-          {SUBJECTS.map(s => (
-            <button 
-              key={s.id}
-              onClick={() => {
-                playExternalBubble();
-                setSelectedSubject(s);
-                setCurrentView('subject');
-              }}
-              className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
-            >
-              <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
-                {getIcon(s.icon, 16)}
-              </div>
-              <span className="hidden md:block text-sm font-semibold text-sky-900">{s.name}</span>
-            </button>
-          ))}
+          <div className="flex flex-col gap-2 w-full pb-8">
+            <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">Materias</p>
+            {SUBJECTS.map(s => (
+              <button 
+                key={s.id}
+                onClick={() => {
+                  playExternalBubble();
+                  setSelectedSubject(s);
+                  setCurrentView('subject');
+                }}
+                className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
+              >
+                <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
+                  {getIcon(s.icon, 16)}
+                </div>
+                <span className="hidden md:block text-sm font-semibold text-sky-900">{s.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </nav>
 
@@ -440,6 +447,15 @@ export default function App() {
                          <div className="flex items-center gap-2">📖 Guía Visual <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
                        </GlossyButton>
                     )}
+
+                    {selectedSubject.id === 'matematica' && (
+                       <GlossyButton 
+                        onClick={() => setShowMathGuide(true)}
+                        className="w-full py-3 text-sm gap-2 border-2 border-white/40"
+                       >
+                         <div className="flex items-center gap-2">🔢 Guía Visual <span className="text-[9px] opacity-50 font-black">(PDF)</span></div>
+                        </GlossyButton>
+                    )}
                     
                     <GlossyButton className="w-full py-3 text-sm opacity-40 grayscale" disabled>
                       <BookOpen size={16} /> Ver Programas
@@ -588,6 +604,7 @@ export default function App() {
       {/* Exercise Overlay */}
       <AnimatePresence>
         {showGeoGuide && <GeographyGuide onClose={() => setShowGeoGuide(false)} />}
+        {showMathGuide && <MathGuide onClose={() => setShowMathGuide(false)} />}
         {activeExercise && selectedSubject && exerciseState.shuffled.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
