@@ -209,7 +209,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-3 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center">
             <span className="font-logo text-[10px] font-bold text-gray-800 tracking-wider flex items-center gap-1">
-              BETA 2.5
+              BETA 2.6
             </span>
           </div>
 
