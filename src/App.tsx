@@ -37,7 +37,7 @@ import { AeroCard, GlossyButton } from './components/AeroUI';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
-import { playExternalBubble } from './lib/sounds';
+import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/sounds';
 
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings';
 
@@ -95,10 +95,16 @@ export default function App() {
   const handleExerciseAnswer = (index: number) => {
     if (selectedAnswer !== null || !activeExercise) return;
     
-    playExternalBubble();
     setSelectedAnswer(index);
     const currentQ = exerciseState.shuffled[activeExercise.currentQuestion];
     const isCorrect = index === currentQ.correct;
+    
+    if (isCorrect) {
+      playSuccessSound();
+    } else {
+      playErrorSound();
+    }
+
     const newScore = isCorrect ? exerciseState.score + 1 : exerciseState.score;
     
     const answerLog = {
@@ -124,6 +130,18 @@ export default function App() {
         setExerciseState(prev => ({ ...prev, finished: true }));
       }
     }, 1000);
+  };
+
+  const handleNextUnit = () => {
+    if (!selectedSubject || selectedUnitIndex === null) return;
+    
+    const nextIndex = selectedUnitIndex + 1;
+    if (nextIndex < selectedSubject.units.length) {
+      playExternalBubble();
+      setSelectedUnitIndex(nextIndex);
+      setActiveExercise(null);
+      setCurrentView('unit-study');
+    }
   };
 
   const handleSubjectClick = (subject: Subject) => {
@@ -173,16 +191,30 @@ export default function App() {
   ];
 
   const handleAnswer = (index: number) => {
-    playExternalBubble();
-    if (index === questions[examState.currentQuestion].r) {
+    if (selectedAnswer !== null) return;
+    
+    setSelectedAnswer(index);
+    const isCorrect = index === questions[examState.currentQuestion].r;
+    
+    if (isCorrect) {
+      playSuccessSound();
+    } else {
+      playErrorSound();
+    }
+
+    if (isCorrect) {
       setExamState(prev => ({ ...prev, score: prev.score + 1 }));
     }
     
-    if (examState.currentQuestion < questions.length - 1) {
-      setExamState(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
-    } else {
-      setExamState(prev => ({ ...prev, finished: true }));
-    }
+    // Add delay for feedback
+    setTimeout(() => {
+      setSelectedAnswer(null);
+      if (examState.currentQuestion < questions.length - 1) {
+        setExamState(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
+      } else {
+        setExamState(prev => ({ ...prev, finished: true }));
+      }
+    }, 1500);
   };
 
   const resetExam = () => {
@@ -211,7 +243,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-3 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center">
             <span className="font-logo text-[10px] font-bold text-gray-800 tracking-wider flex items-center gap-1">
-              BETA 2.6
+              BETA 2.7
             </span>
           </div>
 
@@ -287,7 +319,8 @@ export default function App() {
               key="home"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ duration: 0.4 }}
               className="space-y-8"
             >
       <header className="flex flex-col gap-1">
@@ -425,7 +458,7 @@ export default function App() {
                     </div>
                     <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
                       <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Version</p>
-                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>BETA 2.6 - Frutiger Edition</p>
+                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>BETA 2.7 - Frutiger Edition</p>
                     </div>
                   </div>
                 </AeroCard>
@@ -436,9 +469,10 @@ export default function App() {
           {currentView === 'subject' && selectedSubject && (
              <motion.div 
                key="subject"
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.9 }}
+               initial={{ opacity: 0, scale: 0.8, y: 30 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, x: -100, scale: 0.95 }}
+               transition={{ type: "spring", damping: 25, stiffness: 120 }}
                className="space-y-6"
              >
               <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
@@ -504,6 +538,8 @@ export default function App() {
                onBack={() => setCurrentView('subject')}
                onStartExercise={() => startExercise(selectedUnitIndex)}
                theme={theme}
+               hasNextUnit={selectedUnitIndex < selectedSubject.units.length - 1}
+               onNextUnit={handleNextUnit}
              />
           )}
 
@@ -578,16 +614,41 @@ export default function App() {
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
-                          {questions[examState.currentQuestion].a.map((opt, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => handleAnswer(i)}
-                              className={`p-6 rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900'}`}
-                            >
-                              {opt}
-                              <div className="w-6 h-6 rounded-full border-4 border-white shadow-inner group-hover:bg-blue-400 group-hover:scale-125 transition-all" />
-                            </button>
-                          ))}
+                          {questions[examState.currentQuestion].a.map((opt, i) => {
+                            const isCorrect = i === questions[examState.currentQuestion].r;
+                            const isSelected = i === selectedAnswer;
+                            
+                            let feedbackClass = "";
+                            if (selectedAnswer !== null) {
+                              if (isSelected) {
+                                feedbackClass = isCorrect 
+                                  ? "bg-green-500/80 border-green-400 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]" 
+                                  : "bg-red-500/80 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]";
+                              } else if (isCorrect) {
+                                feedbackClass = "bg-green-500/20 border-green-500 border-2 text-green-500 animate-pulse";
+                              } else {
+                                feedbackClass = "opacity-40 grayscale";
+                              }
+                            }
+
+                            const defaultClass = theme === 'black' 
+                              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
+                              : 'bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900';
+
+                            return (
+                              <motion.button 
+                                key={i} 
+                                disabled={selectedAnswer !== null}
+                                onClick={() => handleAnswer(i)}
+                                animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
+                                transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
+                                className={`p-6 rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${selectedAnswer !== null ? feedbackClass : defaultClass}`}
+                              >
+                                {opt}
+                                <div className={`w-6 h-6 rounded-full border-4 transition-all shadow-inner ${selectedAnswer !== null && isSelected ? 'bg-white scale-125' : 'border-white group-hover:bg-blue-400 group-hover:scale-125'}`} />
+                              </motion.button>
+                            );
+                          })}
                         </div>
 
                         <div className="w-full h-2 bg-sky-100 rounded-full overflow-hidden">
@@ -705,15 +766,17 @@ export default function App() {
                           }
 
                           return (
-                            <button 
+                            <motion.button 
                               key={i}
                               disabled={selectedAnswer !== null}
                               onClick={() => handleExerciseAnswer(i)}
+                              animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
+                              transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
                               className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
                             >
                               <span>{opt}</span>
                               <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')}`} />
-                            </button>
+                            </motion.button>
                           );
                         })}
                       </div>
@@ -758,13 +821,29 @@ export default function App() {
                         </h3>
                         <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Has completado la unidad de estudio.</p>
                       </div>
-                      <div className="flex gap-3">
-                        <GlossyButton onClick={() => startExercise(activeExercise.unitIndex)} className="px-8 flex-1">
+                      <div className="flex gap-3 w-full">
+                        <GlossyButton onClick={() => startExercise(activeExercise.unitIndex)} className="px-4 flex-1 text-sm">
                           Reiniciar
                         </GlossyButton>
-                        <GlossyButton variant="blue" onClick={() => setActiveExercise(null)} className="px-8 flex-1">
-                          Terminar
-                        </GlossyButton>
+                        
+                        {selectedSubject.units[activeExercise.unitIndex + 1] ? (
+                          <GlossyButton variant="blue" onClick={handleNextUnit} className="px-4 flex-1 text-sm bg-gradient-to-b from-green-400 to-green-600">
+                            Siguiente Unidad
+                          </GlossyButton>
+                        ) : (
+                          <GlossyButton variant="blue" onClick={() => setActiveExercise(null)} className="px-4 flex-1 text-sm">
+                            Terminar
+                          </GlossyButton>
+                        )}
+                        
+                        {selectedSubject.units[activeExercise.unitIndex + 1] && (
+                          <button 
+                            onClick={() => setActiveExercise(null)} 
+                            className={`px-4 py-2 text-xs font-bold transition-all ${theme === 'black' ? 'text-white/40 hover:text-white' : 'text-sky-900/40 hover:text-sky-900'}`}
+                          >
+                            Cerrar
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -930,7 +1009,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white' }: { u
   );
 }
 
-function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white' }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black' }) {
+function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', hasNextUnit, onNextUnit }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black', hasNextUnit: boolean, onNextUnit: () => void }) {
   const getGradient = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
@@ -945,9 +1024,10 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white' }
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, x: 100, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -100, scale: 0.95 }}
+      transition={{ type: "spring", damping: 22, stiffness: 100 }}
       className="max-w-4xl mx-auto space-y-8"
     >
       <header className="flex items-center gap-4 md:gap-6">
@@ -1024,6 +1104,18 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white' }
                 </GlossyButton>
              </div>
           </AeroCard>
+
+          {hasNextUnit && (
+            <div className="space-y-3">
+              <p className={`text-[10px] font-black uppercase tracking-[0.2em] text-center ${theme === 'black' ? 'text-white/30' : 'text-sky-900/30'}`}>¿Quieres seguir explorando?</p>
+              <GlossyButton 
+                onClick={onNextUnit}
+                className={`w-full py-4 text-lg shadow-[0_10px_20px_rgba(0,0,0,0.1)] border-2 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${theme === 'black' ? 'bg-blue-600/20 border-blue-400/30 text-white' : 'bg-white border-blue-400 text-blue-600'}`}
+              >
+                Siguiente Unidad <ChevronRight size={20} />
+              </GlossyButton>
+            </div>
+          )}
 
           <AeroCard title="Tips Pro" theme={theme}>
              <ul className={`space-y-3 text-sm font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-900/70'}`}>
