@@ -33,9 +33,36 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
-  const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string} | null>(null);
-  const [exerciseState, setExerciseState] = useState({ score: 0, finished: false });
+  const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number} | null>(null);
+  const [exerciseState, setExerciseState] = useState({ score: 0, finished: false, shuffled: [] as any[] });
   const [showGeoGuide, setShowGeoGuide] = useState(false);
+
+  const shuffleArray = (array: any[]) => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
+
+  const startExercise = (unitIndex: number) => {
+    if (!selectedSubject) return;
+    const unit = selectedSubject.units[unitIndex];
+    // Shuffle questions
+    const randomizedQuestions = shuffleArray(unit.exercises).map(ex => {
+      const originalOptions = ex.options.map((opt, idx) => ({ text: opt, isCorrect: idx === ex.correct }));
+      const shuffledOptions = shuffleArray(originalOptions);
+      return {
+        question: ex.question,
+        options: shuffledOptions.map(o => o.text),
+        correct: shuffledOptions.findIndex(o => o.isCorrect)
+      };
+    });
+
+    setActiveExercise({ unitIndex, subjectId: selectedSubject.id, currentQuestion: 0 });
+    setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions });
+  };
 
   const getIcon = (name: string, size = 20) => {
     switch (name) {
@@ -290,8 +317,7 @@ export default function App() {
                                         variant="green" 
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          setActiveExercise({ unitIndex: i, subjectId: selectedSubject.id });
-                                          setExerciseState({ score: 0, finished: false });
+                                          startExercise(i);
                                         }}
                                         className="text-[10px] py-1 px-4"
                                       >
@@ -472,7 +498,7 @@ export default function App() {
       {/* Exercise Overlay */}
       <AnimatePresence>
         {showGeoGuide && <GeographyGuide onClose={() => setShowGeoGuide(false)} />}
-        {activeExercise && selectedSubject && (
+        {activeExercise && selectedSubject && exerciseState.shuffled.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -488,56 +514,94 @@ export default function App() {
               </button>
               
               <div className="space-y-6 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(selectedSubject.color)}`}>
-                    {getIcon(selectedSubject.icon, 20)}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(selectedSubject.color)}`}>
+                      {getIcon(selectedSubject.icon, 20)}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black text-sky-900 leading-tight">{selectedSubject.units[activeExercise.unitIndex].title}</h2>
+                      <p className="text-[10px] uppercase font-black text-sky-500 tracking-widest">Desafío de Práctica</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-black text-sky-900 leading-tight">{selectedSubject.units[activeExercise.unitIndex].title}</h2>
-                    <p className="text-[10px] uppercase font-black text-sky-500 tracking-widest">Desafío de Práctica</p>
+                  <div className="text-right">
+                    <span className="text-xs font-black text-sky-900/40">{activeExercise.currentQuestion + 1} / {exerciseState.shuffled.length}</span>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {selectedSubject.units[activeExercise.unitIndex].exercises.map((ex, idx) => (
-                    <div key={idx} className="space-y-4">
-                      <p className="text-lg font-bold text-sky-950">{ex.question}</p>
-                      <div className="grid grid-cols-1 gap-2">
-                        {ex.options.map((opt, i) => (
+                <AnimatePresence mode="wait">
+                  {!exerciseState.finished ? (
+                    <motion.div 
+                      key={activeExercise.currentQuestion}
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -20, opacity: 0 }}
+                      className="space-y-6"
+                    >
+                      <p className="text-xl font-bold text-sky-950 leading-snug">
+                        {exerciseState.shuffled[activeExercise.currentQuestion].question}
+                      </p>
+                      <div className="grid grid-cols-1 gap-3">
+                        {exerciseState.shuffled[activeExercise.currentQuestion].options.map((opt: string, i: number) => (
                           <button 
                             key={i}
                             onClick={() => {
-                              if (i === ex.correct) {
-                                setExerciseState({ score: 1, finished: true });
+                              const isCorrect = i === exerciseState.shuffled[activeExercise.currentQuestion].correct;
+                              const newScore = isCorrect ? exerciseState.score + 1 : exerciseState.score;
+                              
+                              if (activeExercise.currentQuestion < exerciseState.shuffled.length - 1) {
+                                setActiveExercise({ ...activeExercise, currentQuestion: activeExercise.currentQuestion + 1 });
+                                setExerciseState({ ...exerciseState, score: newScore });
                               } else {
-                                setExerciseState({ score: 0, finished: true });
+                                setExerciseState({ ...exerciseState, score: newScore, finished: true });
                               }
                             }}
-                            className={`p-4 rounded-2xl text-left font-bold transition-all border-2 flex items-center justify-between group ${exerciseState.finished ? (i === ex.correct ? 'bg-green-100 border-green-400 text-green-700' : 'bg-white/20 border-white/30 opacity-50') : 'bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900 shadow-sm'}`}
+                            className="p-4 rounded-2xl text-left font-bold transition-all border-2 bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900 shadow-sm flex items-center justify-between group"
                           >
-                            {opt}
-                            {exerciseState.finished && i === ex.correct && <span>✅</span>}
+                            <span>{opt}</span>
+                            <div className="w-4 h-4 rounded-full border-2 border-sky-200 group-hover:border-blue-400 transition-colors" />
                           </button>
                         ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="py-6 flex flex-col items-center gap-6"
+                    >
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl ring-8 ring-blue-50">
+                          {Math.round((exerciseState.score / exerciseState.shuffled.length) * 100)}%
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-2xl font-black text-sky-950">
+                          {exerciseState.score === exerciseState.shuffled.length ? '¡Puntaje Perfecto!' : 
+                           exerciseState.score > exerciseState.shuffled.length / 2 ? '¡Buen Trabajo!' : '¡Sigue Practicando!'}
+                        </h3>
+                        <p className="text-sky-800 font-medium">Has completado la unidad de estudio.</p>
+                      </div>
+                      <div className="flex gap-3">
+                        <GlossyButton onClick={() => startExercise(activeExercise.unitIndex)} className="px-8 flex-1">
+                          Reiniciar
+                        </GlossyButton>
+                        <GlossyButton variant="blue" onClick={() => setActiveExercise(null)} className="px-8 flex-1">
+                          Terminar
+                        </GlossyButton>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                {exerciseState.finished && (
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="pt-6 border-t border-white/20 flex flex-col items-center gap-4"
-                  >
-                    <div className="text-center">
-                      <h3 className="text-2xl font-black text-sky-950">{exerciseState.score > 0 ? '¡Excelente!' : '¡Sigue intentando!'}</h3>
-                      <p className="text-sky-800 font-medium">Has completado el ejercicio de práctica.</p>
-                    </div>
-                    <GlossyButton onClick={() => setActiveExercise(null)} className="px-12 py-3 rounded-full">
-                      Cerrar Desafío
-                    </GlossyButton>
-                  </motion.div>
+                {!exerciseState.finished && (
+                  <div className="w-full h-1.5 bg-sky-100 rounded-full overflow-hidden mt-4">
+                    <motion.div 
+                      className="h-full bg-blue-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(activeExercise.currentQuestion / exerciseState.shuffled.length) * 100}%` }}
+                    />
+                  </div>
                 )}
               </div>
             </AeroCard>
