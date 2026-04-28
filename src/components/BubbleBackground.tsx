@@ -13,8 +13,8 @@ const Bubble: React.FC<{
     <motion.div
       initial={{ y: '110vh', opacity: 0, scale: 0 }}
       animate={{
-        y: ['110vh', '-20vh'], // Move upwards across the whole screen
-        x: [0, Math.random() > 0.5 ? 20 : -20, 0], // Sway slightly
+        y: ['110vh', '-20vh'],
+        x: [0, Math.random() > 0.5 ? 20 : -20, 0],
         opacity: [0, 0.4, 0.4, 0],
         scale: [0.5, 1, 1, 0.8],
       }}
@@ -29,37 +29,35 @@ const Bubble: React.FC<{
         left: `${initialX}%`,
         width: size,
         height: size,
-        background: `radial-gradient(circle at 30% 30%, white 0%, transparent 40%), 
-                    radial-gradient(circle at 70% 70%, ${color}66 0%, transparent 60%),
-                    linear-gradient(135deg, ${color}33 0%, ${color}aa 100%)`,
-        boxShadow: `inset -10px -10px 20px rgba(255,255,255,0.5), 
-                    inset 10px 10px 20px rgba(0,0,0,0.15),
-                    0 15px 35px rgba(0,0,0,0.1)`,
-        backdropFilter: 'blur(3px)',
-        border: '1.5px solid rgba(255,255,255,0.4)',
+        background: `radial-gradient(circle at 30% 30%, white 0%, transparent 50%), 
+                    linear-gradient(135deg, ${color}33 0%, ${color}99 100%)`,
+        boxShadow: `inset -5px -5px 15px rgba(255,255,255,0.4), 
+                    inset 5px 5px 15px rgba(0,0,0,0.1),
+                    0 10px 25px rgba(0,0,0,0.05)`,
+        border: '1px solid rgba(255,255,255,0.3)',
+        willChange: 'transform, opacity',
       }}
     >
-      {/* Glossy Reflection overlay */}
       <div 
-        className="absolute top-[10%] left-[15%] w-[40%] h-[20%] bg-white/40 rounded-[100%] rotate-[-35deg]"
-        style={{ filter: 'blur(1px)' }}
+        className="absolute top-[10%] left-[15%] w-[40%] h-[20%] bg-white/30 rounded-[100%] rotate-[-35deg]"
       />
     </motion.div>
   );
 };
 
 export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' }> = ({ theme = 'white' }) => {
-  // Generate a larger set of randomized bubbles
+  // Balanced set of bubbles for performance
   const bubbles = React.useMemo(() => {
-    return Array.from({ length: 15 }).map((_, i) => ({
-      size: 40 + Math.random() * 160,
-      x: Math.random() * 100, // 0 to 100% of width
+    const count = 10; // Reduced from 15 for mobile performance
+    return Array.from({ length: count }).map((_, i) => ({
+      size: 60 + Math.random() * 140,
+      x: Math.random() * 100,
       y: 110,
-      duration: 15 + Math.random() * 20,
+      duration: 18 + Math.random() * 25, // Slower is better for performance
       delay: Math.random() * 10,
       color: theme === 'white' 
-        ? ['#4ca5ff', '#67c23a', '#00f2ff', '#ffec3d'][Math.floor(Math.random() * 4)]
-        : ['#1a2b4b', '#004d40', '#4a148c', '#bf360c'][Math.floor(Math.random() * 4)]
+        ? ['#4ca5ff', '#67c23a', '#00f2ff', '#ffec3d'][i % 4]
+        : ['#1a2b4b', '#004d40', '#4a148c', '#bf360c'][i % 4]
     }));
   }, [theme]);
 

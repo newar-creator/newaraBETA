@@ -561,7 +561,7 @@ export default function App() {
                  <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40" theme={theme}>
                     <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                      <tr className={`backdrop-blur-xl ${theme === 'black' ? 'bg-white/5' : 'bg-white/30'}`}>
+                      <tr className={`backdrop-blur-sm ${theme === 'black' ? 'bg-white/5' : 'bg-white/30'}`}>
                         <th className={`p-4 text-xs font-black border-b border-white/10 uppercase tracking-tighter w-24 ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Hora</th>
                         <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Lunes</th>
                         <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Martes</th>
@@ -694,11 +694,10 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Decorative Bubbles for Frutiger Aero feel */}
-      <div className="fixed -bottom-20 -left-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
-      <div className="fixed -top-20 -right-20 w-96 h-96 bg-green-400/10 rounded-full blur-3xl pointer-events-none -z-10 animate-[pulse_8s_infinite]" />
-      <div className="fixed top-1/2 left-1/4 w-32 h-32 bg-white/30 rounded-full border border-white/50 blur-sm pointer-events-none -z-10 shadow-2xl animate-bounce" style={{ animationDuration: '6s' }} />
-
+      {/* Decorative Bubbles for Frutiger Aero feel - Simplified for performance */}
+      <div className="fixed -bottom-20 -left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-2xl pointer-events-none -z-10" />
+      <div className="fixed -top-20 -right-20 w-72 h-72 bg-green-400/5 rounded-full blur-2xl pointer-events-none -z-10" />
+      
       {/* Exercise Overlay */}
       <AnimatePresence>
         {showGeoGuide && <GeographyGuide onClose={() => setShowGeoGuide(false)} />}
@@ -886,7 +885,7 @@ function NavButton({ active, icon, label, onClick, theme = 'white' }: { active: 
       onClick={handleClick}
       className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all relative group border ${active ? activeClasses : defaultClasses}`}
     >
-      <div className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`}>{icon}</div>
+      <div className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`} style={{ willChange: 'transform' }}>{icon}</div>
       <span className={`text-[10px] md:text-sm font-bold transition-all`}>{label}</span>
       {active && <div className="hidden md:block absolute right-2 w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
     </button>
@@ -912,7 +911,7 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
       {items.map((item, i) => (
         <td key={i} className="p-2 border-l border-white/5">
           {item ? (
-            <div className={`p-2 rounded-xl bg-gradient-to-br ${getColorClasses(colors[i])} text-center shadow-lg backdrop-blur-sm border border-white/20 transform transition-transform hover:scale-105 cursor-default`}>
+            <div className={`p-2 rounded-xl bg-gradient-to-br ${getColorClasses(colors[i])} text-center shadow-lg border border-white/20 transform transition-transform hover:scale-105 cursor-default`} style={{ willChange: 'transform' }}>
               <p className="text-[10px] font-black uppercase tracking-tighter leading-tight">{item}</p>
             </div>
           ) : (

@@ -13,12 +13,17 @@
 @layer base {
   body {
     @apply min-h-screen text-slate-800 antialiased;
+    /* Hardware acceleration hints */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 
 @layer components {
   .aero-glass {
-    @apply bg-white/40 backdrop-blur-md border border-white/50 shadow-xl;
+    /* Use blur-sm instead of md for better mobile performance */
+    @apply bg-white/40 backdrop-blur-sm border border-white/50 shadow-xl;
   }
   
   .aero-glossy {

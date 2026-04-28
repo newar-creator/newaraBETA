@@ -23,6 +23,7 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={`aero-glass rounded-[2rem] p-6 overflow-hidden relative border transition-all duration-500 ${themeClasses} ${className}`}
+      style={{ willChange: 'transform, opacity' }}
     >
       <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
       <div className="glossy-overlay opacity-20" />
