@@ -3,18 +3,18 @@ import React from 'react';
 
 const Bubble = ({ size, initialX, initialY, duration, delay, color }: { 
   size: number; 
-  initialX: string; 
-  initialY: string; 
+  initialX: number; 
+  initialY: number; 
   duration: number; 
   delay: number;
   color: string;
 }) => {
   return (
     <motion.div
-      initial={{ x: initialX, y: initialY, opacity: 0, scale: 0 }}
+      initial={{ y: '110vh', opacity: 0, scale: 0 }}
       animate={{
-        y: [initialY, '-20vh'], // Move upwards
-        x: [initialX, `calc(${initialX} + ${Math.random() > 0.5 ? '' : '-'}${20 + Math.random() * 40}px)`], // Sway
+        y: ['110vh', '-20vh'], // Move upwards across the whole screen
+        x: [0, Math.random() > 0.5 ? 20 : -20, 0], // Sway slightly
         opacity: [0, 0.4, 0.4, 0],
         scale: [0.5, 1, 1, 0.8],
       }}
@@ -22,10 +22,11 @@ const Bubble = ({ size, initialX, initialY, duration, delay, color }: {
         duration: duration,
         repeat: Infinity,
         delay: delay,
-        ease: "easeInOut"
+        ease: "linear"
       }}
       className="absolute rounded-full pointer-events-none overflow-hidden"
       style={{
+        left: `${initialX}%`,
         width: size,
         height: size,
         background: `radial-gradient(circle at 30% 30%, white 0%, transparent 40%), 
@@ -48,17 +49,17 @@ const Bubble = ({ size, initialX, initialY, duration, delay, color }: {
 };
 
 export const BubbleBackground: React.FC = () => {
-  const bubbles = [
-    { size: 120, x: '10%', y: '110%', duration: 15, delay: 0, color: '#4ca5ff' },
-    { size: 80, x: '25%', y: '120%', duration: 12, delay: 2, color: '#67c23a' },
-    { size: 150, x: '45%', y: '115%', duration: 18, delay: 5, color: '#00f2ff' },
-    { size: 60, x: '60%', y: '130%', duration: 10, delay: 1, color: '#4ca5ff' },
-    { size: 200, x: '80%', y: '110%', duration: 25, delay: 8, color: '#67c23a' },
-    { size: 100, x: '90%', y: '125%', duration: 14, delay: 4, color: '#00f2ff' },
-    { size: 130, x: '15%', y: '140%', duration: 20, delay: 7, color: '#4ca5ff' },
-    { size: 70, x: '35%', y: '135%', duration: 11, delay: 3, color: '#67c23a' },
-    { size: 90, x: '70%', y: '120%', duration: 16, delay: 6, color: '#00f2ff' },
-  ];
+  // Generate a larger set of randomized bubbles
+  const bubbles = React.useMemo(() => {
+    return Array.from({ length: 15 }).map((_, i) => ({
+      size: 40 + Math.random() * 160,
+      x: Math.random() * 100, // 0 to 100% of width
+      y: 110,
+      duration: 15 + Math.random() * 20,
+      delay: Math.random() * 10,
+      color: ['#4ca5ff', '#67c23a', '#00f2ff', '#ffec3d'][Math.floor(Math.random() * 4)]
+    }));
+  }, []);
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1] bg-gradient-to-b from-[#e6f3ff] via-[#f0f9ff] to-[#ffffff]">
