@@ -6,25 +6,33 @@ interface AeroCardProps {
   children: React.ReactNode;
   className?: string;
   title?: string;
+  theme?: 'white' | 'black';
 }
 
-export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title }) => {
+export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, theme = 'white' }) => {
+  const themeClasses = theme === 'black' 
+    ? "bg-black/60 border-white/20 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]" 
+    : "bg-white/40 border-t-white/80 border-l-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]";
+
+  const titleClasses = theme === 'black' ? "text-white/90" : "text-sky-900";
+  const contentClasses = theme === 'black' ? "text-white/80" : "text-sky-950";
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className={`aero-glass rounded-[2rem] p-6 overflow-hidden relative border-t-white/80 border-l-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] ${className}`}
+      className={`aero-glass rounded-[2rem] p-6 overflow-hidden relative border transition-all duration-500 ${themeClasses} ${className}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+      <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
       <div className="glossy-overlay opacity-20" />
       {title && (
-        <h3 className="text-xl font-black mb-4 text-sky-900 border-b border-white/20 pb-2 flex items-center gap-2">
+        <h3 className={`text-xl font-black mb-4 ${titleClasses} border-b border-white/10 pb-2 flex items-center gap-2 transition-colors duration-500`}>
           <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
           {title}
         </h3>
       )}
-      <div className="relative z-10 text-sky-950">
+      <div className={`relative z-10 ${contentClasses} transition-colors duration-500`}>
         {children}
       </div>
     </motion.div>

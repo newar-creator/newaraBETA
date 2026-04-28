@@ -28,7 +28,8 @@ import {
   Lightbulb,
   HelpCircle,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
@@ -38,10 +39,11 @@ import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { playExternalBubble } from './lib/sounds';
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
+  const [theme, setTheme] = useState<'white' | 'black'>('white');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
@@ -190,10 +192,10 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans relative flex-col md:flex-row">
-      <BubbleBackground />
+    <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
+      <BubbleBackground theme={theme} />
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40">
+      <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Hidden on Mobile to save space */}
@@ -230,18 +232,28 @@ export default function App() {
               onClick={() => setCurrentView('home')} 
               icon={<Home size={22} />} 
               label="Inicio" 
+              theme={theme}
             />
             <NavButton 
               active={currentView === 'schedule'} 
               onClick={() => setCurrentView('schedule')} 
               icon={<CalendarIcon size={22} />} 
               label="Horario" 
+              theme={theme}
             />
             <NavButton 
               active={currentView === 'exam'} 
               onClick={() => setCurrentView('exam')} 
               icon={<ClipboardCheck size={22} />} 
               label="Examen" 
+              theme={theme}
+            />
+            <NavButton 
+              active={currentView === 'settings'} 
+              onClick={() => setCurrentView('settings')} 
+              icon={<Settings size={22} />} 
+              label="Ajustes" 
+              theme={theme}
             />
           </div>
 
@@ -260,7 +272,7 @@ export default function App() {
                 <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
                   {getIcon(s.icon, 16)}
                 </div>
-                <span className="text-sm font-semibold text-sky-900">{s.name}</span>
+                <span className={`text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
               </button>
             ))}
           </div>
@@ -279,53 +291,53 @@ export default function App() {
               className="space-y-8"
             >
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl md:text-4xl font-bold text-sky-950 tracking-tight font-logo uppercase">
+        <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
           Inicio
         </h1>
-        <p className="text-sm md:text-base text-sky-800/60 font-medium">Gestiona tu aprendizaje en <span className="font-logo font-bold text-sky-900">NewAra</span>.</p>
+        <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Gestiona tu aprendizaje en <span className={`font-logo font-bold transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-900'}`}>NewAra</span>.</p>
       </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AeroCard title="Estado NewAra">
+                <AeroCard title="Estado NewAra" theme={theme}>
                   <div className="space-y-4">
-                    <div className="p-4 rounded-2xl bg-white/40 border border-white/60 shadow-inner">
+                    <div className={`p-4 rounded-2xl border shadow-inner ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60'}`}>
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="text-amber-500" size={16} />
-                        <span className="text-xs font-bold text-sky-950 uppercase">Progreso Global</span>
+                        <span className={`text-xs font-bold uppercase ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}>Progreso Global</span>
                       </div>
-                      <div className="w-full h-3 bg-sky-100 rounded-full overflow-hidden border border-white/20">
+                      <div className="w-full h-3 bg-sky-100/20 rounded-full overflow-hidden border border-white/20">
                         <div className="h-full bg-gradient-to-r from-blue-400 to-green-400 w-[65%] shadow-[0_0_10px_rgba(59,130,246,0.2)]"></div>
                       </div>
                       <div className="flex justify-between mt-2">
-                        <p className="text-[10px] text-sky-800/60 font-bold uppercase">Nivel 4</p>
-                        <p className="text-[10px] text-sky-800/60 font-bold uppercase">65%</p>
+                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>Nivel 4</p>
+                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>65%</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3 p-3 bg-white/20 rounded-2xl border border-white/30 hover:bg-white/40 transition-colors cursor-pointer group">
+                    <div className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors cursor-pointer group ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/20 border-white/30 hover:bg-white/40'}`}>
                       <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
                         <TrendingUp size={16} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-[10px] font-black text-indigo-900/40 uppercase leading-none">Próxima Sugerencia</p>
-                        <p className="text-xs font-bold text-sky-950">Repasar Unidad 2 de Biología</p>
+                        <p className={`text-[10px] font-black uppercase leading-none opacity-40 ${theme === 'black' ? 'text-indigo-300' : 'text-indigo-900'}`}>Próxima Sugerencia</p>
+                        <p className={`text-xs font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Repasar Unidad 2 de Biología</p>
                       </div>
                     </div>
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Materias">
+                <AeroCard title="Materias" theme={theme}>
                   <div className="grid grid-cols-2 gap-3">
                     {SUBJECTS.map(s => (
                       <button 
                         key={s.id} 
                         onClick={() => handleSubjectClick(s)}
-                        className="p-4 rounded-3xl bg-white/40 border border-white/60 hover:bg-white/60 transition-all flex flex-col items-center gap-2 group shadow-sm hover:shadow-lg active:scale-95"
+                        className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-2 group shadow-sm hover:shadow-lg active:scale-95 ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                       >
                         <div className="p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br from-blue-400/80 to-blue-600 group-hover:scale-110 transition-transform">
                           {getIcon(s.icon, 24)}
                         </div>
-                        <span className="text-xs font-black uppercase text-sky-900 tracking-wider">
+                        <span className={`text-xs font-black uppercase tracking-wider ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>
                           {s.name}
                         </span>
                       </button>
@@ -333,35 +345,91 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Guía de Control">
-                  <div className="space-y-3 text-sm font-medium text-sky-900">
+                <AeroCard title="Guía de Control" theme={theme}>
+                  <div className={`space-y-3 text-sm font-medium ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                     <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center text-[10px]">🖱️</div>
+                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">🖱️</div>
                        <span>Haz clic en las unidades para expandirlas.</span>
                     </div>
                     <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center text-[10px]">🏠</div>
+                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">🏠</div>
                        <span>Usa la barra lateral para navegar.</span>
                     </div>
                     <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center text-[10px]">📝</div>
+                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">📝</div>
                        <span>Completa el examen para medir tu progreso.</span>
                     </div>
                   </div>
                 </AeroCard>
               </div>
 
-              <AeroCard className="bg-gradient-to-r from-sky-400/20 to-blue-500/20">
+              <AeroCard className="bg-gradient-to-r from-sky-400/20 to-blue-500/20" theme={theme}>
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-black text-sky-950">¿Listo para el desafío?</h2>
-                    <p className="text-sky-800 font-medium">Realiza un examen virtual de práctica para poner a prueba tus conocimientos.</p>
+                  <div className="space-y-2 text-center md:text-left">
+                    <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¿Listo para el desafío?</h2>
+                    <p className={`${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Realiza un examen virtual de práctica para poner a prueba tus conocimientos.</p>
                   </div>
                   <GlossyButton onClick={resetExam} className="w-full md:w-auto px-12 py-4 text-lg">
                     Empezar Examen <ChevronRight />
                   </GlossyButton>
                 </div>
               </AeroCard>
+            </motion.div>
+          )}
+
+          {currentView === 'settings' && (
+            <motion.div 
+              key="settings"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="space-y-8"
+            >
+              <header className="flex flex-col gap-1">
+                <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Configuración</h1>
+                <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Personaliza tu experiencia en NewAra.</p>
+              </header>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AeroCard title="Apariencia" theme={theme}>
+                  <div className="space-y-6">
+                    <div>
+                      <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
+                        Tema del Web
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <button 
+                          onClick={() => { playExternalBubble(); setTheme('white'); }}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-100 to-white shadow-inner border border-sky-100" />
+                          <span className="text-sm font-bold text-sky-950">Blanco</span>
+                        </button>
+                        <button 
+                          onClick={() => { playExternalBubble(); setTheme('black'); }}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 to-black shadow-inner border border-slate-800" />
+                          <span className="text-sm font-bold text-sky-950">Negro</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </AeroCard>
+
+                <AeroCard title="Acerca de" theme={theme}>
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
+                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Desarrollador</p>
+                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>NewAra Team</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
+                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Version</p>
+                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>BETA 2.6 - Frutiger Edition</p>
+                    </div>
+                  </div>
+                </AeroCard>
+              </div>
             </motion.div>
           )}
 
@@ -377,12 +445,12 @@ export default function App() {
                 <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 text-white shadow-xl flex-shrink-0">
                   {getIcon(selectedSubject.icon, 24)}
                 </div>
-                <h1 className="text-3xl md:text-5xl font-black text-sky-950 tracking-tighter text-center md:text-left">{selectedSubject.name}</h1>
+                <h1 className={`text-3xl md:text-5xl font-black tracking-tighter text-center md:text-left transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h1>
               </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
-                    <AeroCard title="Ruta de Aprendizaje">
+                    <AeroCard title="Ruta de Aprendizaje" theme={theme}>
                       <DuolingoPath 
                         units={selectedSubject.units} 
                         subjectColor={selectedSubject.color}
@@ -391,13 +459,14 @@ export default function App() {
                            setSelectedUnitIndex(index);
                            setCurrentView('unit-study');
                         }}
+                        theme={theme}
                       />
                     </AeroCard>
                   </div>
 
                   <div className="space-y-6">
-                    <AeroCard title="Información">
-                      <p className="text-sky-900 font-medium leading-relaxed italic text-sm">
+                    <AeroCard title="Información" theme={theme}>
+                      <p className={`font-medium leading-relaxed italic text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         "{selectedSubject.description}"
                       </p>
                     </AeroCard>
@@ -434,6 +503,7 @@ export default function App() {
                color={selectedSubject.color}
                onBack={() => setCurrentView('subject')}
                onStartExercise={() => startExercise(selectedUnitIndex)}
+               theme={theme}
              />
           )}
 
@@ -446,37 +516,37 @@ export default function App() {
                className="space-y-8"
             >
                <div className="flex flex-col gap-1">
-                 <h1 className="text-4xl font-black text-sky-950">Mi Horario Escolar</h1>
-                 <p className="text-sky-800/60 font-medium">Ciclo Lectivo 2026 - 1º 1ª</p>
+                 <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Mi Horario Escolar</h1>
+                 <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Ciclo Lectivo 2026 - 1º 1ª</p>
                </div>
 
                <div className="space-y-4">
-                 <p className="md:hidden text-[10px] text-sky-800/40 text-center animate-pulse font-black uppercase tracking-widest">↔ Desliza la tabla para ver más</p>
-                 <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40">
+                 <p className={`md:hidden text-[10px] text-center animate-pulse font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/40' : 'text-sky-800/40'}`}>↔ Desliza la tabla para ver más</p>
+                 <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40" theme={theme}>
                     <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                      <tr className="bg-white/30 backdrop-blur-xl">
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 uppercase tracking-tighter w-24">Hora</th>
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 border-l border-white/10 uppercase tracking-widest text-center">Lunes</th>
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 border-l border-white/10 uppercase tracking-widest text-center">Martes</th>
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 border-l border-white/10 uppercase tracking-widest text-center">Miércoles</th>
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 border-l border-white/10 uppercase tracking-widest text-center">Jueves</th>
-                        <th className="p-4 text-xs font-black text-sky-900 border-b border-white/20 border-l border-white/10 uppercase tracking-widest text-center">Viernes</th>
+                      <tr className={`backdrop-blur-xl ${theme === 'black' ? 'bg-white/5' : 'bg-white/30'}`}>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 uppercase tracking-tighter w-24 ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Hora</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Lunes</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Martes</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Miércoles</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Jueves</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Viernes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
-                      <ScheduleRow time="07:40 - 08:20" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'GEO/FEC/HIST']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
-                      <ScheduleRow time="08:20 - 09:00" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'HIST/FEC/GEO']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
-                      <ScheduleRow time="09:10 - 09:50" items={['EDI Dragon', 'F.E.C', 'BIO / PP MAT', 'Tecnología', 'Lengua/PP ART']} colors={['indigo', 'red', 'green', 'indigo', 'green']} />
-                      <ScheduleRow time="09:50 - 10:30" items={['EDI Dragon', 'F.E.C', 'MAT / PP BIO', 'Tecnología', 'Arte PP Lengu.']} colors={['indigo', 'red', 'blue', 'indigo', 'green']} />
-                      <ScheduleRow time="10:45 - 11:25" items={['Historia', 'Tutoría', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'slate', 'blue', 'amber', 'amber']} />
-                      <ScheduleRow time="11:25 - 12:05" items={['Historia', 'Matemática', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'blue', 'blue', 'amber', 'amber']} />
-                      <ScheduleRow time="12:10 - 12:50" items={['Geografía', 'Historia', 'Matemática', '', 'Artes']} colors={['indigo', 'amber', 'blue', '', 'blue']} />
-                      <ScheduleRow time="12:50 - 13:30" items={['Geografía', '', 'LAA I/F', '', 'Artes']} colors={['indigo', '', 'amber', '', 'blue']} />
-                      <ScheduleRow time="13:30 - 14:10" items={['', 'Ed. Física', '', '', 'Biología']} colors={['', 'green', '', '', 'amber']} highlight={true} />
+                    <tbody className="divide-y divide-white/5">
+                      <ScheduleRow theme={theme} time="07:40 - 08:20" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'GEO/FEC/HIST']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
+                      <ScheduleRow theme={theme} time="08:20 - 09:00" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'HIST/FEC/GEO']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
+                      <ScheduleRow theme={theme} time="09:10 - 09:50" items={['EDI Dragon', 'F.E.C', 'BIO / PP MAT', 'Tecnología', 'Lengua/PP ART']} colors={['indigo', 'red', 'green', 'indigo', 'green']} />
+                      <ScheduleRow theme={theme} time="09:50 - 10:30" items={['EDI Dragon', 'F.E.C', 'MAT / PP BIO', 'Tecnología', 'Arte PP Lengu.']} colors={['indigo', 'red', 'blue', 'indigo', 'green']} />
+                      <ScheduleRow theme={theme} time="10:45 - 11:25" items={['Historia', 'Tutoría', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'slate', 'blue', 'amber', 'amber']} />
+                      <ScheduleRow theme={theme} time="11:25 - 12:05" items={['Historia', 'Matemática', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'blue', 'blue', 'amber', 'amber']} />
+                      <ScheduleRow theme={theme} time="12:10 - 12:50" items={['Geografía', 'Historia', 'Matemática', '', 'Artes']} colors={['indigo', 'amber', 'blue', '', 'blue']} />
+                      <ScheduleRow theme={theme} time="12:50 - 13:30" items={['Geografía', '', 'LAA I/F', '', 'Artes']} colors={['indigo', '', 'amber', '', 'blue']} />
+                      <ScheduleRow theme={theme} time="13:30 - 14:10" items={['', 'Ed. Física', '', '', 'Biología']} colors={['', 'green', '', '', 'amber']} highlight={true} />
                     </tbody>
                   </table>
-               </AeroCard>
+                </AeroCard>
               </div>
 
             </motion.div>
@@ -490,7 +560,7 @@ export default function App() {
                exit={{ opacity: 0, scale: 1.1 }}
                className="max-w-3xl mx-auto space-y-8 py-12"
             >
-               <AeroCard title="Asistente de Examen Virtual" className="border-4 border-blue-400/30">
+               <AeroCard title="Asistente de Examen Virtual" className="border-4 border-blue-400/30" theme={theme}>
                   <AnimatePresence mode="wait">
                     {!examState.finished ? (
                       <motion.div 
@@ -503,7 +573,7 @@ export default function App() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
                             <span className="text-[10px] uppercase font-black text-blue-500 tracking-widest">Pregunta {examState.currentQuestion + 1} de {questions.length}</span>
-                            <h2 className="text-2xl font-black text-sky-950">{questions[examState.currentQuestion].q}</h2>
+                            <h2 className={`text-2xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{questions[examState.currentQuestion].q}</h2>
                           </div>
                         </div>
 
@@ -512,7 +582,7 @@ export default function App() {
                             <button 
                               key={i} 
                               onClick={() => handleAnswer(i)}
-                              className="p-6 rounded-3xl bg-white/40 border-2 border-white/60 hover:bg-white/80 hover:border-blue-400 transition-all text-left font-bold text-sky-900 group flex items-center justify-between shadow-sm hover:shadow-xl"
+                              className={`p-6 rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900'}`}
                             >
                               {opt}
                               <div className="w-6 h-6 rounded-full border-4 border-white shadow-inner group-hover:bg-blue-400 group-hover:scale-125 transition-all" />
@@ -535,12 +605,12 @@ export default function App() {
                         animate={{ scale: 1, opacity: 1 }}
                         className="py-12 flex flex-col items-center text-center gap-6"
                       >
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-2xl flex items-center justify-center text-white text-4xl font-black ring-8 ring-blue-100">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-2xl flex items-center justify-center text-white text-4xl font-black ring-8 ring-blue-100/10">
                           {Math.round((examState.score / questions.length) * 100)}%
                         </div>
                         <div className="space-y-2">
-                          <h2 className="text-3xl font-black text-sky-950">¡Examen Finalizado!</h2>
-                          <p className="text-sky-800 font-medium">Has respondido correctamente {examState.score} de {questions.length} preguntas.</p>
+                          <h2 className={`text-3xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Examen Finalizado!</h2>
+                          <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Has respondido correctamente {examState.score} de {questions.length} preguntas.</p>
                         </div>
                         <div className="flex gap-4">
                            <GlossyButton onClick={resetExam}>Reintentar</GlossyButton>
@@ -549,7 +619,7 @@ export default function App() {
                                playExternalBubble();
                                setCurrentView('home');
                              }} 
-                             className="text-sky-950 font-bold hover:underline"
+                             className={`font-bold hover:underline transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}
                            >
                              Volver al Inicio
                            </button>
@@ -579,7 +649,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-sky-900/40 backdrop-blur-xl"
           >
-            <AeroCard className="max-w-xl w-full max-h-[95vh] overflow-y-auto border-4 border-white/50 shadow-2xl">
+            <AeroCard className="max-w-xl w-full max-h-[95vh] overflow-y-auto border-4 border-white/50 shadow-2xl" theme={theme}>
               <button 
                 onClick={() => setActiveExercise(null)}
                 className="absolute top-2 right-2 md:-top-4 md:-right-4 w-10 h-10 md:w-12 md:h-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-xl md:text-2xl z-20"
@@ -594,12 +664,12 @@ export default function App() {
                       {getIcon(selectedSubject.icon, 20)}
                     </div>
                     <div>
-                      <h2 className="text-xl font-black text-sky-900 leading-tight">{selectedSubject.units[activeExercise.unitIndex].title}</h2>
-                      <p className="text-[10px] uppercase font-black text-sky-500 tracking-widest">Desafío de Práctica</p>
+                      <h2 className={`text-xl font-black leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{selectedSubject.units[activeExercise.unitIndex].title}</h2>
+                      <p className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-500'}`}>Desafío de Práctica</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-black text-sky-900/40">{activeExercise.currentQuestion + 1} / {exerciseState.shuffled.length}</span>
+                    <span className={`text-xs font-black transition-colors duration-500 ${theme === 'black' ? 'text-white/20' : 'text-sky-900/40'}`}>{activeExercise.currentQuestion + 1} / {exerciseState.shuffled.length}</span>
                   </div>
                 </div>
 
@@ -612,7 +682,7 @@ export default function App() {
                       exit={{ x: -20, opacity: 0 }}
                       className="space-y-6"
                     >
-                      <p className="text-xl font-bold text-sky-950 leading-snug">
+                      <p className={`text-xl font-bold leading-snug transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
                         {exerciseState.shuffled[activeExercise.currentQuestion].question}
                       </p>
                       <div className="grid grid-cols-1 gap-3">
@@ -620,14 +690,17 @@ export default function App() {
                           const isCorrect = i === exerciseState.shuffled[activeExercise.currentQuestion].correct;
                           const isSelected = i === selectedAnswer;
                           
-                          let bgClass = "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
+                          let bgClass = theme === 'black' 
+                            ? "bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400/50" 
+                            : "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
+
                           if (selectedAnswer !== null) {
                             if (isSelected) {
                               bgClass = isCorrect ? "bg-green-400/60 border-green-400 text-white" : "bg-red-400/60 border-red-400 text-white";
                             } else if (isCorrect) {
-                              bgClass = "bg-green-400/20 border-green-400/50 text-green-700";
+                              bgClass = isCorrect && theme === 'black' ? "bg-green-400/20 border-green-400/50 text-green-400" : "bg-green-400/20 border-green-400/50 text-green-700";
                             } else {
-                              bgClass = "bg-white/20 border-white/20 opacity-40";
+                              bgClass = theme === 'black' ? "bg-white/5 border-white/5 opacity-20" : "bg-white/20 border-white/20 opacity-40";
                             }
                           }
 
@@ -639,7 +712,7 @@ export default function App() {
                               className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
                             >
                               <span>{opt}</span>
-                              <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : 'border-sky-200 group-hover:border-blue-400'}`} />
+                              <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')}`} />
                             </button>
                           );
                         })}
@@ -652,25 +725,25 @@ export default function App() {
                       className="py-6 flex flex-col items-center gap-6"
                     >
                       <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl ring-8 ring-blue-50">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl ring-8 ring-blue-50/10">
                           {Math.round((exerciseState.score / exerciseState.shuffled.length) * 100)}%
                         </div>
                       </div>
                       
                       <div className="w-full space-y-4 max-h-[40vh] overflow-y-auto px-2 custom-scrollbar">
-                        <h4 className="text-xs font-black text-sky-900/40 uppercase tracking-widest text-center sticky top-0 bg-transparent py-2 backdrop-blur-md">Resumen de Actividades</h4>
+                        <h4 className={`text-xs font-black uppercase tracking-widest text-center sticky top-0 bg-transparent py-2 backdrop-blur-md transition-colors duration-500 ${theme === 'black' ? 'text-white/20' : 'text-sky-900/40'}`}>Resumen de Actividades</h4>
                         {exerciseState.userAnswers.map((ans, idx) => (
-                          <div key={idx} className={`p-4 rounded-2xl border-2 transition-all ${ans.isCorrect ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`}>
-                            <p className="text-xs font-bold text-sky-950 mb-2">{idx + 1}. {ans.question}</p>
+                          <div key={idx} className={`p-4 rounded-2xl border-2 transition-all ${ans.isCorrect ? (theme === 'black' ? 'bg-green-950/20 border-green-900/50' : 'bg-green-50/50 border-green-200') : (theme === 'black' ? 'bg-red-950/20 border-red-900/50' : 'bg-red-50/50 border-red-200')}`}>
+                            <p className={`text-xs font-bold mb-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}>{idx + 1}. {ans.question}</p>
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 text-[10px]">
-                                <span className="font-black opacity-40 uppercase">Tu respuesta:</span>
-                                <span className={`font-bold ${ans.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{ans.options[ans.selected]}</span>
+                                <span className={`font-black uppercase opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tu respuesta:</span>
+                                <span className={`font-bold ${ans.isCorrect ? 'text-green-500' : 'text-red-500'}`}>{ans.options[ans.selected]}</span>
                               </div>
                               {!ans.isCorrect && (
                                 <div className="flex items-center gap-2 text-[10px]">
-                                  <span className="font-black opacity-40 uppercase">Correcta:</span>
-                                  <span className="font-bold text-green-600">{ans.options[ans.correct]}</span>
+                                  <span className={`font-black uppercase opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Correcta:</span>
+                                  <span className="font-bold text-green-500">{ans.options[ans.correct]}</span>
                                 </div>
                               )}
                             </div>
@@ -679,11 +752,11 @@ export default function App() {
                       </div>
 
                       <div className="text-center">
-                        <h3 className="text-2xl font-black text-sky-950">
+                        <h3 className={`text-2xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                           {exerciseState.score === exerciseState.shuffled.length ? '¡Puntaje Perfecto!' : 
                            exerciseState.score > exerciseState.shuffled.length / 2 ? '¡Buen Trabajo!' : '¡Sigue Practicando!'}
                         </h3>
-                        <p className="text-sky-800 font-medium">Has completado la unidad de estudio.</p>
+                        <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Has completado la unidad de estudio.</p>
                       </div>
                       <div className="flex gap-3">
                         <GlossyButton onClick={() => startExercise(activeExercise.unitIndex)} className="px-8 flex-1">
@@ -715,25 +788,33 @@ export default function App() {
   );
 }
 
-function NavButton({ active, icon, label, onClick }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void }) {
+function NavButton({ active, icon, label, onClick, theme = 'white' }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
   const handleClick = () => {
     playExternalBubble();
     onClick();
   };
 
+  const activeClasses = theme === 'black' 
+    ? 'bg-blue-600/30 shadow-[0_0_15px_rgba(37,99,235,0.4)] text-blue-400 scale-105 border-white/20' 
+    : 'bg-white/50 shadow-lg text-blue-600 scale-105 border-white/50';
+
+  const defaultClasses = theme === 'black' 
+    ? 'text-white/60 hover:bg-white/10 hover:text-white' 
+    : 'text-sky-900 hover:bg-white/30';
+
   return (
     <button 
       onClick={handleClick}
-      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all relative group ${active ? 'bg-white/50 shadow-lg text-blue-600 scale-105 border border-white/50' : 'text-sky-900 hover:bg-white/30'}`}
+      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all relative group border ${active ? activeClasses : defaultClasses}`}
     >
-      <div className={`${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{icon}</div>
-      <span className={`text-[10px] md:text-sm font-bold transition-all ${active ? 'text-blue-600' : 'text-sky-900/60 group-hover:text-sky-900'}`}>{label}</span>
+      <div className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`}>{icon}</div>
+      <span className={`text-[10px] md:text-sm font-bold transition-all`}>{label}</span>
       {active && <div className="hidden md:block absolute right-2 w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
     </button>
   );
 }
 
-function ScheduleRow({ time, items, colors, highlight = false }: { time: string, items: string[], colors: string[], highlight?: boolean }) {
+function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }: { time: string, items: string[], colors: string[], highlight?: boolean, theme?: 'white' | 'black' }) {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400/80 to-green-600/80 text-white';
@@ -742,13 +823,13 @@ function ScheduleRow({ time, items, colors, highlight = false }: { time: string,
       case 'red': return 'from-red-400/80 to-red-600/80 text-white';
       case 'indigo': return 'from-indigo-400/80 to-indigo-600/80 text-white';
       case 'slate': return 'from-slate-400/80 to-slate-600/80 text-white';
-      default: return 'bg-white/20 text-sky-900/40';
+      default: return theme === 'black' ? 'bg-white/5 text-white/20' : 'bg-white/20 text-sky-900/40';
     }
   };
 
   return (
-    <tr className={`border-b border-white/5 hover:bg-white/10 transition-colors ${highlight ? 'bg-blue-50/20' : ''}`}>
-      <td className="p-4 text-[10px] font-black text-sky-900/60 whitespace-nowrap bg-white/10">{time}</td>
+    <tr className={`border-b border-white/5 transition-colors ${highlight ? (theme === 'black' ? 'bg-blue-900/20' : 'bg-blue-50/20') : ''} ${theme === 'black' ? 'hover:bg-white/5' : 'hover:bg-white/10'}`}>
+      <td className={`p-4 text-[10px] font-black underline whitespace-nowrap transition-colors duration-500 ${theme === 'black' ? 'text-white/40 bg-white/5' : 'text-sky-900/60 bg-white/10'}`}>{time}</td>
       {items.map((item, i) => (
         <td key={i} className="p-2 border-l border-white/5">
           {item ? (
@@ -757,7 +838,7 @@ function ScheduleRow({ time, items, colors, highlight = false }: { time: string,
             </div>
           ) : (
             <div className="h-full w-full flex items-center justify-center opacity-10">
-               <div className="w-1 h-1 rounded-full bg-sky-900" />
+               <div className={`w-1 h-1 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
             </div>
           )}
         </td>
@@ -766,7 +847,7 @@ function ScheduleRow({ time, items, colors, highlight = false }: { time: string,
   );
 }
 
-function UnitButton({ number, title, color, onClick }: { number: number, title: string, color: string, onClick: () => void }) {
+function UnitButton({ number, title, color, onClick, theme = 'white' }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black' }) {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
@@ -788,7 +869,7 @@ function UnitButton({ number, title, color, onClick }: { number: number, title: 
     >
       <div className="relative">
         {/* Ring */}
-        <div className="absolute inset-0 rounded-full border-4 border-white/40 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-150 blur-sm" />
+        <div className={`absolute inset-0 rounded-full border-4 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-150 blur-sm ${theme === 'black' ? 'border-white/10' : 'border-white/40'}`} />
         
         {/* Main Button */}
         <div className={`w-20 h-20 rounded-full bg-gradient-to-b ${getColorClasses(color)} flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_0_rgb(0,0,0,0.1),0_15px_20px_-5px_rgba(0,0,0,0.3)] border-4 border-white/60 relative overflow-hidden active:translate-y-1 active:shadow-[0_4px_0_rgb(0,0,0,0.1)] transition-all`}>
@@ -797,16 +878,16 @@ function UnitButton({ number, title, color, onClick }: { number: number, title: 
         </div>
 
         {/* Floating Tooltip */}
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-2xl shadow-xl border border-white opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0">
-          <span className="text-xs font-bold text-sky-950 uppercase tracking-tighter">{title}</span>
-          <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+        <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl shadow-xl border opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0 ${theme === 'black' ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'}`}>
+          <span className="text-xs font-bold uppercase tracking-tighter">{title}</span>
+          <div className={`absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${theme === 'black' ? 'border-t-slate-900' : 'border-t-white'}`} />
         </div>
       </div>
     </motion.div>
   );
 }
 
-function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void }) {
+function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white' }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black' }) {
   return (
     <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
@@ -826,6 +907,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subj
               title={unit.title} 
               color={subjectColor} 
               onClick={() => onUnitClick(i)} 
+              theme={theme}
             />
             
             {/* Connector dots */}
@@ -836,9 +918,9 @@ function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subj
                    transform: `translateX(${-offset/2}px) rotate(${offset > 0 ? '-15deg' : '15deg'})`
                 }}
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
-                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
-                <div className="w-1.5 h-1.5 rounded-full bg-sky-900" />
+                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
               </div>
             )}
           </div>
@@ -848,7 +930,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick }: { units: any[], subj
   );
 }
 
-function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void }) {
+function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white' }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black' }) {
   const getGradient = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
@@ -871,29 +953,29 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
       <header className="flex items-center gap-4 md:gap-6">
         <button 
           onClick={onBack}
-          className="p-2 md:p-3 rounded-full aero-glass hover:bg-white/60 transition-all text-sky-900"
+          className={`p-2 md:p-3 rounded-full aero-glass transition-all ${theme === 'black' ? 'hover:bg-white/10 text-white' : 'hover:bg-white/60 text-sky-900'}`}
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-2xl md:text-4xl font-black text-sky-950 tracking-tighter leading-tight">{unit.title}</h2>
-          <p className="text-sky-800/60 font-bold uppercase text-[10px] md:text-xs tracking-widest">{unit.description}</p>
+          <h2 className={`text-2xl md:text-4xl font-black tracking-tighter leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
+          <p className={`font-bold uppercase text-[10px] md:text-xs tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>{unit.description}</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
-          <AeroCard title="Explicación">
+          <AeroCard title="Explicación" theme={theme}>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="p-3 rounded-2xl bg-amber-100 text-amber-600 w-fit h-fit">
                 <Lightbulb size={24} />
               </div>
               <div className="space-y-4">
-                <p className="text-base md:text-lg text-sky-900 font-medium leading-relaxed">
+                <p className={`text-base md:text-lg font-medium leading-relaxed transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
                   {unit.explanation}
                 </p>
-                <div className="bg-sky-50/50 p-4 md:p-6 rounded-3xl border border-sky-100">
-                  <h4 className="text-sm font-black text-sky-900 mb-4 flex items-center gap-2">
+                <div className={`p-4 md:p-6 rounded-3xl border transition-colors duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50/50 border-sky-100'}`}>
+                  <h4 className={`text-sm font-black mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
                     <Book className="text-sky-500" size={16} /> Conceptos Clave
                   </h4>
                   <div className="grid grid-cols-1 gap-4">
@@ -901,8 +983,8 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
                       <div key={i} className="flex gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-2 shrink-0" />
                         <div>
-                          <strong className="text-sky-950 block">{m.term}</strong>
-                          <span className="text-sm text-sky-800/70">{m.definition}</span>
+                          <strong className={`block transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.term}</strong>
+                          <span className={`text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>{m.definition}</span>
                         </div>
                       </div>
                     ))}
@@ -912,12 +994,12 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
             </div>
           </AeroCard>
 
-          <AeroCard title="Significados Rápidos">
+          <AeroCard title="Significados Rápidos" theme={theme}>
              <div className="flex flex-wrap gap-3">
                 {unit.meanings.map((m: any, i: number) => (
-                   <div key={i} className="px-4 py-2 rounded-2xl bg-white/40 border border-white/60 shadow-sm flex items-center gap-2 group hover:bg-white transition-colors">
+                   <div key={i} className={`px-4 py-2 rounded-2xl border shadow-sm flex items-center gap-2 group transition-colors duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/40 border-white/60 hover:bg-white'}`}>
                       <CheckCircle2 className="text-green-500" size={16} />
-                      <span className="text-sm font-bold text-sky-900">{m.term}</span>
+                      <span className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{m.term}</span>
                    </div>
                 ))}
              </div>
@@ -925,7 +1007,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
         </div>
 
         <div className="space-y-6">
-          <AeroCard className={`bg-gradient-to-br ${getGradient(color)} text-white border-0 shadow-2xl`}>
+          <AeroCard className={`bg-gradient-to-br ${getGradient(color)} text-white border-0 shadow-2xl`} theme={theme}>
              <div className="space-y-6 flex flex-col items-center text-center">
                 <div className="p-4 rounded-3xl bg-white/20 border border-white/30">
                   <HelpCircle size={48} />
@@ -943,8 +1025,8 @@ function UnitStudyView({ unit, color, onBack, onStartExercise }: { unit: any, co
              </div>
           </AeroCard>
 
-          <AeroCard title="Tips Pro">
-             <ul className="space-y-3 text-sm font-medium text-sky-900/70">
+          <AeroCard title="Tips Pro" theme={theme}>
+             <ul className={`space-y-3 text-sm font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-900/70'}`}>
                 <li className="flex gap-2">✨ Repasa los conceptos antes de empezar.</li>
                 <li className="flex gap-2">✨ Presta atención a las definiciones en negrita.</li>
                 <li className="flex gap-2">✨ Si fallas, ¡no te preocupes! Puedes reintentar.</li>
