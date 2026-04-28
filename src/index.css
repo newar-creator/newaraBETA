@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  --color-aero-blue: #4ca5ff;
+  --color-aero-green: #67c23a;
+  --color-aero-grass: #48c774;
+}
+
+@layer base {
+  body {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    @apply min-h-screen text-slate-800 antialiased;
+  }
+}
+
+@layer components {
+  .aero-glass {
+    @apply bg-white/40 backdrop-blur-md border border-white/50 shadow-xl;
+  }
+  
+  .aero-glossy {
+    background: linear-gradient(to bottom, 
+      rgba(255, 255, 255, 0.6) 0%, 
+      rgba(255, 255, 255, 0.2) 50%, 
+      rgba(255, 255, 255, 0.1) 50.1%, 
+      rgba(255, 255, 255, 0.3) 100%
+    );
+    @apply border border-white/60 shadow-lg;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .aero-button {
+    @apply relative overflow-hidden rounded-full font-medium transition-all active:scale-95 px-4 py-2 flex items-center justify-center gap-2;
+    background: linear-gradient(to bottom, #7dd3fc 0%, #0ea5e9 50%, #0284c7 50.1%, #0369a1 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .aero-button-green {
+    background: linear-gradient(to bottom, #bef264 0%, #65a30d 50%, #4d7c0f 50.1%, #3f6212 100%);
+  }
+
+  .glossy-overlay {
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(to bottom, 
+      rgba(255,255,255,0.4) 0%, 
+      rgba(255,255,255,0) 50%
+    );
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #7dd3fc, #0ea5e9);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
