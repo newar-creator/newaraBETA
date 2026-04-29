@@ -100,12 +100,18 @@ export default function App() {
 
   // Profile State
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
+  const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('newara_user_name', userName);
   }, [userName]);
+
+  useEffect(() => {
+    localStorage.setItem('newara_user_password', userPassword);
+  }, [userPassword]);
 
   useEffect(() => {
     localStorage.setItem('newara_user_bio', userBio);
@@ -172,6 +178,24 @@ export default function App() {
   const [activityName, setActivityName] = useState('');
   const [activityCreatorPassword, setActivityCreatorPassword] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
+  
+  // History State
+  const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
+    const saved = localStorage.getItem('newara_activity_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('newara_activity_history', JSON.stringify(activityHistory));
+  }, [activityHistory]);
+
+  const addToHistory = (code: string, name: string) => {
+    setActivityHistory(prev => {
+      // Remove if already exists and add to top
+      const filtered = prev.filter(item => item.code !== code);
+      return [{ code, name, date: Date.now() }, ...filtered].slice(0, 5); // Keep last 5
+    });
+  };
 
   // Real Progress State
   const [completedUnits, setCompletedUnits] = useState<string[]>(() => {
@@ -422,6 +446,7 @@ export default function App() {
       const docRef = await addDoc(collection(db, 'activities'), activityData);
       clearTimeout(timeoutId);
       setNewActivityCode(docRef.id);
+      addToHistory(docRef.id, activityName);
       playSuccessSound();
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
@@ -454,6 +479,7 @@ export default function App() {
           }))
         };
         setCurrentSharedActivity(unitExtras);
+        addToHistory(code, data.name);
         
         // Prepare exercise state with same logic as startExercise
         const randomizedQuestions = shuffleArray(unitExtras.exercises).map(ex => {
@@ -588,20 +614,28 @@ export default function App() {
               <AnimatePresence>
                 {showMobileSubjects && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.5, y: 50, x: '-50%' }}
-                    animate={{ opacity: 1, scale: 1, y: -20, x: '-50%' }}
-                    exit={{ opacity: 0, scale: 0.5, y: 50, x: '-50%' }}
-                    className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 p-4 rounded-3xl border-2 shadow-2xl backdrop-blur-xl z-50 w-64 ${
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    className={`fixed bottom-24 left-4 right-4 p-6 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden ${
                       theme === 'black' 
-                        ? 'bg-black/80 border-white/20' 
-                        : 'bg-white/90 border-white/80'
+                        ? 'bg-black/90 border-white/10' 
+                        : 'bg-white/95 border-white/60'
                     }`}
                   >
                     <div className="glossy-overlay opacity-30 rounded-3xl" />
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-4 text-center ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>
-                      Selecciona una Materia
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between mb-6">
+                      <p className={`text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                        Explorar Materias
+                      </p>
+                      <button 
+                        onClick={() => setShowMobileSubjects(false)}
+                        className={`p-1.5 rounded-full ${theme === 'black' ? 'bg-white/10' : 'bg-slate-100'} hover:scale-110 active:scale-95 transition-transform`}
+                      >
+                        <ArrowLeft size={14} className="rotate-[-90deg]" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       {SUBJECTS.map(s => (
                         <button 
                           key={s.id}
@@ -611,23 +645,19 @@ export default function App() {
                             setCurrentView('subject');
                             setShowMobileSubjects(false);
                           }}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 ${
+                          className={`flex flex-col items-start gap-3 p-4 rounded-3xl transition-all active:scale-95 border-2 ${
                             theme === 'black' 
-                              ? 'bg-white/5 hover:bg-white/10' 
-                              : 'bg-white/60 hover:bg-white shadow-sm'
+                              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
+                              : 'bg-slate-50 border-transparent hover:border-blue-200 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.1)]'
                           }`}
                         >
-                          <div className={`p-2 rounded-xl text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
-                            {getIcon(s.icon, 18)}
+                          <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-b ${getColorClasses(s.color)}`}>
+                            {getIcon(s.icon, 20)}
                           </div>
-                          <span className={`text-[10px] font-bold text-center leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
+                          <span className={`text-xs font-black transition-colors duration-500 uppercase tracking-tighter text-left ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{s.name}</span>
                         </button>
                       ))}
                     </div>
-                    {/* Bubble Tail */}
-                    <div className={`absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-5 h-5 rotate-45 border-r-2 border-b-2 ${
-                      theme === 'black' ? 'bg-black/80 border-white/20' : 'bg-white/90 border-white/80'
-                    }`} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -684,7 +714,7 @@ export default function App() {
         </div>
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2</span>
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.1</span>
         </div>
         
         <AnimatePresence>
@@ -746,7 +776,7 @@ export default function App() {
                            type="text" 
                            value={activityCodeInput}
                            onChange={(e) => {
-                             setActivityCodeInput(e.target.value);
+                             setActivityCodeInput(e.target.value.trim());
                              if (loadError) setLoadError(null);
                            }}
                            placeholder="Ej: XyZ789"
@@ -778,11 +808,34 @@ export default function App() {
                        )}
                     </div>
 
+                    {activityHistory.length > 0 && (
+                      <div className="space-y-1">
+                        <p className={`text-[9px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Recientes</p>
+                        <div className="flex flex-wrap gap-1">
+                          {activityHistory.map(item => (
+                            <button
+                              key={item.code}
+                              onClick={() => handleLoadActivity(item.code)}
+                              className={`px-2 py-1 rounded-lg text-[9px] font-bold border transition-all active:scale-95 ${
+                                theme === 'black' ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white/80 border-purple-200 text-purple-700 hover:bg-purple-50 shadow-sm'
+                              }`}
+                            >
+                              {item.name.length > 12 ? item.name.substring(0, 10) + '...' : item.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="pt-2 border-t border-purple-500/10">
                       <button 
                         onClick={() => {
                           playExternalBubble();
-                          setCurrentView('create-activity');
+                          if (!userPassword) {
+                            setIsRegistering(true);
+                          } else {
+                            setCurrentView('create-activity');
+                          }
                         }}
                         className={`w-full flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all hover:border-purple-400 hover:bg-purple-400/10 ${
                           theme === 'black' ? 'border-white/10 text-white/60' : 'border-purple-200 text-purple-600'
@@ -1244,6 +1297,18 @@ export default function App() {
                             placeholder="Tu nombre"
                           />
                         </div>
+                        <div className="space-y-1">
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
+                          <input 
+                            type="password" 
+                            value={userPassword}
+                            onChange={(e) => setUserPassword(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                              theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                            }`}
+                            placeholder="Contraseña"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1648,6 +1713,91 @@ export default function App() {
                   />
                 </div>
               </AeroCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Register Modal */}
+      <AnimatePresence>
+        {isRegistering && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`w-full max-w-sm p-8 rounded-[40px] border-4 shadow-2xl relative overflow-hidden ${
+                theme === 'black' ? 'bg-slate-900 border-white/20' : 'bg-white border-white/100'
+              }`}
+            >
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <button 
+                onClick={() => setIsRegistering(false)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 transition-colors text-sky-500"
+                id="close-register-modal"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className="flex flex-col items-center gap-4 mb-8">
+                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
+                  <User size={32} />
+                </div>
+                <div className="text-center">
+                  <h2 className={`text-2xl font-black uppercase tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Crear Cuenta</h2>
+                  <p className={`text-xs font-bold opacity-40 uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Necesario para publicar actividades</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Nombre de Usuario</label>
+                  <input 
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="Ej: Profe Juan"
+                    className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
+                      theme === 'black' 
+                        ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
+                        : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
+                    }`}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tu Contraseña</label>
+                  <input 
+                    type="password"
+                    value={userPassword}
+                    onChange={(e) => setUserPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
+                      theme === 'black' 
+                        ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
+                        : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
+                    }`}
+                  />
+                </div>
+                <GlossyButton 
+                  onClick={() => {
+                    if (userName && userPassword) {
+                      setIsRegistering(false);
+                      setCurrentView('create-activity');
+                      playSuccessSound();
+                    } else {
+                      playErrorSound();
+                    }
+                  }}
+                  className="w-full py-5 text-lg tracking-widest"
+                  id="submit-register"
+                >
+                  COMENZAR A CREAR
+                </GlossyButton>
+              </div>
             </motion.div>
           </motion.div>
         )}
