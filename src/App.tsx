@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
+import { NewAraLogo } from './components/NewAraLogo';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
@@ -230,14 +231,9 @@ export default function App() {
       <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
-        {/* LOGO NewAra - Hidden on Mobile to save space */}
-        <div className="hidden md:flex flex-col items-center gap-4 mb-4 mt-2 px-4">
-          <img 
-            src="input_file_0.png" 
-            alt="NewAra Logo" 
-            className="w-full h-auto max-w-[180px] drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)] filter brightness-105" 
-            referrerPolicy="no-referrer"
-          />
+        {/* LOGO NewAra - Replaced broken image with CSS component */}
+        <div className="hidden md:flex flex-col items-center gap-2 mb-4 mt-2 px-4">
+          <NewAraLogo size="lg" theme={theme} />
           
           {/* Version Badge */}
           <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
@@ -310,14 +306,9 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Content Area */}
+      {/* Main Content Area Logo for Mobile */}
       <div className="md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 pointer-events-none sticky top-0 bg-white/5 backdrop-blur-[2px]">
-        <img 
-          src="input_file_0.png" 
-          alt="NewAra Logo" 
-          className={`h-8 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] filter ${theme === 'black' ? 'brightness-125 contrast-125' : 'brightness-105'}`} 
-          referrerPolicy="no-referrer"
-        />
+        <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
           <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.7</span>
         </div>
