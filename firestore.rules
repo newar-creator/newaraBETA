@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /activities/{activityId} {
+      function isValidId(id) {
+        return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      }
+
+      function isValidActivity(data) {
+        return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+            && data.password is string && data.password.size() > 0 && data.password.size() <= 64
+            && data.questions is list && data.questions.size() == 3
+            && data.createdAt is timestamp
+            && data.creatorName is string && data.creatorName.size() <= 50;
+      }
+
+      allow create: if isValidId(activityId) && isValidActivity(request.resource.data);
+      allow get: if true;
+      // No updates or deletes for now as per simple MVP request, 
+      // but could be added with password check if requested later.
+    }
+  }
+}

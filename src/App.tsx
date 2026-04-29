@@ -30,9 +30,18 @@ import {
   ArrowLeft,
   CheckCircle2,
   Settings,
-  WifiOff
+  WifiOff,
+  PlusCircle,
+  Hash,
+  Share2,
+  Copy,
+  Lock,
+  Play
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
 import { NewAraLogo } from './components/NewAraLogo';
@@ -41,7 +50,11 @@ import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/sounds';
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias';
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -111,6 +124,19 @@ export default function App() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showGeoGuide, setShowGeoGuide] = useState(false);
   const [showMathGuide, setShowMathGuide] = useState(false);
+
+  // Activity States
+  const [activityCodeInput, setActivityCodeInput] = useState('');
+  const [isCreatingActivity, setIsCreatingActivity] = useState(false);
+  const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
+  const [activityQuestions, setActivityQuestions] = useState([
+    { question: '', options: ['', '', '', ''], correct: 0 },
+    { question: '', options: ['', '', '', ''], correct: 0 },
+    { question: '', options: ['', '', '', ''], correct: 0 }
+  ]);
+  const [activityName, setActivityName] = useState('');
+  const [activityCreatorPassword, setActivityCreatorPassword] = useState('');
+  const [newActivityCode, setNewActivityCode] = useState('');
 
   // Real Progress State
   const [completedUnits, setCompletedUnits] = useState<string[]>(() => {
@@ -225,6 +251,12 @@ export default function App() {
     setCurrentView('subject');
   };
 
+  const resetExam = () => {
+    playExternalBubble();
+    setExamState({ active: true, currentQuestion: 0, score: 0, finished: false });
+    setCurrentView('exam');
+  };
+
   const getIcon = (name: string, size = 20) => {
     switch (name) {
       case 'Leaf': return <Leaf size={size} />;
@@ -291,10 +323,87 @@ export default function App() {
     }, 1500);
   };
 
-  const resetExam = () => {
-    playExternalBubble();
-    setExamState({ active: true, currentQuestion: 0, score: 0, finished: false });
-    setCurrentView('exam');
+  const handleCreateActivity = async () => {
+    if (!activityName || !activityCreatorPassword) {
+      playErrorSound();
+      return;
+    }
+    
+    // Simple validation: all 3 questions must have content and correct answers
+    const isValid = activityQuestions.every(q => q.question && q.options.every(o => o) && q.correct !== undefined);
+    if (!isValid) {
+      playErrorSound();
+      return;
+    }
+
+    try {
+      setIsCreatingActivity(true);
+      const activityData = {
+        name: activityName,
+        creatorName: userName,
+        password: activityCreatorPassword,
+        questions: activityQuestions.map(q => ({
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.options[q.correct]
+        })),
+        createdAt: serverTimestamp()
+      };
+
+      const docRef = await addDoc(collection(db, 'activities'), activityData);
+      setNewActivityCode(docRef.id);
+      playSuccessSound();
+    } catch (error) {
+      console.error("Error creating activity:", error);
+      playErrorSound();
+    } finally {
+      setIsCreatingActivity(false);
+    }
+  };
+
+  const handleLoadActivity = async (code: string) => {
+    if (!code) return;
+    try {
+      const docRef = doc(db, 'activities', code);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Transform back to exercise format
+        const unitExtras = {
+          name: data.name,
+          creator: data.creatorName,
+          exercises: data.questions.map((q: any) => ({
+            question: q.question,
+            options: q.options,
+            correct: q.options.indexOf(q.correctAnswer)
+          }))
+        };
+        setCurrentSharedActivity(unitExtras);
+        
+        // Prepare exercise state
+        const randomizedQuestions = shuffleArray(unitExtras.exercises).map(ex => {
+          const originalOptions = ex.options.map((opt: string, idx: number) => ({ text: opt, isCorrect: idx === ex.correct }));
+          const shuffledOptions = shuffleArray(originalOptions);
+          return {
+            question: ex.question,
+            options: shuffledOptions.map(o => o.text),
+            correct: shuffledOptions.findIndex(o => o.isCorrect)
+          };
+        });
+
+        // Use a "fake" subject/unit for the exercise runner
+        setActiveExercise({ unitIndex: -1, subjectId: 'shared', currentQuestion: 0 });
+        setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions, userAnswers: [] });
+        setCurrentView('play-activity');
+        playExternalBubble();
+      } else {
+        playErrorSound();
+        alert("Actividad no encontrada.");
+      }
+    } catch (error) {
+      console.error("Error loading activity:", error);
+      playErrorSound();
+    }
   };
 
   return (
@@ -548,6 +657,46 @@ export default function App() {
       </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AeroCard title="Actividades Compartidas" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Ingresar Código</p>
+                       <div className="flex gap-2">
+                         <input 
+                           type="text" 
+                           value={activityCodeInput}
+                           onChange={(e) => setActivityCodeInput(e.target.value)}
+                           placeholder="Ej: XyZ789"
+                           className={`flex-1 px-3 py-2 rounded-xl border text-xs font-bold transition-all focus:ring-2 focus:ring-purple-400 outline-none ${
+                             theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                           }`}
+                         />
+                         <button 
+                           onClick={() => handleLoadActivity(activityCodeInput)}
+                           className="p-2 rounded-xl bg-purple-500 text-white shadow-lg shadow-purple-500/30 active:scale-90 transition-transform"
+                         >
+                           <Play size={18} />
+                         </button>
+                       </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-purple-500/10">
+                      <button 
+                        onClick={() => {
+                          playExternalBubble();
+                          setCurrentView('create-activity');
+                        }}
+                        className={`w-full flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all hover:border-purple-400 hover:bg-purple-400/10 ${
+                          theme === 'black' ? 'border-white/10 text-white/60' : 'border-purple-200 text-purple-600'
+                        }`}
+                      >
+                        <PlusCircle size={18} />
+                        <span className="text-xs font-black uppercase tracking-widest">Crear Actividad</span>
+                      </button>
+                    </div>
+                  </div>
+                </AeroCard>
+
                 <AeroCard title="Estado NewAra" theme={theme}>
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border shadow-inner ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60'}`}>
@@ -644,6 +793,212 @@ export default function App() {
                   </GlossyButton>
                 </div>
               </AeroCard>
+            </motion.div>
+          )}
+
+          {currentView === 'play-activity' && activeExercise && (
+             <ExerciseRunner 
+               subjectId="shared"
+               shuffled={exerciseState.shuffled}
+               currentQuestion={activeExercise.currentQuestion}
+               finished={exerciseState.finished}
+               score={exerciseState.score}
+               selectedAnswer={selectedAnswer}
+               onAnswer={handleExerciseAnswer}
+               onFinish={() => {
+                 setCurrentView('home');
+                 setActiveExercise(null);
+                 setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
+               }}
+               userAnswers={exerciseState.userAnswers}
+               title={currentSharedActivity?.name || 'Actividad Compartida'}
+               theme={theme}
+             />
+          )}
+
+          {currentView === 'create-activity' && (
+            <motion.div 
+              key="create-activity"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="max-w-4xl mx-auto space-y-8"
+            >
+               <header className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setCurrentView('home')}
+                    className="p-2 rounded-xl bg-white/20 border border-white/40 shadow-lg"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div>
+                    <h1 className={`text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Crear Actividad</h1>
+                    <p className={`font-medium opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Wordwall Style - 3 Preguntas Gratis</p>
+                  </div>
+               </header>
+
+               {newActivityCode ? (
+                 <AeroCard title="¡Actividad Publicada!" theme={theme}>
+                    <div className="flex flex-col items-center py-8 text-center space-y-6">
+                       <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white shadow-xl shadow-green-500/30 animate-bounce">
+                         <CheckCircle2 size={42} />
+                       </div>
+                       <div className="space-y-2">
+                         <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Listo para Compartir!</h2>
+                         <p className={`text-sm font-medium ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>Comparte este código con tus amigos para que jueguen.</p>
+                       </div>
+                       
+                       <div className="w-full p-6 rounded-3xl bg-white/20 border border-white/40 flex flex-col items-center gap-4">
+                          <p className={`text-xs font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Código de Actividad</p>
+                          <div className="text-4xl font-black tracking-widest text-blue-500 font-mono select-all">
+                             {newActivityCode}
+                          </div>
+                          <GlossyButton 
+                            onClick={() => {
+                              navigator.clipboard.writeText(newActivityCode);
+                              playExternalBubble();
+                            }}
+                            className="text-xs px-6 py-2 flex items-center gap-2"
+                          >
+                            <Copy size={14} /> Copiar Código
+                          </GlossyButton>
+                       </div>
+
+                       <GlossyButton 
+                         onClick={() => {
+                           setNewActivityCode('');
+                           setActivityName('');
+                           setActivityQuestions([
+                             { question: '', options: ['', '', '', ''], correct: 0 },
+                             { question: '', options: ['', '', '', ''], correct: 0 },
+                             { question: '', options: ['', '', '', ''], correct: 0 }
+                           ]);
+                           setCurrentView('home');
+                         }}
+                         className="w-full py-4 text-sky-500 bg-white/40"
+                       >
+                         Volver al Inicio
+                       </GlossyButton>
+                    </div>
+                 </AeroCard>
+               ) : (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <AeroCard title="General" theme={theme}>
+                        <div className="space-y-4">
+                           <div className="space-y-1">
+                             <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre de la Actividad</label>
+                             <input 
+                               type="text" 
+                               value={activityName}
+                               onChange={(e) => setActivityName(e.target.value)}
+                               className={`w-full px-4 py-3 rounded-2xl border text-sm font-bold transition-all focus:ring-2 focus:ring-blue-400 outline-none ${
+                                 theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                               }`}
+                               placeholder="Ej: Quiz de Historia Argentina"
+                             />
+                           </div>
+                           <div className="space-y-1">
+                             <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Contraseña de Creador (Para proteger)</label>
+                             <div className="relative">
+                               <input 
+                                 type="password" 
+                                 value={activityCreatorPassword}
+                                 onChange={(e) => setActivityCreatorPassword(e.target.value)}
+                                 className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-bold transition-all focus:ring-2 focus:ring-blue-400 outline-none ${
+                                   theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                                 }`}
+                                 placeholder="Mínimo 4 caracteres"
+                               />
+                               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
+                             </div>
+                           </div>
+                        </div>
+                      </AeroCard>
+
+                      <AeroCard title="Atención" theme={theme} className="bg-amber-400/10 border-amber-400/20">
+                         <div className="flex gap-4 p-2 text-xs font-medium leading-relaxed opacity-80">
+                            <Lightbulb className="text-amber-500 flex-shrink-0" size={24} />
+                            <p>Las actividades compartidas son públicas. Cualquier persona con el código podrá jugar tu actividad. Sé creativo y diviértete.</p>
+                         </div>
+                      </AeroCard>
+
+                      <GlossyButton 
+                        onClick={handleCreateActivity}
+                        disabled={isCreatingActivity}
+                        className="w-full py-6 text-xl tracking-widest gap-2"
+                      >
+                         {isCreatingActivity ? (
+                           <div className="flex items-center gap-4">
+                              <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                              <span>PUBLICANDO...</span>
+                           </div>
+                         ) : (
+                           <>
+                             PUBLICAR <Share2 size={24} />
+                           </>
+                         )}
+                      </GlossyButton>
+                   </div>
+
+                   <div className="space-y-6">
+                      {activityQuestions.map((q, qIdx) => (
+                        <AeroCard key={qIdx} title={`Pregunta ${qIdx + 1}`} theme={theme}>
+                          <div className="space-y-4">
+                            <input 
+                              type="text" 
+                              value={q.question}
+                              onChange={(e) => {
+                                const newQs = [...activityQuestions];
+                                newQs[qIdx].question = e.target.value;
+                                setActivityQuestions(newQs);
+                              }}
+                              className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-blue-400 outline-none ${
+                                theme === 'black' ? 'bg-white/10 border-white/5 text-white' : 'bg-white/40 border-white/20 text-sky-950'
+                              }`}
+                              placeholder="Escribe la pregunta..."
+                            />
+                            
+                            <div className="grid grid-cols-1 gap-2">
+                              {q.options.map((opt, optIdx) => (
+                                <div key={optIdx} className="flex gap-2 items-center">
+                                  <input 
+                                    type="text" 
+                                    value={opt}
+                                    onChange={(e) => {
+                                      const newQs = [...activityQuestions];
+                                      newQs[qIdx].options[optIdx] = e.target.value;
+                                      setActivityQuestions(newQs);
+                                    }}
+                                    className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                                      theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
+                                    } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500' : ''}`}
+                                    placeholder={`Opción ${optIdx + 1}`}
+                                  />
+                                  <button 
+                                    onClick={() => {
+                                      const newQs = [...activityQuestions];
+                                      newQs[qIdx].correct = optIdx;
+                                      setActivityQuestions(newQs);
+                                      playExternalBubble();
+                                    }}
+                                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
+                                      q.correct === optIdx 
+                                        ? 'bg-green-500 text-white border-green-500 shadow-lg scale-110' 
+                                        : theme === 'black' ? 'border-white/10 text-white/40' : 'border-white/40 text-sky-950/20'
+                                    }`}
+                                  >
+                                    <CheckCircle2 size={16} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </AeroCard>
+                      ))}
+                   </div>
+                 </div>
+               )}
             </motion.div>
           )}
 
@@ -1071,147 +1426,167 @@ export default function App() {
               </button>
               
               <div className="space-y-6 relative z-10 pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(selectedSubject.color)}`}>
-                      {getIcon(selectedSubject.icon, 20)}
-                    </div>
-                    <div>
-                      <h2 className={`text-xl font-black leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{selectedSubject.units[activeExercise.unitIndex].title}</h2>
-                      <p className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-500'}`}>Desafío de Práctica</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-xs font-black transition-colors duration-500 ${theme === 'black' ? 'text-white/20' : 'text-sky-900/40'}`}>{activeExercise.currentQuestion + 1} / {exerciseState.shuffled.length}</span>
-                  </div>
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {!exerciseState.finished ? (
-                    <motion.div 
-                      key={activeExercise.currentQuestion}
-                      initial={{ x: 20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: -20, opacity: 0 }}
-                      className="space-y-6"
-                    >
-                      <p className={`text-xl font-bold leading-snug transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
-                        {exerciseState.shuffled[activeExercise.currentQuestion].question}
-                      </p>
-                      <div className="grid grid-cols-1 gap-3">
-                        {exerciseState.shuffled[activeExercise.currentQuestion].options.map((opt: string, i: number) => {
-                          const isCorrect = i === exerciseState.shuffled[activeExercise.currentQuestion].correct;
-                          const isSelected = i === selectedAnswer;
-                          
-                          let bgClass = theme === 'black' 
-                            ? "bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400/50" 
-                            : "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
-
-                          if (selectedAnswer !== null) {
-                            if (isSelected) {
-                              bgClass = isCorrect ? "bg-green-400/60 border-green-400 text-white" : "bg-red-400/60 border-red-400 text-white";
-                            } else if (isCorrect) {
-                              bgClass = isCorrect && theme === 'black' ? "bg-green-400/20 border-green-400/50 text-green-400" : "bg-green-400/20 border-green-400/50 text-green-700";
-                            } else {
-                              bgClass = theme === 'black' ? "bg-white/5 border-white/5 opacity-20" : "bg-white/20 border-white/20 opacity-40";
-                            }
-                          }
-
-                          return (
-                            <motion.button 
-                              key={i}
-                              disabled={selectedAnswer !== null}
-                              onClick={() => handleExerciseAnswer(i)}
-                              animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
-                              transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
-                              className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
-                            >
-                              <span>{opt}</span>
-                              <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')}`} />
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="py-6 flex flex-col items-center gap-6"
-                    >
-                      <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl ring-8 ring-blue-50/10">
-                          {Math.round((exerciseState.score / exerciseState.shuffled.length) * 100)}%
-                        </div>
-                      </div>
-                      
-                      <div className="w-full space-y-4 max-h-[40vh] overflow-y-auto px-2 custom-scrollbar">
-                        <h4 className={`text-xs font-black uppercase tracking-widest text-center sticky top-0 bg-transparent py-2 backdrop-blur-md transition-colors duration-500 ${theme === 'black' ? 'text-white/20' : 'text-sky-900/40'}`}>Resumen de Actividades</h4>
-                        {exerciseState.userAnswers.map((ans, idx) => (
-                          <div key={idx} className={`p-4 rounded-2xl border-2 transition-all ${ans.isCorrect ? (theme === 'black' ? 'bg-green-950/20 border-green-900/50' : 'bg-green-50/50 border-green-200') : (theme === 'black' ? 'bg-red-950/20 border-red-900/50' : 'bg-red-50/50 border-red-200')}`}>
-                            <p className={`text-xs font-bold mb-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}>{idx + 1}. {ans.question}</p>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className={`font-black uppercase opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tu respuesta:</span>
-                                <span className={`font-bold ${ans.isCorrect ? 'text-green-500' : 'text-red-500'}`}>{ans.options[ans.selected]}</span>
-                              </div>
-                              {!ans.isCorrect && (
-                                <div className="flex items-center gap-2 text-[10px]">
-                                  <span className={`font-black uppercase opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Correcta:</span>
-                                  <span className="font-bold text-green-500">{ans.options[ans.correct]}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="text-center">
-                        <h3 className={`text-2xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                          {exerciseState.score === exerciseState.shuffled.length ? '¡Puntaje Perfecto!' : 
-                           exerciseState.score > exerciseState.shuffled.length / 2 ? '¡Buen Trabajo!' : '¡Sigue Practicando!'}
-                        </h3>
-                        <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Has completado la unidad de estudio.</p>
-                      </div>
-                      <div className="flex gap-3 w-full">
-                        <GlossyButton onClick={() => startExercise(activeExercise.unitIndex)} className="px-4 flex-1 text-sm">
-                          Reiniciar
-                        </GlossyButton>
-                        
-                        {selectedSubject.units[activeExercise.unitIndex + 1] ? (
-                          <GlossyButton variant="blue" onClick={handleNextUnit} className="px-4 flex-1 text-sm bg-gradient-to-b from-green-400 to-green-600">
-                            Siguiente Unidad
-                          </GlossyButton>
-                        ) : (
-                          <GlossyButton variant="blue" onClick={() => setActiveExercise(null)} className="px-4 flex-1 text-sm">
-                            Terminar
-                          </GlossyButton>
-                        )}
-                        
-                        {selectedSubject.units[activeExercise.unitIndex + 1] && (
-                          <button 
-                            onClick={() => setActiveExercise(null)} 
-                            className={`px-4 py-2 text-xs font-bold transition-all ${theme === 'black' ? 'text-white/40 hover:text-white' : 'text-sky-900/40 hover:text-sky-900'}`}
-                          >
-                            Cerrar
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {!exerciseState.finished && (
-                  <div className="w-full h-1.5 bg-sky-100 rounded-full overflow-hidden mt-4">
-                    <motion.div 
-                      className="h-full bg-blue-500"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(activeExercise.currentQuestion / exerciseState.shuffled.length) * 100}%` }}
-                    />
-                  </div>
-                )}
+                <ExerciseRunner 
+                  subjectId={activeExercise.subjectId}
+                  shuffled={exerciseState.shuffled}
+                  currentQuestion={activeExercise.currentQuestion}
+                  finished={exerciseState.finished}
+                  score={exerciseState.score}
+                  selectedAnswer={selectedAnswer}
+                  onAnswer={handleExerciseAnswer}
+                  onFinish={() => {
+                     if (activeExercise.subjectId === 'shared') {
+                        setCurrentView('home');
+                     }
+                     setActiveExercise(null);
+                  }}
+                  userAnswers={exerciseState.userAnswers}
+                  title={activeExercise.subjectId === 'shared' ? currentSharedActivity?.name : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
+                  theme={theme}
+                />
               </div>
             </AeroCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ExerciseRunner({ 
+  subjectId, 
+  shuffled, 
+  currentQuestion, 
+  finished, 
+  score, 
+  selectedAnswer, 
+  onAnswer, 
+  onFinish, 
+  userAnswers, 
+  title, 
+  theme = 'white' 
+}: { 
+  subjectId: string, 
+  shuffled: any[], 
+  currentQuestion: number, 
+  finished: boolean, 
+  score: number, 
+  selectedAnswer: number | null, 
+  onAnswer: (index: number) => void, 
+  onFinish: () => void, 
+  userAnswers: any[], 
+  title: string, 
+  theme?: 'white' | 'black' 
+}) {
+  const getColorClasses = (color: string) => {
+    switch (color) {
+      case 'green': return 'from-green-400 to-green-600';
+      case 'blue': return 'from-blue-400 to-blue-600';
+      case 'amber': return 'from-amber-400 to-amber-600';
+      case 'indigo': return 'from-indigo-400 to-indigo-600';
+      case 'red': return 'from-red-400 to-red-600';
+      case 'purple': return 'from-purple-400 to-purple-600';
+      default: return 'from-sky-400 to-sky-600';
+    }
+  };
+
+  const currentSubject = SUBJECTS.find(s => s.id === subjectId) || { color: 'blue', icon: 'Book' };
+
+  return (
+    <div className="space-y-6 relative z-10 pb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(currentSubject.color)}`}>
+             <Sparkles size={20} />
+          </div>
+          <div>
+            <h2 className={`text-xl font-black leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{title}</h2>
+            <p className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-500'}`}>Desafío Interactivo</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <span className={`text-xs font-black transition-colors duration-500 ${theme === 'black' ? 'text-white/20' : 'text-sky-900/40'}`}>{currentQuestion + 1} / {shuffled.length}</span>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {!finished ? (
+          <motion.div 
+            key={currentQuestion}
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -20, opacity: 0 }}
+            className="space-y-6"
+          >
+            <p className={`text-xl font-bold leading-snug transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
+              {shuffled[currentQuestion].question}
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {shuffled[currentQuestion].options.map((opt: string, i: number) => {
+                const isCorrect = i === shuffled[currentQuestion].correct;
+                const isSelected = i === selectedAnswer;
+                
+                let bgClass = theme === 'black' 
+                  ? "bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400/50" 
+                  : "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
+
+                if (selectedAnswer !== null) {
+                  if (isSelected) {
+                    bgClass = isCorrect ? "bg-green-400/60 border-green-400 text-white" : "bg-red-400/60 border-red-400 text-white";
+                  } else if (isCorrect) {
+                    bgClass = isCorrect && theme === 'black' ? "bg-green-400/20 border-green-400/50 text-green-400" : "bg-green-400/20 border-green-400/50 text-green-700";
+                  } else {
+                    bgClass = theme === 'black' ? "bg-white/5 border-white/5 opacity-20" : "bg-white/20 border-white/20 opacity-40";
+                  }
+                }
+
+                return (
+                  <motion.button 
+                    key={i}
+                    disabled={selectedAnswer !== null}
+                    onClick={() => onAnswer(i)}
+                    animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
+                    transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
+                    className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
+                  >
+                    <span>{opt}</span>
+                    <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')}`} />
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="py-6 flex flex-col items-center gap-6"
+          >
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl ring-8 ring-blue-50/10">
+                {Math.round((score / shuffled.length) * 100)}%
+              </div>
+            </div>
+            
+            <div className="text-center space-y-1">
+              <h3 className={`text-2xl font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                {score === shuffled.length ? '¡Excelente!' : score > 0 ? '¡Muy Bien!' : 'Sigue Intentando'}
+              </h3>
+              <p className={`text-sm font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/60'}`}>Has acertado {score} de {shuffled.length} preguntas.</p>
+            </div>
+
+            <div className="w-full space-y-2 max-h-48 overflow-y-auto px-2 custom-scrollbar">
+              {userAnswers.map((log, i) => (
+                <div key={i} className={`p-3 rounded-xl border flex items-center gap-3 ${log.isCorrect ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                  {log.isCorrect ? <CheckCircle2 className="text-green-500" size={16} /> : <div className="w-4 h-4 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px] text-red-500 font-black">×</div>}
+                  <p className={`text-xs font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}>{log.question}</p>
+                </div>
+              ))}
+            </div>
+
+            <GlossyButton onClick={onFinish} className="w-full py-4 text-sky-500 bg-white/40 border-2 border-white/60">
+               Cerrar
+            </GlossyButton>
           </motion.div>
         )}
       </AnimatePresence>
