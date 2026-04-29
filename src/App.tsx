@@ -188,7 +188,6 @@ export default function App() {
     }
   };
   const [activityName, setActivityName] = useState('');
-  const [activityCreatorPassword, setActivityCreatorPassword] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
   
   // History State
@@ -423,8 +422,8 @@ export default function App() {
       playErrorSound();
       return;
     }
-    if (!activityName || !activityCreatorPassword) {
-      setCreationError("Falta el nombre de la actividad o la contraseña.");
+    if (!activityName) {
+      setCreationError("Falta el nombre de la actividad.");
       playErrorSound();
       return;
     }
@@ -454,7 +453,6 @@ export default function App() {
       const activityData = {
         name: activityName,
         creatorName: userName,
-        password: activityCreatorPassword,
         questions: activityQuestions.map(q => ({
           type: q.type || 'multiple-choice',
           question: q.question,
@@ -1094,21 +1092,6 @@ export default function App() {
                                }`}
                                placeholder="Ej: Quiz de Historia Argentina"
                              />
-                           </div>
-                           <div className="space-y-1">
-                             <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Contraseña de Creador (Para proteger)</label>
-                             <div className="relative">
-                               <input 
-                                 type="password" 
-                                 value={activityCreatorPassword}
-                                 onChange={(e) => setActivityCreatorPassword(e.target.value)}
-                                 className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-bold transition-all focus:ring-2 focus:ring-blue-400 outline-none ${
-                                   theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
-                                 }`}
-                                 placeholder="Mínimo 4 caracteres"
-                               />
-                               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
-                             </div>
                            </div>
                         </div>
                       </AeroCard>
