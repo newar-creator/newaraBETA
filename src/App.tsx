@@ -424,7 +424,7 @@ export default function App() {
       <div className="md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 pointer-events-none sticky top-0 bg-white/5 backdrop-blur-[2px]">
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.7</span>
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.8</span>
         </div>
         
         <AnimatePresence>
