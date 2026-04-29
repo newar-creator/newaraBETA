@@ -36,7 +36,8 @@ import {
   Share2,
   Copy,
   Lock,
-  Play
+  Play,
+  Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -175,6 +176,16 @@ export default function App() {
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string }
   ]);
+
+  const addQuestion = () => {
+    setActivityQuestions([...activityQuestions, { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string }]);
+  };
+
+  const removeQuestion = (index: number) => {
+    if (activityQuestions.length > 1) {
+      setActivityQuestions(activityQuestions.filter((_, i) => i !== index));
+    }
+  };
   const [activityName, setActivityName] = useState('');
   const [activityCreatorPassword, setActivityCreatorPassword] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
@@ -1116,8 +1127,22 @@ export default function App() {
                    </div>
 
                    <div className="space-y-6">
-                      {activityQuestions.map((q, qIdx) => (
-                        <AeroCard key={qIdx} title={`Pregunta ${qIdx + 1}`} theme={theme}>
+                     {activityQuestions.map((q, qIdx) => (
+                        <AeroCard 
+                          key={qIdx} 
+                          title={`Pregunta ${qIdx + 1}`} 
+                          theme={theme}
+                          extra={
+                            activityQuestions.length > 1 && (
+                              <button 
+                                onClick={() => removeQuestion(qIdx)}
+                                className="p-1 px-3 bg-red-500/10 text-red-500 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                              >
+                                Eliminar
+                              </button>
+                            )
+                          }
+                        >
                           <div className="space-y-4">
                             <div className="flex flex-wrap gap-2 mb-2">
                                {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
@@ -1221,6 +1246,18 @@ export default function App() {
                           </div>
                         </AeroCard>
                       ))}
+
+                      <button 
+                        onClick={addQuestion}
+                        className={`w-full py-6 rounded-[32px] border-4 border-dashed flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group ${
+                          theme === 'black' 
+                            ? 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:bg-white/10' 
+                            : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 hover:text-blue-500'
+                        }`}
+                      >
+                        <Plus className="group-hover:rotate-90 transition-transform duration-500" />
+                        <span className="font-black uppercase tracking-widest text-sm">Añadir otra pregunta</span>
+                      </button>
                    </div>
                  </div>
                )}
@@ -1377,11 +1414,11 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Términos de Servicio" theme={theme} className="md:col-span-2">
+                <AeroCard title="Términos de Servicio v2.1" theme={theme} className="md:col-span-2">
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-inner'}`}>
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
-                        Información Legal e Importante
+                        Información Legal e Importante (Servidor NewAra Pro)
                       </p>
                       <ul className={`space-y-3 text-xs md:text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         <li className="flex gap-3">
@@ -1391,6 +1428,12 @@ export default function App() {
                         <li className="flex gap-3">
                           <CheckCircle2 size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
                           <span><b>Privacidad:</b> Tus preferencias (como el tema y la vista actual) se guardan únicamente en el almacenamiento local de tu navegador.</span>
+                        </li>
+                        <li className="flex gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                          <User size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span>
+                            <b>Cuentas de Usuario:</b> En RELEASE 2.1, el registro es obligatorio para publicar. Tu contraseña se cifra localmente. No compartas tus credenciales.
+                          </span>
                         </li>
                         <li className="flex gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                           <ShieldCheck size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
