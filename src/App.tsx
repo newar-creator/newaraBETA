@@ -130,9 +130,9 @@ export default function App() {
   const [isCreatingActivity, setIsCreatingActivity] = useState(false);
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [activityQuestions, setActivityQuestions] = useState([
-    { question: '', options: ['', '', '', ''], correct: 0 },
-    { question: '', options: ['', '', '', ''], correct: 0 },
-    { question: '', options: ['', '', '', ''], correct: 0 }
+    { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
+    { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
+    { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string }
   ]);
   const [activityName, setActivityName] = useState('');
   const [activityCreatorPassword, setActivityCreatorPassword] = useState('');
@@ -176,10 +176,14 @@ export default function App() {
     const unit = selectedSubject.units[unitIndex];
     // Shuffle questions
     const randomizedQuestions = shuffleArray(unit.exercises).map(ex => {
+      if (ex.type === 'writing') {
+        return { ...ex };
+      }
+      
       const originalOptions = ex.options.map((opt, idx) => ({ text: opt, isCorrect: idx === ex.correct }));
       const shuffledOptions = shuffleArray(originalOptions);
       return {
-        question: ex.question,
+        ...ex,
         options: shuffledOptions.map(o => o.text),
         correct: shuffledOptions.findIndex(o => o.isCorrect)
       };
@@ -190,12 +194,20 @@ export default function App() {
     setSelectedAnswer(null);
   };
 
-  const handleExerciseAnswer = (index: number) => {
+  const handleExerciseAnswer = (answer: number | string) => {
     if (selectedAnswer !== null || !activeExercise) return;
     
-    setSelectedAnswer(index);
     const currentQ = exerciseState.shuffled[activeExercise.currentQuestion];
-    const isCorrect = index === currentQ.correct;
+    
+    // Use index -1 as a special value for string answers to indicate "answered"
+    setSelectedAnswer(typeof answer === 'number' ? answer : -1);
+    
+    let isCorrect = false;
+    if (currentQ.type === 'writing') {
+      isCorrect = String(answer).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim();
+    } else {
+      isCorrect = answer === currentQ.correct;
+    }
     
     if (isCorrect) {
       playSuccessSound();
@@ -207,10 +219,11 @@ export default function App() {
     
     const answerLog = {
       question: currentQ.question,
-      selected: index,
+      selected: answer,
       correct: currentQ.correct,
       isCorrect,
-      options: currentQ.options
+      options: currentQ.options,
+      type: currentQ.type || 'multiple-choice'
     };
 
     setExerciseState(prev => ({
@@ -329,8 +342,12 @@ export default function App() {
       return;
     }
     
-    // Simple validation: all 3 questions must have content and correct answers
-    const isValid = activityQuestions.every(q => q.question && q.options.every(o => o) && q.correct !== undefined);
+    // Simple validation: check based on type
+    const isValid = activityQuestions.every(q => {
+      if (q.type === 'writing') return q.question && q.correct !== '';
+      return q.question && q.options.length >= 2 && q.options.every(o => o) && q.correct !== undefined;
+    });
+
     if (!isValid) {
       playErrorSound();
       return;
@@ -343,9 +360,10 @@ export default function App() {
         creatorName: userName,
         password: activityCreatorPassword,
         questions: activityQuestions.map(q => ({
+          type: q.type || 'multiple-choice',
           question: q.question,
           options: q.options,
-          correctAnswer: q.options[q.correct]
+          correctAnswer: q.type === 'writing' ? q.correct : q.options[q.correct as number]
         })),
         createdAt: serverTimestamp()
       };
@@ -373,19 +391,23 @@ export default function App() {
           name: data.name,
           creator: data.creatorName,
           exercises: data.questions.map((q: any) => ({
+            type: q.type || 'multiple-choice',
             question: q.question,
-            options: q.options,
-            correct: q.options.indexOf(q.correctAnswer)
+            options: q.options || [],
+            correct: (q.type === 'writing') ? q.correctAnswer : q.options.indexOf(q.correctAnswer)
           }))
         };
         setCurrentSharedActivity(unitExtras);
         
-        // Prepare exercise state
+        // Prepare exercise state with same logic as startExercise
         const randomizedQuestions = shuffleArray(unitExtras.exercises).map(ex => {
+          if (ex.type === 'writing') {
+            return { ...ex };
+          }
           const originalOptions = ex.options.map((opt: string, idx: number) => ({ text: opt, isCorrect: idx === ex.correct }));
           const shuffledOptions = shuffleArray(originalOptions);
           return {
-            question: ex.question,
+            ...ex,
             options: shuffledOptions.map(o => o.text),
             correct: shuffledOptions.findIndex(o => o.isCorrect)
           };
@@ -962,6 +984,37 @@ export default function App() {
                       {activityQuestions.map((q, qIdx) => (
                         <AeroCard key={qIdx} title={`Pregunta ${qIdx + 1}`} theme={theme}>
                           <div className="space-y-4">
+                            <div className="flex flex-wrap gap-2 mb-2">
+                               {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
+                                  <button 
+                                     key={type}
+                                     onClick={() => {
+                                        const newQs = [...activityQuestions];
+                                        (newQs[qIdx] as any).type = type;
+                                        if (type === 'true-false') {
+                                           newQs[qIdx].options = ['Verdadero', 'Falso'];
+                                           newQs[qIdx].correct = 0;
+                                        } else if (type === 'writing') {
+                                           newQs[qIdx].options = [];
+                                           newQs[qIdx].correct = '';
+                                        } else {
+                                           newQs[qIdx].options = ['', '', '', ''];
+                                           newQs[qIdx].correct = 0;
+                                        }
+                                        setActivityQuestions(newQs);
+                                        playExternalBubble();
+                                     }}
+                                     className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                        q.type === type 
+                                        ? 'bg-blue-500 text-white border-blue-400 shadow-md scale-105' 
+                                        : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/40' : 'bg-white/60 border-white/40 text-sky-900/40')
+                                     }`}
+                                  >
+                                     {type === 'multiple-choice' ? 'Quiz' : type === 'true-false' ? 'V/F' : 'Escribir'}
+                                  </button>
+                               ))}
+                            </div>
+
                             <input 
                               type="text" 
                               value={q.question}
@@ -973,43 +1026,63 @@ export default function App() {
                               className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-blue-400 outline-none ${
                                 theme === 'black' ? 'bg-white/10 border-white/5 text-white' : 'bg-white/40 border-white/20 text-sky-950'
                               }`}
-                              placeholder="Escribe la pregunta..."
+                              placeholder={q.type === 'writing' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
                             />
                             
-                            <div className="grid grid-cols-1 gap-2">
-                              {q.options.map((opt, optIdx) => (
-                                <div key={optIdx} className="flex gap-2 items-center">
-                                  <input 
-                                    type="text" 
-                                    value={opt}
-                                    onChange={(e) => {
-                                      const newQs = [...activityQuestions];
-                                      newQs[qIdx].options[optIdx] = e.target.value;
-                                      setActivityQuestions(newQs);
-                                    }}
-                                    className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                                      theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
-                                    } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500' : ''}`}
-                                    placeholder={`Opción ${optIdx + 1}`}
-                                  />
-                                  <button 
-                                    onClick={() => {
-                                      const newQs = [...activityQuestions];
-                                      newQs[qIdx].correct = optIdx;
-                                      setActivityQuestions(newQs);
-                                      playExternalBubble();
-                                    }}
-                                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
-                                      q.correct === optIdx 
-                                        ? 'bg-green-500 text-white border-green-500 shadow-lg scale-110' 
-                                        : theme === 'black' ? 'border-white/10 text-white/40' : 'border-white/40 text-sky-950/20'
-                                    }`}
-                                  >
-                                    <CheckCircle2 size={16} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
+                            {q.type === 'writing' ? (
+                              <div className="space-y-2">
+                                <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Respuesta Correcta</label>
+                                <input 
+                                  type="text" 
+                                  value={q.correct}
+                                  onChange={(e) => {
+                                    const newQs = [...activityQuestions];
+                                    newQs[qIdx].correct = e.target.value;
+                                    setActivityQuestions(newQs);
+                                  }}
+                                  className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-green-400 outline-none ${
+                                    theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                                  }`}
+                                  placeholder="Ingresa la respuesta exacta..."
+                                />
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-2">
+                                {q.options.map((opt, optIdx) => (
+                                  <div key={optIdx} className="flex gap-2 items-center">
+                                    <input 
+                                      type="text" 
+                                      value={opt}
+                                      readOnly={q.type === 'true-false'}
+                                      onChange={(e) => {
+                                        const newQs = [...activityQuestions];
+                                        newQs[qIdx].options[optIdx] = e.target.value;
+                                        setActivityQuestions(newQs);
+                                      }}
+                                      className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                                        theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
+                                      } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500' : ''}`}
+                                      placeholder={`Opción ${optIdx + 1}`}
+                                    />
+                                    <button 
+                                      onClick={() => {
+                                        const newQs = [...activityQuestions];
+                                        newQs[qIdx].correct = optIdx;
+                                        setActivityQuestions(newQs);
+                                        playExternalBubble();
+                                      }}
+                                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
+                                        q.correct === optIdx 
+                                          ? 'bg-green-500 text-white border-green-500 shadow-lg scale-110' 
+                                          : theme === 'black' ? 'border-white/10 text-white/40' : 'border-white/40 text-sky-950/20'
+                                      }`}
+                                    >
+                                      <CheckCircle2 size={16} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </AeroCard>
                       ))}
@@ -1520,12 +1593,19 @@ function ExerciseRunner({
   finished: boolean, 
   score: number, 
   selectedAnswer: number | null, 
-  onAnswer: (index: number) => void, 
+  onAnswer: (answer: number | string) => void, 
   onFinish: () => void, 
   userAnswers: any[], 
   title: string, 
   theme?: 'white' | 'black' 
 }) {
+  const [writeInput, setWriteInput] = useState('');
+
+  // Reset input when question changes
+  useEffect(() => {
+    setWriteInput('');
+  }, [currentQuestion]);
+
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
@@ -1539,6 +1619,8 @@ function ExerciseRunner({
   };
 
   const currentSubject = SUBJECTS.find(s => s.id === subjectId) || { color: 'blue', icon: 'Book' };
+  const currentQ = shuffled[currentQuestion];
+  const qType = currentQ?.type || 'multiple-choice';
 
   return (
     <div className="space-y-6 relative z-10 pb-4">
@@ -1549,7 +1631,9 @@ function ExerciseRunner({
           </div>
           <div>
             <h2 className={`text-xl font-black leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{title}</h2>
-            <p className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-500'}`}>Desafío Interactivo</p>
+            <p className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-500'}`}>
+              {qType === 'multiple-choice' ? 'Opción Múltiple' : qType === 'true-false' ? 'Verdadero o Falso' : 'Escritura'}
+            </p>
           </div>
         </div>
         <div className="text-right">
@@ -1572,58 +1656,101 @@ function ExerciseRunner({
                 : 'bg-white/70 border-white/40 text-sky-950'
             }`}>
               <p className="text-xl font-black leading-snug drop-shadow-sm">
-                {shuffled[currentQuestion].question}
+                {currentQ.question}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              {shuffled[currentQuestion].options.map((opt: string, i: number) => {
-                const isCorrect = i === shuffled[currentQuestion].correct;
-                const isSelected = i === selectedAnswer;
-                
-                let buttonStyle = theme === 'black' 
-                  ? "bg-gradient-to-b from-white/10 to-white/5 border-white/10 text-white/80" 
-                  : "bg-gradient-to-b from-white/90 to-white/60 border-white/80 text-sky-900";
-
-                if (selectedAnswer !== null) {
-                  if (isSelected) {
-                    buttonStyle = isCorrect 
-                      ? "from-green-400 to-green-600 border-white text-white shadow-green-500/50" 
-                      : "from-red-400 to-red-600 border-white text-white shadow-red-500/50";
-                  } else if (isCorrect) {
-                    buttonStyle = "from-green-400/20 to-green-600/20 border-green-500/50 text-green-600";
-                  } else {
-                    buttonStyle = "opacity-30 grayscale blur-[1px]";
-                  }
-                }
-
-                return (
-                  <motion.button 
-                    key={i}
+            {qType === 'writing' ? (
+              <div className="space-y-4">
+                <div className={`p-1 rounded-3xl border-2 transition-all shadow-inner ${
+                  theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/60 border-white/40'
+                } ${selectedAnswer !== null ? (String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim() ? 'ring-4 ring-green-500/30' : 'ring-4 ring-red-500/30') : ''}`}>
+                  <input 
+                    type="text"
+                    value={writeInput}
+                    onChange={(e) => setWriteInput(e.target.value)}
                     disabled={selectedAnswer !== null}
-                    onClick={() => onAnswer(i)}
-                    whileHover={selectedAnswer === null ? { scale: 1.02, y: -2 } : {}}
-                    whileTap={selectedAnswer === null ? { scale: 0.98 } : {}}
-                    className={`relative p-5 rounded-3xl text-left font-black transition-all border-2 flex items-center justify-between group overflow-hidden shadow-[0_8px_15px_-5px_rgba(0,0,0,0.1)] active:shadow-inner ${buttonStyle}`}
+                    placeholder={currentQ.placeholder || "Escribe tu respuesta..."}
+                    className={`w-full px-6 py-5 rounded-3xl bg-transparent font-bold text-lg outline-none placeholder:opacity-30 ${
+                      theme === 'black' ? 'text-white' : 'text-sky-950'
+                    }`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && writeInput && selectedAnswer === null) {
+                        onAnswer(writeInput);
+                      }
+                    }}
+                  />
+                </div>
+                
+                {selectedAnswer === null ? (
+                  <GlossyButton 
+                    onClick={() => onAnswer(writeInput)}
+                    disabled={!writeInput}
+                    className="w-full py-4 text-sky-500"
                   >
-                    {/* Glossy Reflection Overlay */}
-                    <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
-                    
-                    <span className="relative z-10 text-base">{opt}</span>
-                    
-                    <div className={`relative z-10 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-                      selectedAnswer !== null && isSelected 
-                        ? 'bg-white border-white' 
-                        : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')
-                    }`}>
-                      {selectedAnswer !== null && isSelected && (
-                        <div className={`w-2 h-2 rounded-full ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`} />
-                      )}
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
+                    ENVIAR RESPUESTA
+                  </GlossyButton>
+                ) : (
+                  <div className={`p-4 rounded-3xl border-2 text-center animate-in fade-in zoom-in duration-300 ${
+                    String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim()
+                      ? 'bg-green-500/20 border-green-500 text-green-600'
+                      : 'bg-red-500/20 border-red-500 text-red-600'
+                  }`}>
+                    <p className="text-xs font-black uppercase tracking-widest mb-1">Respuesta Correcta:</p>
+                    <p className="text-lg font-black">{currentQ.correct}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {currentQ.options.map((opt: string, i: number) => {
+                  const isCorrect = i === currentQ.correct;
+                  const isSelected = i === selectedAnswer;
+                  
+                  let buttonStyle = theme === 'black' 
+                    ? "bg-gradient-to-b from-white/10 to-white/5 border-white/10 text-white/80" 
+                    : "bg-gradient-to-b from-white/90 to-white/60 border-white/80 text-sky-900";
+
+                  if (selectedAnswer !== null) {
+                    if (isSelected) {
+                      buttonStyle = isCorrect 
+                        ? "from-green-400 to-green-600 border-white text-white shadow-green-500/50" 
+                        : "from-red-400 to-red-600 border-white text-white shadow-red-500/50";
+                    } else if (isCorrect) {
+                      buttonStyle = "from-green-400/20 to-green-600/20 border-green-500/50 text-green-600";
+                    } else {
+                      buttonStyle = "opacity-30 grayscale blur-[1px]";
+                    }
+                  }
+
+                  return (
+                    <motion.button 
+                      key={i}
+                      disabled={selectedAnswer !== null}
+                      onClick={() => onAnswer(i)}
+                      whileHover={selectedAnswer === null ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={selectedAnswer === null ? { scale: 0.98 } : {}}
+                      className={`relative p-5 rounded-3xl text-left font-black transition-all border-2 flex items-center justify-between group overflow-hidden shadow-[0_8px_15px_-5px_rgba(0,0,0,0.1)] active:shadow-inner ${buttonStyle}`}
+                    >
+                      {/* Glossy Reflection Overlay */}
+                      <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+                      
+                      <span className="relative z-10 text-base">{opt}</span>
+                      
+                      <div className={`relative z-10 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
+                        selectedAnswer !== null && isSelected 
+                          ? 'bg-white border-white' 
+                          : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')
+                      }`}>
+                        {selectedAnswer !== null && isSelected && (
+                          <div className={`w-2 h-2 rounded-full ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`} />
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div 

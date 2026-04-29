@@ -1,15 +1,19 @@
 import React from 'react';
 
+export interface Exercise {
+  type?: 'multiple-choice' | 'true-false' | 'writing';
+  question: string;
+  options: string[];
+  correct: number | string;
+  placeholder?: string;
+}
+
 export interface Unit {
   title: string;
   description: string;
   explanation: string;
   meanings: { term: string, definition: string }[];
-  exercises: {
-    question: string;
-    options: string[];
-    correct: number;
-  }[];
+  exercises: Exercise[];
 }
 
 export interface Subject {
@@ -159,11 +163,11 @@ export const SUBJECTS: Subject[] = [
           { term: 'Cronología', definition: 'Ordenación de eventos en el tiempo.' }
         ],
         exercises: [
-          { question: '¿Cuál es el "puente" que une el presente con el pasado según Benedetto Croce?', options: ['Los libros', 'La memoria', 'Toda historia es historia del presente', 'Los museos'], correct: 2 },
-          { question: '¿Qué es una fuente histórica?', options: ['Cualquier resto del pasado que aporte datos', 'Solo libros', 'Solo estatuas', 'Solo videos'], correct: 0 },
-          { question: 'Un diario íntimo de 1810 es una fuente:', options: ['Secundaria', 'Terciaria', 'Primaria', 'Oral'], correct: 2 },
-          { question: '¿Para qué sirve una línea de tiempo?', options: ['Para medir el clima', 'Para representar gráficamente un período determinado', 'Para viajar al pasado', 'Solo para dibujar'], correct: 1 },
-          { question: 'La "honestidad intelectual" es un compromiso de:', options: ['El político', 'El historiador', 'El deportista', 'El arquitecto'], correct: 1 }
+          { type: 'writing', question: '¿Cuál es el "puente" que une el presente con el pasado según Benedetto Croce?', options: [], correct: 'Toda historia es historia del presente', placeholder: 'Frase famosa...' },
+          { type: 'true-false', question: 'El historiador inventa hechos basados en su imaginación.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'Un diario íntimo de 1810 es una fuente:', options: ['Secundaria', 'Terciaria', 'Primaria', 'Oral'], correct: 2 },
+          { type: 'true-false', question: 'Las líneas de tiempo representan procesos y cambios a través de los siglos.', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'writing', question: 'La "honestidad intelectual" es un compromiso de:', options: [], correct: 'Historiador', placeholder: 'Profesión...' }
         ]
       },
       {
@@ -176,11 +180,11 @@ export const SUBJECTS: Subject[] = [
           { term: 'Estrecho de Bering', definition: 'Puente terrestre temporal durante la glaciación.' }
         ],
         exercises: [
-          { question: '¿Qué teoría propuso que el hombre cruzó por el Estrecho de Bering?', options: ['Teoría Oceánica', 'Teoría Asiática', 'Teoría Australiana', 'Teoría Autoctonista'], correct: 1 },
-          { question: '¿Quién propuso la Teoría Oceánica?', options: ['Alex Hrdlicka', 'Paul Rivet', 'Florentino Ameghino', 'Mendes Correia'], correct: 1 },
-          { question: '¿Qué teoría fue refutada por la ciencia?', options: ['Asiática', 'Australiana', 'Autoctonista de Ameghino', 'Oceánica'], correct: 2 },
-          { question: '¿Hace cuánto habrían llegado los humanos según el Consenso Clovis?', options: ['13.000 años', '40.000 años', '2.000 años', '100.000 años'], correct: 0 },
-          { question: '¿Qué hacían los primeros grupos humanos en América?', options: ['Eran agricultores', 'Eran cazadores-recolectores nómades', 'Construían ciudades metálicas', 'Vivían en barcos'], correct: 1 }
+          { type: 'multiple-choice', question: '¿Qué teoría propuso que el hombre cruzó por el Estrecho de Bering?', options: ['Teoría Oceánica', 'Teoría Asiática', 'Teoría Australiana', 'Teoría Autoctonista'], correct: 1 },
+          { type: 'writing', question: '¿Quién propuso la Teoría Oceánica?', options: [], correct: 'Paul Rivet', placeholder: 'Nombre y Apellido...' },
+          { type: 'true-false', question: 'La Teoría Autoctonista de Florentino Ameghino fue aceptada por toda la comunidad científica.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: '¿Hace cuánto habrían llegado los humanos según el Consenso Clovis?', options: ['13.000 años', '40.000 años', '2.000 años', '100.000 años'], correct: 0 },
+          { type: 'true-false', question: 'Los primeros americanos eran nómades y cazadores de megafauna.', options: ['Verdadero', 'Falso'], correct: 0 }
         ]
       },
       {
@@ -210,11 +214,11 @@ export const SUBJECTS: Subject[] = [
           { term: 'Politeísmo', definition: 'Creencia en muchos dioses.' }
         ],
         exercises: [
-          { question: '¿En qué ciudad griega nació la Democracia?', options: ['Esparta', 'Atenas', 'Micenas', 'Corinto'], correct: 1 },
-          { question: '¿Cómo se llama la escritura de los antiguos egipcios?', options: ['Cuneiforme', 'Jeroglífica', 'Alfabeto latino', 'Pictografía mixteca'], correct: 1 },
-          { question: 'El sistema político donde el poder está en manos de unos pocos es:', options: ['Democracia', 'Oligarquía', 'República', 'Anarquía'], correct: 1 },
-          { question: '¿Cuál era el centro de la vida social y política en Grecia?', options: ['El oikos', 'La polis', 'El barco', 'La pirámide'], correct: 1 },
-          { question: 'Atenas tuvo un gobernante famoso por pagar sueldos públicos:', options: ['Dracón', 'Solón', 'Pericles', 'Alejandro Magno'], correct: 2 }
+          { type: 'writing', question: '¿En qué ciudad griega nació la Democracia?', options: [], correct: 'Atenas', placeholder: 'Ciudad...' },
+          { type: 'multiple-choice', question: '¿Cómo se llama la escritura de los antiguos egipcios?', options: ['Cuneiforme', 'Jeroglífica', 'Alfabeto latino', 'Pictografía mixteca'], correct: 1 },
+          { type: 'true-false', question: 'La Oligarquía es un sistema donde el poder lo tiene el pueblo.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'writing', question: 'El sistema de creer en muchos dioses se llama:', options: [], correct: 'Politeísmo', placeholder: 'Término...' },
+          { type: 'true-false', question: 'Pericles fue un gobernante famoso por pagar sueldos públicos en Atenas.', options: ['Verdadero', 'Falso'], correct: 0 }
         ]
       },
       {
@@ -313,11 +317,11 @@ export const SUBJECTS: Subject[] = [
           { term: 'Frequency Adverbs', definition: 'Palabras como "usually" o "never" que indican qué tan seguido hacemos algo.' }
         ],
         exercises: [
-          { question: 'They never ____ to bed late.', options: ['go', 'goes', 'going', 'are going'], correct: 0 },
-          { question: 'The Earth ____ around the Sun.', options: ['go', 'goes', 'going', 'is going'], correct: 1 },
-          { question: 'I ____ my homework at the moment.', options: ['do', 'does', 'doing', 'am doing'], correct: 3 },
-          { question: 'Ian ____ football regularly.', options: ['play', 'plays', 'playing', 'is playing'], correct: 1 },
-          { question: 'Rewrite: "Ian plays football regularly" (Negative)', options: ['Ian no plays football', "Ian doesn't plays football", "Ian doesn't play football", "Ian isn't playing football"], correct: 2 }
+          { type: 'multiple-choice', question: 'They never ____ to bed late.', options: ['go', 'goes', 'going', 'are going'], correct: 0 },
+          { type: 'true-false', question: '"The Earth goes around the Sun" is a universal truth in Present Simple.', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'writing', question: 'Escribe el verbo en Present Continuous: "I ____ (do) my homework at the moment."', options: [], correct: 'am doing', placeholder: 'Respuesta...' },
+          { type: 'multiple-choice', question: 'Ian ____ football regularly.', options: ['play', 'plays', 'playing', 'is playing'], correct: 1 },
+          { type: 'writing', question: 'Pasa a negativo: "Ian plays football regularly"', options: [], correct: "Ian doesn't play football", placeholder: "He doesn't..." }
         ]
       },
       {
