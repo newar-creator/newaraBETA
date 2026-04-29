@@ -231,23 +231,22 @@ export default function App() {
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Hidden on Mobile to save space */}
-        <div className="hidden md:flex flex-col items-center gap-2 mb-4">
-          <div 
-            className="font-logo text-3xl font-bold tracking-tighter flex items-baseline select-none relative"
-            style={{ textShadow: '0 2px 4px rgba(255,255,255,0.8)' }}
-          >
-            <span className="text-[#1a2b4b]">New</span>
-            <span className="bg-gradient-to-r from-[#00ff00] to-[#00f2ff] bg-clip-text text-transparent">Ara</span>
-          </div>
+        <div className="hidden md:flex flex-col items-center gap-4 mb-4 mt-2 px-4">
+          <img 
+            src="input_file_0.png" 
+            alt="NewAra Logo" 
+            className="w-full h-auto max-w-[180px] drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)] filter brightness-105" 
+            referrerPolicy="no-referrer"
+          />
           
           {/* Version Badge */}
-          <div className="px-3 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_2px_5px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.8)] flex items-center justify-center">
-            <span className="font-logo text-[10px] font-bold text-gray-800 tracking-wider flex items-center gap-1">
+          <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
+            <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
               BETA 2.7
             </span>
           </div>
 
-          <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-20" />
+          <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 mb-4">
@@ -873,22 +872,44 @@ function NavButton({ active, icon, label, onClick, theme = 'white' }: { active: 
   };
 
   const activeClasses = theme === 'black' 
-    ? 'bg-blue-600/30 shadow-[0_0_15px_rgba(37,99,235,0.4)] text-blue-400 scale-105 border-white/20' 
-    : 'bg-white/50 shadow-lg text-blue-600 scale-105 border-white/50';
+    ? 'bg-blue-600/30 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-blue-400 border-blue-500/50' 
+    : 'bg-white/60 shadow-[0_5px_15px_rgba(59,130,246,0.2)] text-blue-600 border-white/80';
 
   const defaultClasses = theme === 'black' 
-    ? 'text-white/60 hover:bg-white/10 hover:text-white' 
-    : 'text-sky-900 hover:bg-white/30';
+    ? 'text-white/60 border-transparent hover:bg-white/10 hover:text-white' 
+    : 'text-sky-900 border-transparent hover:bg-white/40 hover:border-white/50 hover:shadow-md';
 
   return (
-    <button 
+    <motion.button 
       onClick={handleClick}
-      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-3 rounded-xl md:rounded-2xl transition-all relative group border ${active ? activeClasses : defaultClasses}`}
+      whileHover={{ scale: 1.03, y: -2 }}
+      whileTap={{ scale: 0.97, y: 0 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 ${active ? activeClasses : defaultClasses}`}
+      style={{ willChange: 'transform' }}
     >
-      <div className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`} style={{ willChange: 'transform' }}>{icon}</div>
-      <span className={`text-[10px] md:text-sm font-bold transition-all`}>{label}</span>
-      {active && <div className="hidden md:block absolute right-2 w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
-    </button>
+      <motion.div 
+        animate={active ? { scale: 1.1, rotate: [0, -5, 5, 0] } : { scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`}
+      >
+        {icon}
+      </motion.div>
+      <span className={`text-[10px] md:text-sm font-bold tracking-tight`}>{label}</span>
+      
+      {active && (
+        <motion.div 
+          layoutId="nav-indicator"
+          className="hidden md:block absolute right-2 w-1.5 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 32 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        />
+      )}
+      
+      {/* Glossy highlight effect on hover */}
+      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-t-xl transition-opacity pointer-events-none" />
+    </motion.button>
   );
 }
 
