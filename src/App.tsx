@@ -53,6 +53,23 @@ export default function App() {
   const [showMobileSubjects, setShowMobileSubjects] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // Profile State
+  const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
+  const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
+  const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
+
+  useEffect(() => {
+    localStorage.setItem('newara_user_name', userName);
+  }, [userName]);
+
+  useEffect(() => {
+    localStorage.setItem('newara_user_bio', userBio);
+  }, [userBio]);
+
+  useEffect(() => {
+    localStorage.setItem('newara_user_avatar', userAvatar);
+  }, [userAvatar]);
+
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -289,10 +306,24 @@ export default function App() {
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 mb-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-sky-600 shadow-inner flex items-center justify-center text-white ring-4 ring-white/30">
-            <User size={24} />
+          <div className="w-14 h-14 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden group">
+            {userAvatar ? (
+              <img 
+                src={userAvatar} 
+                alt="Profile" 
+                className="w-full h-full object-cover rounded-full"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
+                <User size={28} />
+              </div>
+            )}
           </div>
-          <span className="hidden md:block text-xs font-bold text-sky-900/60 uppercase tracking-widest">Estudiante</span>
+          <div className="flex flex-col items-center">
+            <span className={`hidden md:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
+            <span className={`hidden md:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>Estudiante</span>
+          </div>
         </div>
 
         <div className="flex-1 w-full md:px-4 md:overflow-y-auto md:custom-scrollbar flex md:flex-col flex-row justify-around md:justify-start items-center gap-1 md:gap-8">
@@ -421,7 +452,21 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className="md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 pointer-events-none sticky top-0 bg-white/5 backdrop-blur-[2px]">
+      <div className={`md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 sticky top-0 backdrop-blur-md border-b transition-colors duration-500 ${theme === 'black' ? 'bg-black/60 border-white/10' : 'bg-white/40 border-white/20'}`}>
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+           <div 
+             className="w-10 h-10 rounded-full p-0.5 bg-white/20 border border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
+             onClick={() => setCurrentView('settings')}
+           >
+             {userAvatar ? (
+               <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" />
+             ) : (
+               <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
+                 <User size={18} />
+               </div>
+             )}
+           </div>
+        </div>
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
           <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.8</span>
@@ -570,6 +615,91 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AeroCard title="Mi Perfil" theme={theme}>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="relative group">
+                        <div className="w-20 h-20 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden">
+                          {userAvatar ? (
+                            <img 
+                              src={userAvatar} 
+                              alt="New Avatar" 
+                              className="w-full h-full object-cover rounded-full"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white'}`}>
+                              <User size={32} />
+                            </div>
+                          )}
+                        </div>
+                        <input 
+                          type="file" 
+                          id="avatar-upload" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setUserAvatar(reader.result as string);
+                                playSuccessSound();
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <label 
+                          htmlFor="avatar-upload"
+                          className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-blue-500 text-white border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform shadow-lg"
+                        >
+                          <Sparkles size={14} />
+                        </label>
+                      </div>
+                      
+                      <div className="flex-1 space-y-3">
+                        <div className="space-y-1">
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre Visible</label>
+                          <input 
+                            type="text" 
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                              theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                            }`}
+                            placeholder="Tu nombre"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Sobre ti (Bio)</label>
+                      <textarea 
+                        value={userBio}
+                        onChange={(e) => setUserBio(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none h-20 ${
+                          theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                        }`}
+                        placeholder="Contanos algo de vos..."
+                      />
+                    </div>
+
+                    {userAvatar && (
+                      <button 
+                        onClick={() => {
+                          setUserAvatar('');
+                          playExternalBubble();
+                        }}
+                        className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
+                      >
+                        Eliminar Foto de Perfil
+                      </button>
+                    )}
+                  </div>
+                </AeroCard>
+
                 <AeroCard title="Apariencia" theme={theme}>
                   <div className="space-y-6">
                     <div>
