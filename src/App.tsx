@@ -41,6 +41,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
@@ -52,9 +53,40 @@ import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/soun
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
+const auth = getAuth(app);
 
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -128,6 +160,9 @@ export default function App() {
   // Activity States
   const [activityCodeInput, setActivityCodeInput] = useState('');
   const [isCreatingActivity, setIsCreatingActivity] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingActivity, setIsLoadingActivity] = useState(false);
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -337,7 +372,14 @@ export default function App() {
   };
 
   const handleCreateActivity = async () => {
+    setCreationError(null);
+    if (!userName) {
+      setCreationError("Debes configurar tu nombre en Ajustes antes de publicar.");
+      playErrorSound();
+      return;
+    }
     if (!activityName || !activityCreatorPassword) {
+      setCreationError("Falta el nombre de la actividad o la contraseña.");
       playErrorSound();
       return;
     }
@@ -349,12 +391,21 @@ export default function App() {
     });
 
     if (!isValid) {
+      setCreationError("Asegúrate de que todas las preguntas y respuestas estén completas.");
       playErrorSound();
       return;
     }
 
+    let timeoutId: any;
     try {
       setIsCreatingActivity(true);
+      
+      // Safety timeout for mobile users with bad connection
+      timeoutId = setTimeout(() => {
+        setIsCreatingActivity(false);
+        setCreationError("Tiempo de espera agotado. Reintenta publicar.");
+      }, 20000);
+
       const activityData = {
         name: activityName,
         creatorName: userName,
@@ -369,10 +420,13 @@ export default function App() {
       };
 
       const docRef = await addDoc(collection(db, 'activities'), activityData);
+      clearTimeout(timeoutId);
       setNewActivityCode(docRef.id);
       playSuccessSound();
-    } catch (error) {
-      console.error("Error creating activity:", error);
+    } catch (error: any) {
+      if (timeoutId) clearTimeout(timeoutId);
+      setCreationError("Error al publicar. Verifica tu conexión.");
+      console.error(error);
       playErrorSound();
     } finally {
       setIsCreatingActivity(false);
@@ -381,6 +435,8 @@ export default function App() {
 
   const handleLoadActivity = async (code: string) => {
     if (!code) return;
+    setLoadError(null);
+    setIsLoadingActivity(true);
     try {
       const docRef = doc(db, 'activities', code);
       const docSnap = await getDoc(docRef);
@@ -420,11 +476,13 @@ export default function App() {
         playExternalBubble();
       } else {
         playErrorSound();
-        alert("Actividad no encontrada.");
+        setLoadError("Actividad no encontrada. Verifica el código.");
       }
     } catch (error) {
-      console.error("Error loading activity:", error);
-      playErrorSound();
+      setLoadError("No se pudo cargar. Revisa tu conexión.");
+      console.error(error);
+    } finally {
+      setIsLoadingActivity(false);
     }
   };
 
@@ -442,7 +500,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
             <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
-              RELEASE 2
+              RELEASE 2.1
             </span>
           </div>
 
@@ -687,19 +745,37 @@ export default function App() {
                          <input 
                            type="text" 
                            value={activityCodeInput}
-                           onChange={(e) => setActivityCodeInput(e.target.value)}
+                           onChange={(e) => {
+                             setActivityCodeInput(e.target.value);
+                             if (loadError) setLoadError(null);
+                           }}
                            placeholder="Ej: XyZ789"
                            className={`flex-1 px-3 py-2 rounded-xl border text-xs font-bold transition-all focus:ring-2 focus:ring-purple-400 outline-none ${
                              theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
-                           }`}
+                           } ${loadError ? 'border-red-500 ring-2 ring-red-500/20' : ''}`}
+                           onKeyDown={(e) => e.key === 'Enter' && handleLoadActivity(activityCodeInput)}
                          />
                          <button 
                            onClick={() => handleLoadActivity(activityCodeInput)}
-                           className="p-2 rounded-xl bg-purple-500 text-white shadow-lg shadow-purple-500/30 active:scale-90 transition-transform"
+                           disabled={isLoadingActivity}
+                           className={`p-2 rounded-xl bg-purple-500 text-white shadow-lg shadow-purple-500/30 active:scale-90 transition-all ${isLoadingActivity ? 'opacity-50' : ''}`}
                          >
-                           <Play size={18} />
+                           {isLoadingActivity ? (
+                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                           ) : (
+                             <Play size={18} />
+                           )}
                          </button>
                        </div>
+                       {loadError && (
+                         <motion.p 
+                           initial={{ opacity: 0, y: -5 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           className="text-[9px] font-black uppercase tracking-tight text-red-500 ml-1"
+                         >
+                           {loadError}
+                         </motion.p>
+                       )}
                     </div>
 
                     <div className="pt-2 border-t border-purple-500/10">
@@ -962,10 +1038,16 @@ export default function App() {
                          </div>
                       </AeroCard>
 
+                      {creationError && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold text-center animate-shake">
+                          {creationError}
+                        </div>
+                      )}
+
                       <GlossyButton 
                         onClick={handleCreateActivity}
                         disabled={isCreatingActivity}
-                        className="w-full py-6 text-xl tracking-widest gap-2"
+                        className={`w-full py-6 text-xl tracking-widest gap-2 shadow-[0_10px_20px_-10px_rgba(59,130,246,0.5)] ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
                       >
                          {isCreatingActivity ? (
                            <div className="flex items-center gap-4">
@@ -1662,16 +1744,19 @@ function ExerciseRunner({
 
             {qType === 'writing' ? (
               <div className="space-y-4">
-                <div className={`p-1 rounded-3xl border-2 transition-all shadow-inner ${
-                  theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/60 border-white/40'
-                } ${selectedAnswer !== null ? (String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim() ? 'ring-4 ring-green-500/30' : 'ring-4 ring-red-500/30') : ''}`}>
+                <div className={`p-1.5 rounded-3xl border-2 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.1),0_5px_15px_-5px_rgba(0,0,0,0.1)] overflow-hidden ${
+                  theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/40'
+                } ${selectedAnswer !== null ? (String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim() ? 'border-green-500 ring-4 ring-green-500/20' : 'border-red-500 ring-4 ring-red-500/20') : 'focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-400/20'}`}>
                   <input 
                     type="text"
+                    id="exercise-input"
+                    autoFocus
+                    autoComplete="off"
                     value={writeInput}
                     onChange={(e) => setWriteInput(e.target.value)}
                     disabled={selectedAnswer !== null}
                     placeholder={currentQ.placeholder || "Escribe tu respuesta..."}
-                    className={`w-full px-6 py-5 rounded-3xl bg-transparent font-bold text-lg outline-none placeholder:opacity-30 ${
+                    className={`w-full px-6 py-5 rounded-3xl bg-transparent font-black text-lg md:text-xl outline-none placeholder:opacity-40 tracking-tight ${
                       theme === 'black' ? 'text-white' : 'text-sky-950'
                     }`}
                     onKeyDown={(e) => {
@@ -1686,19 +1771,22 @@ function ExerciseRunner({
                   <GlossyButton 
                     onClick={() => onAnswer(writeInput)}
                     disabled={!writeInput}
-                    className="w-full py-4 text-sky-500"
+                    className="w-full py-5 text-sky-500 shadow-xl"
                   >
                     ENVIAR RESPUESTA
                   </GlossyButton>
                 ) : (
-                  <div className={`p-4 rounded-3xl border-2 text-center animate-in fade-in zoom-in duration-300 ${
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-5 rounded-3xl border-2 text-center shadow-lg ${
                     String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim()
-                      ? 'bg-green-500/20 border-green-500 text-green-600'
-                      : 'bg-red-500/20 border-red-500 text-red-600'
+                      ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 text-green-700'
+                      : 'bg-gradient-to-b from-red-50 to-red-100 border-red-500 text-red-700'
                   }`}>
-                    <p className="text-xs font-black uppercase tracking-widest mb-1">Respuesta Correcta:</p>
-                    <p className="text-lg font-black">{currentQ.correct}</p>
-                  </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">Respuesta Correcta:</p>
+                    <p className="text-xl font-black">{currentQ.correct}</p>
+                  </motion.div>
                 )}
               </div>
             ) : (

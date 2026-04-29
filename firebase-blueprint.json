@@ -1,35 +1,55 @@
 {
   "entities": {
-    "activity": {
-      "title": "Activity",
-      "description": "A user-created learning activity with questions.",
+    "ActivityQuestion": {
+      "title": "Activity Question",
+      "description": "A single question within a shared activity",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "creatorName": { "type": "string" },
-        "password": { "type": "string" },
-        "questions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "question": { "type": "string" },
-              "options": { "type": "array", "items": { "type": "string" } },
-              "correctAnswer": { "type": "string" }
-            },
-            "required": ["question", "options", "correctAnswer"]
-          }
+        "type": {
+          "type": "string",
+          "enum": ["multiple-choice", "true-false", "writing"]
         },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "question": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array"
+        },
+        "correctAnswer": {
+          "type": "string"
+        }
       },
-      "required": ["name", "questions", "password", "createdAt"]
+      "required": ["type", "question", "correctAnswer"]
+    },
+    "SharedActivity": {
+      "title": "Shared Activity",
+      "description": "User generated activity stored in Firestore",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "creatorName": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "questions": {
+          "type": "array"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "creatorName", "password", "questions", "createdAt"]
     }
   },
   "firestore": {
     "/activities/{activityId}": {
-      "schema": "activity",
-      "description": "Collection of learning activities."
+      "schema": "SharedActivity",
+      "description": "Store for shared activities"
     }
   }
 }
