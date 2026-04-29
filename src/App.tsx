@@ -29,7 +29,8 @@ import {
   HelpCircle,
   ArrowLeft,
   CheckCircle2,
-  Settings
+  Settings,
+  WifiOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SUBJECTS, Subject } from './types';
@@ -40,7 +41,7 @@ import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/sounds';
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -49,6 +50,21 @@ export default function App() {
   const [theme, setTheme] = useState<'white' | 'black'>(() => {
     return (localStorage.getItem('newara_theme') as 'white' | 'black') || 'white';
   });
+  const [showMobileSubjects, setShowMobileSubjects] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Persist view changes
   useEffect(() => {
@@ -257,6 +273,19 @@ export default function App() {
           </div>
 
           <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+          
+          <AnimatePresence>
+            {isOffline && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 px-3 py-1 bg-red-500/20 rounded-full border border-red-500/30 mt-2"
+              >
+                <WifiOff size={12} className="text-red-500" />
+                <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Desconectado</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 mb-4">
@@ -270,28 +299,99 @@ export default function App() {
           <div className="flex md:flex-col flex-row gap-1 md:gap-4 w-full md:w-full items-center">
             <NavButton 
               active={currentView === 'home'} 
-              onClick={() => setCurrentView('home')} 
+              onClick={() => {
+                setCurrentView('home');
+                setShowMobileSubjects(false);
+              }} 
               icon={<Home size={22} />} 
               label="Inicio" 
               theme={theme}
             />
             <NavButton 
               active={currentView === 'schedule'} 
-              onClick={() => setCurrentView('schedule')} 
+              onClick={() => {
+                setCurrentView('schedule');
+                setShowMobileSubjects(false);
+              }} 
               icon={<CalendarIcon size={22} />} 
               label="Horario" 
               theme={theme}
             />
             <NavButton 
               active={currentView === 'exam'} 
-              onClick={() => setCurrentView('exam')} 
+              onClick={() => {
+                setCurrentView('exam');
+                setShowMobileSubjects(false);
+              }} 
               icon={<ClipboardCheck size={22} />} 
               label="Examen" 
               theme={theme}
             />
+            {/* New Materias Button for Mobile */}
+            <div className="md:hidden relative">
+              <NavButton 
+                active={showMobileSubjects} 
+                onClick={() => {
+                  setShowMobileSubjects(!showMobileSubjects);
+                }} 
+                icon={<Book size={22} />} 
+                label="Materias" 
+                theme={theme}
+              />
+              
+              <AnimatePresence>
+                {showMobileSubjects && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5, y: 50, x: '-50%' }}
+                    animate={{ opacity: 1, scale: 1, y: -20, x: '-50%' }}
+                    exit={{ opacity: 0, scale: 0.5, y: 50, x: '-50%' }}
+                    className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 p-4 rounded-3xl border-2 shadow-2xl backdrop-blur-xl z-50 w-64 ${
+                      theme === 'black' 
+                        ? 'bg-black/80 border-white/20' 
+                        : 'bg-white/90 border-white/80'
+                    }`}
+                  >
+                    <div className="glossy-overlay opacity-30 rounded-3xl" />
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-4 text-center ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>
+                      Selecciona una Materia
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {SUBJECTS.map(s => (
+                        <button 
+                          key={s.id}
+                          onClick={() => {
+                            playExternalBubble();
+                            setSelectedSubject(s);
+                            setCurrentView('subject');
+                            setShowMobileSubjects(false);
+                          }}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 ${
+                            theme === 'black' 
+                              ? 'bg-white/5 hover:bg-white/10' 
+                              : 'bg-white/60 hover:bg-white shadow-sm'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-xl text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
+                            {getIcon(s.icon, 18)}
+                          </div>
+                          <span className={`text-[10px] font-bold text-center leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Bubble Tail */}
+                    <div className={`absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-5 h-5 rotate-45 border-r-2 border-b-2 ${
+                      theme === 'black' ? 'bg-black/80 border-white/20' : 'bg-white/90 border-white/80'
+                    }`} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <NavButton 
               active={currentView === 'settings'} 
-              onClick={() => setCurrentView('settings')} 
+              onClick={() => {
+                setCurrentView('settings');
+                setShowMobileSubjects(false);
+              }} 
               icon={<Settings size={22} />} 
               label="Ajustes" 
               theme={theme}
@@ -326,9 +426,39 @@ export default function App() {
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
           <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.7</span>
         </div>
+        
+        <AnimatePresence>
+          {isOffline && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
+            >
+              <WifiOff size={14} className="text-white" />
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">SISTEMA OFFLINE</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8 relative">
+        <AnimatePresence>
+          {isOffline && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="hidden md:flex absolute top-8 right-8 z-50 items-center gap-3 px-6 py-2.5 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl group overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-red-500/10 opacity-50 group-hover:opacity-100 transition-opacity" />
+              <WifiOff size={20} className="text-red-400 relative z-10 animate-pulse" />
+              <div className="relative z-10">
+                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-none">Modo Sin Conexión</p>
+                <p className={`text-xs font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>OFFLINE</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <AnimatePresence mode="wait">
           {currentView === 'home' && (
             <motion.div 
