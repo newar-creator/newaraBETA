@@ -797,23 +797,40 @@ export default function App() {
           )}
 
           {currentView === 'play-activity' && activeExercise && (
-             <ExerciseRunner 
-               subjectId="shared"
-               shuffled={exerciseState.shuffled}
-               currentQuestion={activeExercise.currentQuestion}
-               finished={exerciseState.finished}
-               score={exerciseState.score}
-               selectedAnswer={selectedAnswer}
-               onAnswer={handleExerciseAnswer}
-               onFinish={() => {
-                 setCurrentView('home');
-                 setActiveExercise(null);
-                 setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
-               }}
-               userAnswers={exerciseState.userAnswers}
-               title={currentSharedActivity?.name || 'Actividad Compartida'}
-               theme={theme}
-             />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-sky-400/20">
+              <BubbleBackground theme={theme} />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-full max-w-2xl relative"
+              >
+               <AeroCard title={currentSharedActivity?.name || 'Actividad Compartida'} theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
+                 <button 
+                  onClick={() => setCurrentView('home')}
+                  className={`absolute top-6 right-6 p-2 rounded-full transition-all hover:bg-red-500 hover:text-white ${theme === 'black' ? 'bg-white/10 text-white/40' : 'bg-black/5 text-sky-950/40'}`}
+                 >
+                   <ArrowLeft size={16} />
+                 </button>
+                 <ExerciseRunner 
+                   subjectId="shared"
+                   shuffled={exerciseState.shuffled}
+                   currentQuestion={activeExercise.currentQuestion}
+                   finished={exerciseState.finished}
+                   score={exerciseState.score}
+                   selectedAnswer={selectedAnswer}
+                   onAnswer={handleExerciseAnswer}
+                   onFinish={() => {
+                     setCurrentView('home');
+                     setActiveExercise(null);
+                     setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
+                   }}
+                   userAnswers={exerciseState.userAnswers}
+                   title={currentSharedActivity?.name || 'Actividad Compartida'}
+                   theme={theme}
+                 />
+               </AeroCard>
+              </motion.div>
+            </div>
           )}
 
           {currentView === 'create-activity' && (
@@ -1415,37 +1432,68 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-sky-900/40 backdrop-blur-xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6 bg-sky-400/20 backdrop-blur-2xl"
           >
-            <AeroCard className="max-w-xl w-full max-h-[95vh] overflow-y-auto border-4 border-white/50 shadow-2xl" theme={theme}>
-              <button 
-                onClick={() => setActiveExercise(null)}
-                className="absolute top-2 right-2 md:-top-4 md:-right-4 w-10 h-10 md:w-12 md:h-12 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all text-xl md:text-2xl z-20"
-              >
-                ×
-              </button>
-              
-              <div className="space-y-6 relative z-10 pb-4">
-                <ExerciseRunner 
-                  subjectId={activeExercise.subjectId}
-                  shuffled={exerciseState.shuffled}
-                  currentQuestion={activeExercise.currentQuestion}
-                  finished={exerciseState.finished}
-                  score={exerciseState.score}
-                  selectedAnswer={selectedAnswer}
-                  onAnswer={handleExerciseAnswer}
-                  onFinish={() => {
-                     if (activeExercise.subjectId === 'shared') {
-                        setCurrentView('home');
-                     }
-                     setActiveExercise(null);
-                  }}
-                  userAnswers={exerciseState.userAnswers}
-                  title={activeExercise.subjectId === 'shared' ? currentSharedActivity?.name : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
-                  theme={theme}
-                />
-              </div>
-            </AeroCard>
+            <BubbleBackground theme={theme} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              className="max-w-2xl w-full relative"
+            >
+              <AeroCard className="max-h-[90vh] overflow-y-auto border-t-white/80 border-l-white/60 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]" theme={theme}>
+                <button 
+                  onClick={() => setActiveExercise(null)}
+                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 border border-white/40 text-sky-950/40 flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition-all z-20"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                
+                <div className="space-y-6 relative z-10 pb-4 pt-2">
+                  <header className="flex items-center gap-4 mb-2">
+                    <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br ${
+                      selectedSubject.color === 'green' ? 'from-green-400 to-green-600' :
+                      selectedSubject.color === 'blue' ? 'from-blue-400 to-blue-600' :
+                      selectedSubject.color === 'amber' ? 'from-amber-400 to-amber-600' :
+                      selectedSubject.color === 'red' ? 'from-red-400 to-red-600' :
+                      'from-indigo-400 to-indigo-600'
+                    }`}>
+                      {getIcon(selectedSubject.icon, 24)}
+                    </div>
+                    <div>
+                      <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h2>
+                      <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Lección de Práctica</p>
+                    </div>
+                  </header>
+
+                  <div className="w-full h-1.5 bg-sky-200/20 rounded-full mb-8 overflow-hidden border border-white/10">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(activeExercise.currentQuestion / exerciseState.shuffled.length) * 100}%` }}
+                      className="h-full bg-gradient-to-r from-blue-400 to-cyan-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                    />
+                  </div>
+
+                  <ExerciseRunner 
+                    subjectId={activeExercise.subjectId}
+                    shuffled={exerciseState.shuffled}
+                    currentQuestion={activeExercise.currentQuestion}
+                    finished={exerciseState.finished}
+                    score={exerciseState.score}
+                    selectedAnswer={selectedAnswer}
+                    onAnswer={handleExerciseAnswer}
+                    onFinish={() => {
+                       if (activeExercise.subjectId === 'shared') {
+                          setCurrentView('home');
+                       }
+                       setActiveExercise(null);
+                    }}
+                    userAnswers={exerciseState.userAnswers}
+                    title={activeExercise.subjectId === 'shared' ? currentSharedActivity?.name : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
+                    theme={theme}
+                  />
+                </div>
+              </AeroCard>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1518,25 +1566,34 @@ function ExerciseRunner({
             exit={{ x: -20, opacity: 0 }}
             className="space-y-6"
           >
-            <p className={`text-xl font-bold leading-snug transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
-              {shuffled[currentQuestion].question}
-            </p>
-            <div className="grid grid-cols-1 gap-3">
+            <div className={`p-6 rounded-3xl backdrop-blur-xl border-2 transition-all duration-500 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] ${
+              theme === 'black' 
+                ? 'bg-white/5 border-white/10 text-white/90' 
+                : 'bg-white/70 border-white/40 text-sky-950'
+            }`}>
+              <p className="text-xl font-black leading-snug drop-shadow-sm">
+                {shuffled[currentQuestion].question}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
               {shuffled[currentQuestion].options.map((opt: string, i: number) => {
                 const isCorrect = i === shuffled[currentQuestion].correct;
                 const isSelected = i === selectedAnswer;
                 
-                let bgClass = theme === 'black' 
-                  ? "bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400/50" 
-                  : "bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400";
+                let buttonStyle = theme === 'black' 
+                  ? "bg-gradient-to-b from-white/10 to-white/5 border-white/10 text-white/80" 
+                  : "bg-gradient-to-b from-white/90 to-white/60 border-white/80 text-sky-900";
 
                 if (selectedAnswer !== null) {
                   if (isSelected) {
-                    bgClass = isCorrect ? "bg-green-400/60 border-green-400 text-white" : "bg-red-400/60 border-red-400 text-white";
+                    buttonStyle = isCorrect 
+                      ? "from-green-400 to-green-600 border-white text-white shadow-green-500/50" 
+                      : "from-red-400 to-red-600 border-white text-white shadow-red-500/50";
                   } else if (isCorrect) {
-                    bgClass = isCorrect && theme === 'black' ? "bg-green-400/20 border-green-400/50 text-green-400" : "bg-green-400/20 border-green-400/50 text-green-700";
+                    buttonStyle = "from-green-400/20 to-green-600/20 border-green-500/50 text-green-600";
                   } else {
-                    bgClass = theme === 'black' ? "bg-white/5 border-white/5 opacity-20" : "bg-white/20 border-white/20 opacity-40";
+                    buttonStyle = "opacity-30 grayscale blur-[1px]";
                   }
                 }
 
@@ -1545,12 +1602,24 @@ function ExerciseRunner({
                     key={i}
                     disabled={selectedAnswer !== null}
                     onClick={() => onAnswer(i)}
-                    animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
-                    className={`p-4 rounded-2xl text-left font-bold transition-all border-2 ${bgClass} shadow-sm flex items-center justify-between group`}
+                    whileHover={selectedAnswer === null ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={selectedAnswer === null ? { scale: 0.98 } : {}}
+                    className={`relative p-5 rounded-3xl text-left font-black transition-all border-2 flex items-center justify-between group overflow-hidden shadow-[0_8px_15px_-5px_rgba(0,0,0,0.1)] active:shadow-inner ${buttonStyle}`}
                   >
-                    <span>{opt}</span>
-                    <div className={`w-4 h-4 rounded-full border-2 transition-colors ${selectedAnswer !== null && isSelected ? 'bg-white border-white scale-110' : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')}`} />
+                    {/* Glossy Reflection Overlay */}
+                    <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+                    
+                    <span className="relative z-10 text-base">{opt}</span>
+                    
+                    <div className={`relative z-10 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
+                      selectedAnswer !== null && isSelected 
+                        ? 'bg-white border-white' 
+                        : (theme === 'black' ? 'border-white/20' : 'border-sky-200 group-hover:border-blue-400')
+                    }`}>
+                      {selectedAnswer !== null && isSelected && (
+                        <div className={`w-2 h-2 rounded-full ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`} />
+                      )}
+                    </div>
                   </motion.button>
                 );
               })}

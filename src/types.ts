@@ -301,40 +301,74 @@ export const SUBJECTS: Subject[] = [
     name: 'Inglés',
     icon: 'Languages',
     color: 'red',
-    description: 'Desarrollo de competencias lingüísticas en lengua inglesa.',
+    description: 'Desarrollo de competencias lingüísticas: gramática, tiempos verbales y estructuras de comunicación.',
     units: [
       {
-        title: 'Present and Past Tenses',
-        description: 'Review of Tenses (Present and Past Simple/Continuous).',
-        explanation: 'We use Present Simple for habits and Past Simple for completed actions in the past. If an action was in progress while another happened, we use Past Continuous with "when" or "while".',
+        title: 'Present Simple & Continuous',
+        description: 'Diferencia entre hábitos y acciones en progreso (Unit 1 Basic Grammar).',
+        explanation: 'El Present Simple se usa para rutinas y verdades universales (The Earth goes around the Sun). El Present Continuous se usa para acciones que ocurren ahora mismo (I am doing my homework).',
         meanings: [
-          { term: 'Habit', definition: 'Something you do regularly.' },
-          { term: 'Auxiliary', definition: 'Helping verb like "do" or "did".' },
-          { term: 'Completed action', definition: 'Something that finished in the past.' }
+          { term: 'Present Simple', definition: 'Para hábitos, rutinas y hechos permanentes.' },
+          { term: 'Present Continuous', definition: 'Para acciones que están pasando en el momento de hablar.' },
+          { term: 'Frequency Adverbs', definition: 'Palabras como "usually" o "never" que indican qué tan seguido hacemos algo.' }
         ],
         exercises: [
-          { question: 'Complete: "I ____ (watch) TV when he arrived."', options: ['watch', 'am watching', 'watched', 'was watching'], correct: 3 },
-          { question: 'Which is correct for a daily habit?', options: ['I am going to school', 'I go to school', 'I went to school', 'I will go to school'], correct: 1 },
-          { question: 'Complete: "She ____ (study) at the moment."', options: ['studies', 'is studying', 'studied', 'was studying'], correct: 1 },
-          { question: 'Past tense of "Bring":', options: ['Bringed', 'Brought', 'Brang', 'Broughted'], correct: 1 },
-          { question: 'What is the auxiliary for Past Simple questions?', options: ['Do', 'Does', 'Did', 'Done'], correct: 2 }
+          { question: 'They never ____ to bed late.', options: ['go', 'goes', 'going', 'are going'], correct: 0 },
+          { question: 'The Earth ____ around the Sun.', options: ['go', 'goes', 'going', 'is going'], correct: 1 },
+          { question: 'I ____ my homework at the moment.', options: ['do', 'does', 'doing', 'am doing'], correct: 3 },
+          { question: 'Ian ____ football regularly.', options: ['play', 'plays', 'playing', 'is playing'], correct: 1 },
+          { question: 'Rewrite: "Ian plays football regularly" (Negative)', options: ['Ian no plays football', "Ian doesn't plays football", "Ian doesn't play football", "Ian isn't playing football"], correct: 2 }
         ]
       },
       {
-        title: 'Vocabulary: Environment',
-        description: 'Ecology, pollution, and recycling terms.',
-        explanation: 'Our planet needs protection. Learning terms like Recycling (processing materials), Sustainability (using resources wisely) and Pollution (damage to nature) helps us discuss environmental solutions in English.',
+        title: 'Present Perfect Simple & Continuous',
+        description: 'Acciones que comenzaron en el pasado y continúan o tienen relevancia hoy.',
+        explanation: 'El Present Perfect Simple (have + participio) se usa para resultados o experiencias. El Present Perfect Continuous (have been + ing) se usa para enfatizar la duración de una actividad que comenzó en el pasado.',
         meanings: [
-          { term: 'Pollution', definition: 'Contaminación del aire, agua o suelo.' },
-          { term: 'Recycle', definition: 'Convertir basura en nuevos materiales.' },
-          { term: 'Nature', definition: 'El mundo natural, plantas y animales.' }
+          { term: 'For / Since', definition: 'Usados para indicar duración o punto de partida.' },
+          { term: 'Recently / Yet', definition: 'Palabras clave para conectar el pasado con el presente.' },
+          { term: 'Duration', definition: 'El enfoque principal del Present Perfect Continuous.' }
         ],
         exercises: [
-          { question: 'What does "Pollution" mean?', options: ['Limpieza', 'Contaminación', 'Reciclaje', 'Naturaleza'], correct: 1 },
-          { question: 'A synonym for "Ecology":', options: ['Environment', 'Economy', 'Education', 'Electronics'], correct: 0 },
-          { question: 'What is "Sustainability"?', options: ['Gastos rápidos', 'Desarrollo sustentable', 'Sin recursos', 'Solo reciclaje'], correct: 1 },
-          { question: 'Which one is NOT a natural resource?', options: ['Water', 'Solar energy', 'Plastic', 'Wind'], correct: 2 },
-          { question: 'To "Reuse" something means:', options: ['Throw it away', 'Buy a new one', 'Use it again', 'Recycle it into material'], correct: 2 }
+          { question: 'She __________ English for five years.', options: ['studies', 'is studying', 'has been studying', 'studied'], correct: 2 },
+          { question: 'He __________ his homework yet.', options: ['hasn\'t finished', 'not finished', 'is not finishing', 'didn\'t finish'], correct: 0 },
+          { question: 'I __________ a lot with my sisters recently.', options: ['fought', 'have been fighting', 'am fighting', 'fight'], correct: 1 },
+          { question: 'We __________ lemonade all afternoon.', options: ['made', 'make', 'have been making', 'are making'], correct: 2 },
+          { question: 'I __________ her for five years.', options: ['know', 'am knowing', 'have known', 'have been knowing'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Future Tenses: Will vs Going to',
+        description: 'Predicciones, planes, intenciones y arreglos futuros.',
+        explanation: 'Usamos "will" para predicciones o decisiones espontáneas. Usamos "going to" para planes e intenciones previas. El Present Continuous también puede usarse para arreglos fijos (citas o reuniones confirmadas).',
+        meanings: [
+          { term: 'Will', definition: 'Futuro para predicciones, promesas o decisiones rápidas.' },
+          { term: 'Going to', definition: 'Futuro para planes e intenciones ya decididas.' },
+          { term: 'Arrangement', definition: 'Un plan fijo o cita confirmada (Present Continuous).' }
+        ],
+        exercises: [
+          { question: 'He ____ be here soon.', options: ['will', 'going to', 'is going', 'is'], correct: 0 },
+          { question: 'We ____ badminton this afternoon. (Fixed arrangement)', options: ['play', 'will play', 'are playing', 'going to play'], correct: 2 },
+          { question: 'I ____ engineering when I leave school. (Intention)', options: ['will study', 'am going to study', 'study', 'studying'], correct: 1 },
+          { question: 'I don\'t think it ____ tomorrow.', options: ['rains', 'is raining', 'will rain', 'going to rain'], correct: 2 },
+          { question: 'Are you ____ to the cinema tonight?', options: ['go', 'goes', 'going', 'will go'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Grammar Review: Sentence Structure',
+        description: 'Orden de las palabras y corrección de errores comunes.',
+        explanation: 'En inglés, el orden de las palabras es fundamental: Sujeto + Adverbio + Verbo + Complemento. Es importante recordar el uso de la partícula "to" con "going" y no confundir modales con auxiliares.',
+        meanings: [
+          { term: 'Word Order', definition: 'La estructura correcta de una oración (Sujeto+Verbo+Objeto).' },
+          { term: 'Correction', definition: 'Identificar y arreglar errores gramaticales comunes.' },
+          { term: 'Phrasal verbs', definition: 'Verbos compuestos como "settle down" o "touch down".' }
+        ],
+        exercises: [
+          { question: 'Order: tennis / on / I / Saturdays / play / usually', options: ['I play tennis usually on Saturdays.', 'I usually play tennis on Saturdays.', 'Usually play I tennis on Saturdays.', 'Saturdays I play usually tennis.'], correct: 1 },
+          { question: 'Correct the mistake: "I\'m going travel around the world."', options: ['I go to travel...', 'I am going to travel...', 'I will going travel...', 'I going travel...'], correct: 1 },
+          { question: 'Correct: "The plane is going touching down in Paris."', options: ['The plane is going touch down...', 'The plane is going to touch down...', 'The plane will touching down...', 'The plane goes to touch down...'], correct: 1 },
+          { question: 'Correct: "She won\'t got here in time."', options: ['She won\'t get here...', 'She won\'t to get here...', 'She doesn\'t got here...', 'She is not get here...'], correct: 0 },
+          { question: 'Order: never / to / They\'ve / England / been', options: ['They\'ve been to England never.', 'Never they\'ve been to England.', 'They\'ve never been to England.', 'They never been to England.'], correct: 2 }
         ]
       }
     ]
