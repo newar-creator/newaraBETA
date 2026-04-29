@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -406,6 +406,15 @@ export default function App() {
     }, 1500);
   };
 
+  const generateShortCode = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
   const handleCreateActivity = async () => {
     setCreationError(null);
     if (!userName) {
@@ -454,10 +463,13 @@ export default function App() {
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, 'activities'), activityData);
+      const shortCode = generateShortCode();
+      const docRef = doc(db, 'activities', shortCode);
+      await setDoc(docRef, activityData);
+
       clearTimeout(timeoutId);
-      setNewActivityCode(docRef.id);
-      addToHistory(docRef.id, activityName);
+      setNewActivityCode(shortCode);
+      addToHistory(shortCode, activityName);
       playSuccessSound();
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
