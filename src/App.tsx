@@ -420,7 +420,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
             <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
-              BETA 2.9
+              RELEASE 2
             </span>
           </div>
 
@@ -604,7 +604,7 @@ export default function App() {
         </div>
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.9</span>
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2</span>
         </div>
         
         <AnimatePresence>
@@ -1135,7 +1135,7 @@ export default function App() {
                     </div>
                     <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
                       <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Version</p>
-                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>BETA 2.9 - Frutiger Edition</p>
+                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>RELEASE 2 - Frutiger Edition</p>
                     </div>
                   </div>
                 </AeroCard>
