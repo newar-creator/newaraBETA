@@ -112,6 +112,30 @@ export default function App() {
   const [showGeoGuide, setShowGeoGuide] = useState(false);
   const [showMathGuide, setShowMathGuide] = useState(false);
 
+  // Real Progress State
+  const [completedUnits, setCompletedUnits] = useState<string[]>(() => {
+    const saved = localStorage.getItem('newara_completed_units');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const totalUnitsCount = SUBJECTS.reduce((acc, s) => acc + s.units.length, 0);
+  const globalProgress = totalUnitsCount > 0 
+    ? Math.round((completedUnits.length / totalUnitsCount) * 100) 
+    : 0;
+  
+  const currentLevel = Math.floor(globalProgress / 10) + 1;
+
+  useEffect(() => {
+    localStorage.setItem('newara_completed_units', JSON.stringify(completedUnits));
+  }, [completedUnits]);
+
+  const markUnitAsCompleted = (subjectId: string, unitIndex: number) => {
+    const unitKey = `${subjectId}-${unitIndex}`;
+    if (!completedUnits.includes(unitKey)) {
+      setCompletedUnits(prev => [...prev, unitKey]);
+    }
+  };
+
   const shuffleArray = (array: any[]) => {
     const newArr = [...array];
     for (let i = newArr.length - 1; i > 0; i--) {
@@ -176,6 +200,8 @@ export default function App() {
         setActiveExercise({ ...activeExercise, currentQuestion: activeExercise.currentQuestion + 1 });
       } else {
         setExerciseState(prev => ({ ...prev, finished: true }));
+        // Mark unit as completed "for real"
+        markUnitAsCompleted(activeExercise.subjectId, activeExercise.unitIndex);
       }
     }, 1000);
   };
@@ -530,11 +556,15 @@ export default function App() {
                         <span className={`text-xs font-bold uppercase ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}>Progreso Global</span>
                       </div>
                       <div className="w-full h-3 bg-sky-100/20 rounded-full overflow-hidden border border-white/20">
-                        <div className="h-full bg-gradient-to-r from-blue-400 to-green-400 w-[65%] shadow-[0_0_10px_rgba(59,130,246,0.2)]"></div>
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${globalProgress}%` }}
+                          className="h-full bg-gradient-to-r from-blue-400 to-green-400 shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                        ></motion.div>
                       </div>
                       <div className="flex justify-between mt-2">
-                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>Nivel 4</p>
-                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>65%</p>
+                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>Nivel {currentLevel}</p>
+                        <p className={`text-[10px] font-bold uppercase ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>{globalProgress}%</p>
                       </div>
                     </div>
                     
@@ -544,7 +574,23 @@ export default function App() {
                       </div>
                       <div className="flex-1">
                         <p className={`text-[10px] font-black uppercase leading-none opacity-40 ${theme === 'black' ? 'text-indigo-300' : 'text-indigo-900'}`}>Próxima Sugerencia</p>
-                        <p className={`text-xs font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Repasar Unidad 2 de Biología</p>
+                        <p className={`text-xs font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                          {(() => {
+                            let nextUnit = null;
+                            for (const subject of SUBJECTS) {
+                              for (let i = 0; i < subject.units.length; i++) {
+                                if (!completedUnits.includes(`${subject.id}-${i}`)) {
+                                  nextUnit = { subject, unit: subject.units[i], index: i };
+                                  break;
+                                }
+                              }
+                              if (nextUnit) break;
+                            }
+                            return nextUnit 
+                              ? `Estudiar ${nextUnit.unit.title} (${nextUnit.subject.name})` 
+                              : "¡Todo completado! Repasa tus apuntes.";
+                          })()}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -793,6 +839,8 @@ export default function App() {
                       <DuolingoPath 
                         units={selectedSubject.units} 
                         subjectColor={selectedSubject.color}
+                        subjectId={selectedSubject.id}
+                        completedUnits={completedUnits}
                         onUnitClick={(index) => {
                            playExternalBubble();
                            setSelectedUnitIndex(index);
@@ -1252,7 +1300,7 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
   );
 }
 
-function UnitButton({ number, title, color, onClick, theme = 'white' }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black' }) {
+function UnitButton({ number, title, color, onClick, theme = 'white', isCompleted = false }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black', isCompleted?: boolean }) {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
@@ -1277,14 +1325,14 @@ function UnitButton({ number, title, color, onClick, theme = 'white' }: { number
         <div className={`absolute inset-0 rounded-full border-4 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-150 blur-sm ${theme === 'black' ? 'border-white/10' : 'border-white/40'}`} />
         
         {/* Main Button */}
-        <div className={`w-20 h-20 rounded-full bg-gradient-to-b ${getColorClasses(color)} flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_0_rgb(0,0,0,0.1),0_15px_20px_-5px_rgba(0,0,0,0.3)] border-4 border-white/60 relative overflow-hidden active:translate-y-1 active:shadow-[0_4px_0_rgb(0,0,0,0.1)] transition-all`}>
+        <div className={`w-20 h-20 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600 shadow-green-500/50' : getColorClasses(color)} flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_0_rgb(0,0,0,0.1),0_15px_20px_-5px_rgba(0,0,0,0.3)] border-4 border-white/60 relative overflow-hidden active:translate-y-1 active:shadow-[0_4px_0_rgb(0,0,0,0.1)] transition-all`}>
            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 to-transparent opacity-50" />
-           {number}
+           {isCompleted ? <CheckCircle2 size={40} className="relative z-10 drop-shadow-lg" /> : number}
         </div>
 
         {/* Floating Tooltip */}
         <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl shadow-xl border opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0 ${theme === 'black' ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'}`}>
-          <span className="text-xs font-bold uppercase tracking-tighter">{title}</span>
+          <span className="text-xs font-bold uppercase tracking-tighter">{isCompleted ? '¡Completado!' : title}</span>
           <div className={`absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${theme === 'black' ? 'border-t-slate-900' : 'border-t-white'}`} />
         </div>
       </div>
@@ -1292,7 +1340,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white' }: { number
   );
 }
 
-function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white' }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black' }) {
+function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subjectId, completedUnits = [] }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black', subjectId: string, completedUnits?: string[] }) {
   return (
     <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
@@ -1300,6 +1348,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white' }: { u
         // Calculate horizontal offset for a zigzag path - reduced for mobile
         const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 80;
         const offset = Math.sin(i * 1.2) * offsetMultiplier;
+        const isCompleted = completedUnits.includes(`${subjectId}-${i}`);
         
         return (
           <div 
@@ -1311,6 +1360,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white' }: { u
               number={i + 1} 
               title={unit.title} 
               color={subjectColor} 
+              isCompleted={isCompleted}
               onClick={() => onUnitClick(i)} 
               theme={theme}
             />
