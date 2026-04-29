@@ -374,6 +374,25 @@ export const SUBJECTS: Subject[] = [
           { question: 'Correct: "She won\'t got here in time."', options: ['She won\'t get here...', 'She won\'t to get here...', 'She doesn\'t got here...', 'She is not get here...'], correct: 0 },
           { question: 'Order: never / to / They\'ve / England / been', options: ['They\'ve been to England never.', 'Never they\'ve been to England.', 'They\'ve never been to England.', 'They never been to England.'], correct: 2 }
         ]
+      },
+      {
+        title: 'TH!NK 3: Unit 1 - Life Choices',
+        description: 'Vocabulary related to life decisions, hobbies, work and changes.',
+        explanation: 'This unit focuses on common expressions for personal development and future plans. Learning these phrasal verbs and collocations will help you sound more natural when talking about your life experiences and goals, such as starting a business or taking up a new hobby.',
+        meanings: [
+          { term: 'Go into business', definition: 'To start a company or a commercial activity.' },
+          { term: 'A gap year', definition: 'A year taken by a student as a break between school and university.' },
+          { term: 'Take up', definition: 'To start doing a particular activity or hobby (e.g., take up yoga).' },
+          { term: 'Run out of', definition: 'To finish a supply of something so that none is left.' },
+          { term: 'Settle down', definition: 'To begin to live a quiet life by getting married, buying a house, etc.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: 'What does "take up yoga" mean?', options: ['Finish yoga', 'Start yoga', 'Hate yoga', 'Teach yoga'], correct: 1 },
+          { type: 'writing', question: 'Complete: "The money was ________ out" (meaning it was finishing)', options: [], correct: 'running', placeholder: 'Verbo...' },
+          { type: 'true-false', question: '"Go into business" means the same as "Starting a company".', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'multiple-choice', question: 'Which phrase means "I have very little time left at school"?', options: ['I have lots of time', 'My time at school is almost up', 'I am starting school', 'I love school'], correct: 1 },
+          { type: 'multiple-choice', question: 'If you "give up" a course, you:', options: ['Start it', 'Finish it successfully', 'Stop doing it', 'Teach it'], correct: 2 }
+        ]
       }
     ]
   },

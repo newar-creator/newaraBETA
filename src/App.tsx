@@ -37,7 +37,8 @@ import {
   Copy,
   Lock,
   Play,
-  Plus
+  Plus,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -998,6 +999,11 @@ export default function App() {
                      setActiveExercise(null);
                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                    }}
+                   onClose={() => {
+                     setCurrentView('home');
+                     setActiveExercise(null);
+                     setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
+                   }}
                    userAnswers={exerciseState.userAnswers}
                    title={currentSharedActivity?.name || 'Actividad Compartida'}
                    theme={theme}
@@ -1756,6 +1762,11 @@ export default function App() {
                     score={exerciseState.score}
                     selectedAnswer={selectedAnswer}
                     onAnswer={handleExerciseAnswer}
+                    onClose={() => {
+                      setCurrentView('home');
+                      setActiveExercise(null);
+                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
+                    }}
                     onFinish={() => {
                        if (activeExercise.subjectId === 'shared') {
                           setCurrentView('home');
@@ -1870,6 +1881,7 @@ function ExerciseRunner({
   selectedAnswer, 
   onAnswer, 
   onFinish, 
+  onClose,
   userAnswers, 
   title, 
   theme = 'white' 
@@ -1882,6 +1894,7 @@ function ExerciseRunner({
   selectedAnswer: number | null, 
   onAnswer: (answer: number | string) => void, 
   onFinish: () => void, 
+  onClose: () => void,
   userAnswers: any[], 
   title: string, 
   theme?: 'white' | 'black' 
@@ -1913,6 +1926,17 @@ function ExerciseRunner({
     <div className="space-y-6 relative z-10 pb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <button 
+            onClick={onClose}
+            className={`p-2 rounded-xl transition-all hover:scale-110 active:scale-95 flex items-center gap-2 group ${
+              theme === 'black' ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-slate-400 hover:text-slate-600'
+            }`}
+            title="Salir del ejercicio"
+            id="exit-exercise-btn"
+          >
+            <X size={20} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Salir</span>
+          </button>
           <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(currentSubject.color)}`}>
              <Sparkles size={20} />
           </div>
