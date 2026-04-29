@@ -311,6 +311,18 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
+      <div className="md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 pointer-events-none sticky top-0 bg-white/5 backdrop-blur-[2px]">
+        <img 
+          src="input_file_0.png" 
+          alt="NewAra Logo" 
+          className={`h-8 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] filter ${theme === 'black' ? 'brightness-125 contrast-125' : 'brightness-105'}`} 
+          referrerPolicy="no-referrer"
+        />
+        <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">BETA 2.7</span>
+        </div>
+      </div>
+
       <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8">
         <AnimatePresence mode="wait">
           {currentView === 'home' && (
