@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Leaf, 
   Globe, 
@@ -43,8 +43,22 @@ import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/soun
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>('home');
-  const [theme, setTheme] = useState<'white' | 'black'>('white');
+  const [currentView, setCurrentView] = useState<View>(() => {
+    return (localStorage.getItem('newara_view') as View) || 'home';
+  });
+  const [theme, setTheme] = useState<'white' | 'black'>(() => {
+    return (localStorage.getItem('newara_theme') as 'white' | 'black') || 'white';
+  });
+
+  // Persist view changes
+  useEffect(() => {
+    localStorage.setItem('newara_view', currentView);
+  }, [currentView]);
+
+  // Persist theme changes
+  useEffect(() => {
+    localStorage.setItem('newara_theme', theme);
+  }, [theme]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
@@ -462,6 +476,35 @@ export default function App() {
                       <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Version</p>
                       <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>BETA 2.7 - Frutiger Edition</p>
                     </div>
+                  </div>
+                </AeroCard>
+
+                <AeroCard title="Términos de Servicio" theme={theme} className="md:col-span-2">
+                  <div className="space-y-4">
+                    <div className={`p-4 rounded-2xl border ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-inner'}`}>
+                      <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
+                        Información Legal e Importante
+                      </p>
+                      <ul className={`space-y-3 text-xs md:text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
+                        <li className="flex gap-3">
+                          <CheckCircle2 size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span><b>Uso Académico:</b> NewAra es una herramienta complementaria de estudio. Los resultados en los simulacros no garantizan notas en exámenes reales.</span>
+                        </li>
+                        <li className="flex gap-3">
+                          <CheckCircle2 size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span><b>Privacidad:</b> Tus preferencias (como el tema y la vista actual) se guardan únicamente en el almacenamiento local de tu navegador.</span>
+                        </li>
+                        <li className="flex gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                          <ShieldCheck size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
+                          <span>
+                            <b className="text-red-500">Integridad Académica:</b> <span className="italic font-bold text-red-600/80 underline decoration-red-300">NewAra no es responsable por haciendo trampa en los examenes.</span>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                    <p className={`text-[10px] font-black uppercase tracking-widest text-center opacity-30 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                      Última actualización: 29 de abril de 2026
+                    </p>
                   </div>
                 </AeroCard>
               </div>
