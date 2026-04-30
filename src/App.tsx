@@ -2406,17 +2406,6 @@ function ExerciseRunner({
     <div className="space-y-6 relative z-10 pb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={onClose}
-            className={`p-2 rounded-xl transition-all hover:scale-110 active:scale-95 flex items-center gap-2 group ${
-              theme === 'black' ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-slate-400 hover:text-slate-600'
-            }`}
-            title="Salir del ejercicio"
-            id="exit-exercise-btn"
-          >
-            <X size={20} />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Salir</span>
-          </button>
           <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(currentSubject.color)}`}>
              <Sparkles size={20} />
           </div>
