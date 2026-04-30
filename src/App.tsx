@@ -1180,9 +1180,9 @@ export default function App() {
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
                 <AlertTriangle size={24} className="text-red-500 relative z-10 shrink-0" />
                 <div className="relative z-10">
-                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">RELEASE 2.3</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">Version Beta</p>
                   <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    Release 2.3 - Revisión
+                    Esta version es Beta, Va a haber problemas.
                   </p>
                 </div>
               </div>
