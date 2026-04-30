@@ -941,15 +941,19 @@ export default function App() {
                   <div className={`space-y-3 text-sm font-medium ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                     <div className="flex items-center gap-2">
                        <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">🖱️</div>
-                       <span>Haz clic en las unidades para expandirlas.</span>
+                       <span>Toca los botones de las unidades para ver su contenido.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">🔑</div>
+                       <span>Ingresa un código en la caja para acceder a actividades compartidas.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">📈</div>
+                       <span>Completa actividades para aumentar tu progreso global automáticamente.</span>
                     </div>
                     <div className="flex items-center gap-2">
                        <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">🏠</div>
-                       <span>Usa la barra lateral para navegar.</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <div className="w-5 h-5 rounded bg-blue-100/20 flex items-center justify-center text-[10px]">📝</div>
-                       <span>Completa el examen para medir tu progreso.</span>
+                       <span>Navega entre secciones usando la barra lateral izquierda.</span>
                     </div>
                   </div>
                 </AeroCard>
