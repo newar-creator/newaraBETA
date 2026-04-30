@@ -110,6 +110,26 @@ export default function App() {
 
   // Profile State
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
+  const handleProtectedNameChange = (newName: string) => {
+    const trimmed = newName.trim();
+    if (MODERATORS.includes(trimmed)) {
+      const currentStoredName = localStorage.getItem('newara_user_name');
+      if (trimmed !== currentStoredName) {
+        const pass = window.prompt("Nombre de moderador detectado. Introduce la contraseña maestra:");
+        if (pass === 'n3w3naraoz') {
+          playSuccessSound();
+          setUserName(newName);
+        } else {
+          if (pass !== null) alert("Contraseña incorrecta.");
+          return;
+        }
+      } else {
+        setUserName(newName);
+      }
+    } else {
+      setUserName(newName);
+    }
+  };
   const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
@@ -1674,7 +1694,7 @@ export default function App() {
                           <input 
                             type="text" 
                             value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
+                            onChange={(e) => handleProtectedNameChange(e.target.value)}
                             className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
@@ -2178,7 +2198,7 @@ export default function App() {
                     type="text"
                     required
                     value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
+                    onChange={(e) => handleProtectedNameChange(e.target.value)}
                     placeholder="Ej: Profe Juan"
                     className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
                         theme === 'black' 
