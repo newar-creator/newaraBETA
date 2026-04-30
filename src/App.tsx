@@ -131,6 +131,7 @@ export default function App() {
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
   const [moderatorPassword, setModeratorPassword] = useState('');
   const [isModAuthorized, setIsModAuthorized] = useState(() => localStorage.getItem('newara_mod_auth') === 'true');
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('newara_logged_in') === 'true');
 
   useEffect(() => {
     if (moderatorPassword === 'n3w3naraoz') {
@@ -156,9 +157,27 @@ export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isCheckingAccount, setIsCheckingAccount] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkUsername = async (name: string) => {
+    if (!name.trim() || name.trim() === 'Estudiante') return;
+    setIsCheckingAccount(true);
+    try {
+      const userDoc = await getDoc(doc(db, 'users', name.trim()));
+      if (userDoc.exists()) {
+        setAuthMode('login');
+      } else {
+        setAuthMode('register');
+      }
+    } catch (error) {
+      console.error("Check username error:", error);
+    } finally {
+      setIsCheckingAccount(false);
+    }
+  };
+
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!userName.trim() || !userPassword.trim()) {
       setAuthError("Completa todos los campos.");
       return;
@@ -175,12 +194,14 @@ export default function App() {
         const userData = userDoc.data();
         if (userData.password === userPassword) {
           playSuccessSound();
+          setIsLoggedIn(true);
           setIsRegistering(false);
           // Persist profile
           setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
           setUserAvatar(userData.avatar || '');
           localStorage.setItem('newara_user_name', userName.trim());
           localStorage.setItem('newara_user_password', userPassword);
+          localStorage.setItem('newara_logged_in', 'true');
         } else {
           setAuthError("Contraseña incorrecta.");
           playErrorSound();
@@ -227,9 +248,11 @@ export default function App() {
           createdAt: serverTimestamp()
         });
         playSuccessSound();
+        setIsLoggedIn(true);
         setIsRegistering(false);
         localStorage.setItem('newara_user_name', userName.trim());
         localStorage.setItem('newara_user_password', userPassword);
+        localStorage.setItem('newara_logged_in', 'true');
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -237,6 +260,16 @@ export default function App() {
     } finally {
       setIsAuthLoading(false);
     }
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    setUserName('Estudiante');
+    setUserPassword('');
+    localStorage.removeItem('newara_user_name');
+    localStorage.removeItem('newara_user_password');
+    localStorage.removeItem('newara_logged_in');
+    playExternalBubble();
   };
 
   useEffect(() => {
@@ -1763,14 +1796,35 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre Visible</label>
                           <input 
                             type="text" 
+                            disabled={isLoggedIn}
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
+                            onBlur={() => checkUsername(userName)}
                             className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                              isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
+                            } ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Tu nombre"
                           />
                         </div>
+
+                        {!isLoggedIn && (
+                          <div className="pt-2">
+                             <GlossyButton onClick={() => setIsRegistering(true)} className="w-full text-[10px] py-2">
+                                Crear una Cuenta
+                             </GlossyButton>
+                          </div>
+                        )}
+
+                        {isLoggedIn && (
+                          <button 
+                            onClick={logout}
+                            className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
+                          >
+                            Cerrar Sesión / Cambiar Usuario
+                          </button>
+                        )}
 
                         {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
                           <motion.div 
@@ -2282,18 +2336,29 @@ export default function App() {
               <form onSubmit={authMode === 'login' ? handleLogin : handleRegister} className="space-y-4">
                 <div className="space-y-1">
                   <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Nombre de Usuario</label>
-                  <input 
-                    type="text"
-                    required
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Ej: Profe Juan"
-                    className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
-                        theme === 'black' 
-                        ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
-                        : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
-                    }`}
-                  />
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      required
+                      value={userName}
+                      onChange={(e) => {
+                        setUserName(e.target.value);
+                        setAuthError(null);
+                      }}
+                      onBlur={() => checkUsername(userName)}
+                      placeholder="Ej: Profe Juan"
+                      className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
+                          theme === 'black' 
+                          ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
+                          : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
+                      }`}
+                    />
+                    {isCheckingAccount && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <RefreshCw size={16} className="animate-spin text-blue-500" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
