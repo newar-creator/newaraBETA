@@ -56,6 +56,7 @@ import { NewAraLogo } from './components/NewAraLogo';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
+import { WelcomeTutorial } from './components/WelcomeTutorial';
 import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/sounds';
 
 // Initialize Firebase
@@ -102,6 +103,14 @@ export default function App() {
     return (localStorage.getItem('newara_view') as View) || 'home';
   });
   const [lastView, setLastView] = useState<View>('home');
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('newara_visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
+    }
+  }, []);
 
   const navigateTo = (view: View) => {
     setLastView(currentView);
@@ -714,6 +723,10 @@ export default function App() {
 
   return (
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
+      {showWelcome && <WelcomeTutorial onComplete={() => {
+        setShowWelcome(false);
+        localStorage.setItem('newara_visited', 'true');
+      }} />}
       <BubbleBackground theme={theme} />
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
       <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
@@ -771,6 +784,7 @@ export default function App() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex flex-col gap-4 w-full items-center">
             <NavButton 
+              id="nav-home"
               active={currentView === 'home'} 
               onClick={() => {
                 navigateTo('home');
@@ -781,6 +795,7 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-gallery"
               active={currentView === 'gallery'} 
               onClick={() => {
                 navigateTo('gallery');
@@ -791,6 +806,7 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-schedule"
               active={currentView === 'schedule'} 
               onClick={() => {
                 navigateTo('schedule');
@@ -801,6 +817,7 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-exam"
               active={currentView === 'exam'} 
               onClick={() => {
                 navigateTo('exam');
@@ -811,6 +828,7 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-settings"
               active={currentView === 'settings'} 
               onClick={() => {
                 navigateTo('settings');
@@ -825,6 +843,7 @@ export default function App() {
           {/* Mobile Navigation */}
           <div className="flex md:hidden justify-around items-center w-full px-4">
             <NavButton 
+              id="nav-home"
               active={currentView === 'home'} 
               onClick={() => {
                 navigateTo('home');
@@ -872,6 +891,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MobileMenuButton 
+                    id="nav-gallery"
                     active={currentView === 'gallery'} 
                     onClick={() => { navigateTo('gallery'); setShowMoreMobileMenu(false); }} 
                     icon={<Globe size={20} />} 
@@ -886,6 +906,7 @@ export default function App() {
                     theme={theme}
                   />
                   <MobileMenuButton 
+                    id="nav-schedule"
                     active={currentView === 'schedule'} 
                     onClick={() => { navigateTo('schedule'); setShowMoreMobileMenu(false); }} 
                     icon={<CalendarIcon size={20} />} 
@@ -893,6 +914,7 @@ export default function App() {
                     theme={theme}
                   />
                   <MobileMenuButton 
+                    id="nav-exam"
                     active={currentView === 'exam'} 
                     onClick={() => { navigateTo('exam'); setShowMoreMobileMenu(false); }} 
                     icon={<ClipboardCheck size={20} />} 
@@ -900,6 +922,7 @@ export default function App() {
                     theme={theme}
                   />
                   <MobileMenuButton 
+                    id="nav-settings"
                     active={currentView === 'settings'} 
                     onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
                     icon={<Settings size={20} />} 
@@ -989,7 +1012,7 @@ export default function App() {
         <div className="absolute left-4 top-1/2 -translate-y-1/2">
            <div 
              className="w-10 h-10 rounded-full p-0.5 bg-white/20 border border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
-             onClick={() => setCurrentView('settings')}
+             onClick={() => navigateTo('settings')}
            >
              {userAvatar ? (
                <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" />
@@ -1133,7 +1156,7 @@ export default function App() {
                           if (!userPassword) {
                             setIsRegistering(true);
                           } else {
-                            setCurrentView('create-activity');
+                            navigateTo('create-activity');
                           }
                         }}
                         className={`w-full flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all hover:border-purple-400 hover:bg-purple-400/10 ${
@@ -1259,12 +1282,6 @@ export default function App() {
                 className="w-full max-w-2xl relative"
               >
                <AeroCard title={currentSharedActivity?.name || 'Actividad Compartida'} theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
-                 <button 
-                  onClick={() => setCurrentView(lastView)}
-                  className={`absolute top-6 right-6 p-2 rounded-full transition-all hover:bg-red-500 hover:text-white ${theme === 'black' ? 'bg-white/10 text-white/40' : 'bg-black/5 text-sky-950/40'}`}
-                 >
-                   <ArrowLeft size={16} />
-                 </button>
                  <ExerciseRunner 
                    subjectId="shared"
                    shuffled={exerciseState.shuffled}
@@ -1676,7 +1693,7 @@ export default function App() {
                 <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
                   <Globe size={48} className="opacity-10 animate-pulse" />
                   <p className="text-sm font-black uppercase tracking-widest opacity-40">No hay actividades todavía. ¡Sé el primero!</p>
-                  <GlossyButton onClick={() => setCurrentView('create-activity')}>
+                  <GlossyButton onClick={() => navigateTo('create-activity')}>
                     Crear Actividad
                   </GlossyButton>
                 </div>
@@ -1980,7 +1997,7 @@ export default function App() {
              <UnitStudyView 
                unit={selectedSubject.units[selectedUnitIndex]} 
                color={selectedSubject.color}
-               onBack={() => setCurrentView('subject')}
+               onBack={() => navigateTo('subject')}
                onStartExercise={() => startExercise(selectedUnitIndex)}
                theme={theme}
                disableAnimations={disableAnimations}
@@ -2124,7 +2141,7 @@ export default function App() {
                            <button 
                              onClick={() => {
                                playExternalBubble();
-                               setCurrentView('home');
+                               navigateTo('home');
                              }} 
                              className={`font-bold hover:underline transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}
                            >
@@ -2406,6 +2423,17 @@ function ExerciseRunner({
     <div className="space-y-6 relative z-10 pb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <button 
+            onClick={onClose}
+            className={`p-2 rounded-xl transition-all hover:scale-110 active:scale-95 flex items-center gap-2 group ${
+              theme === 'black' ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-slate-400 hover:text-slate-600'
+            }`}
+            title="Salir del ejercicio"
+            id="exit-exercise-btn"
+          >
+            <X size={20} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Salir</span>
+          </button>
           <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(currentSubject.color)}`}>
              <Sparkles size={20} />
           </div>
@@ -2576,9 +2604,10 @@ function ExerciseRunner({
   );
 }
 
-function MobileMenuButton({ active, icon, label, onClick, theme = 'white' }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
+function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white' }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
   return (
     <motion.button 
+      id={id}
       onClick={() => {
         playExternalBubble();
         onClick();
@@ -2599,7 +2628,7 @@ function MobileMenuButton({ active, icon, label, onClick, theme = 'white' }: { a
   );
 }
 
-function NavButton({ active, icon, label, onClick, theme = 'white' }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
+function NavButton({ id, active, icon, label, onClick, theme = 'white' }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
   const handleClick = () => {
     playExternalBubble();
     onClick();
@@ -2615,6 +2644,7 @@ function NavButton({ active, icon, label, onClick, theme = 'white' }: { active: 
 
   return (
     <motion.button 
+      id={id}
       onClick={handleClick}
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97, y: 0 }}
