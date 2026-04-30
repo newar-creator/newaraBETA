@@ -25,7 +25,6 @@ import {
   Sparkles,
   TrendingUp,
   Book,
-  Menu,
   Lightbulb,
   HelpCircle,
   ArrowLeft,
@@ -43,7 +42,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -59,7 +58,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
 const auth = getAuth(app);
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity';
 
 enum OperationType {
   CREATE = 'create',
@@ -69,8 +68,6 @@ enum OperationType {
   GET = 'get',
   WRITE = 'write',
 }
-
-const MODERATORS = ['AraTester', 'NewAra'];
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo = {
@@ -101,7 +98,6 @@ export default function App() {
     return (localStorage.getItem('newara_theme') as 'white' | 'black') || 'white';
   });
   const [showMobileSubjects, setShowMobileSubjects] = useState(false);
-  const [showMoreMobileMenu, setShowMoreMobileMenu] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Profile State
@@ -110,83 +106,6 @@ export default function App() {
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
   const [isRegistering, setIsRegistering] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
-      setAuthError("Completa todos los campos.");
-      return;
-    }
-    setIsAuthLoading(true);
-    setAuthError(null);
-    try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.password === userPassword) {
-          playSuccessSound();
-          setIsRegistering(false);
-          // Persist profile
-          setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
-          setUserAvatar(userData.avatar || '');
-          localStorage.setItem('newara_user_name', userName.trim());
-          localStorage.setItem('newara_user_password', userPassword);
-        } else {
-          setAuthError("Contraseña incorrecta.");
-          playErrorSound();
-        }
-      } else {
-        setAuthError("El usuario no existe.");
-        playErrorSound();
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setAuthError("Error al conectar con el servidor.");
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
-      setAuthError("Completa todos los campos.");
-      return;
-    }
-    if (userPassword.length < 4) {
-      setAuthError("La contraseña debe tener al menos 4 caracteres.");
-      return;
-    }
-    setIsAuthLoading(true);
-    setAuthError(null);
-    try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
-      if (userDoc.exists()) {
-        setAuthError("¡Esta cuenta ya existe!");
-        playErrorSound();
-      } else {
-        await setDoc(doc(db, 'users', userName.trim()), {
-          name: userName.trim(),
-          password: userPassword,
-          bio: userBio,
-          avatar: userAvatar,
-          createdAt: serverTimestamp()
-        });
-        playSuccessSound();
-        setIsRegistering(false);
-        localStorage.setItem('newara_user_name', userName.trim());
-        localStorage.setItem('newara_user_password', userPassword);
-      }
-    } catch (error) {
-      console.error("Register error:", error);
-      setAuthError("Error al crear la cuenta.");
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
 
   useEffect(() => {
     localStorage.setItem('newara_user_name', userName);
@@ -253,8 +172,6 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoadingActivity, setIsLoadingActivity] = useState(false);
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
-  const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
-  const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -272,7 +189,6 @@ export default function App() {
   };
   const [activityName, setActivityName] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
-  const isModerator = MODERATORS.includes(userName);
   
   // History State
   const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
@@ -313,43 +229,6 @@ export default function App() {
     const unitKey = `${subjectId}-${unitIndex}`;
     if (!completedUnits.includes(unitKey)) {
       setCompletedUnits(prev => [...prev, unitKey]);
-    }
-  };
-
-  useEffect(() => {
-    if (currentView === 'gallery') {
-      fetchGallery();
-    }
-  }, [currentView]);
-
-  const fetchGallery = async () => {
-    setIsGalleryLoading(true);
-    try {
-      const q = query(collection(db, 'activities'), orderBy('createdAt', 'desc'), limit(50));
-      const querySnapshot = await getDocs(q);
-      const activities = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setGalleryActivities(activities);
-    } catch (error) {
-      console.error("Error fetching gallery:", error);
-    } finally {
-      setIsGalleryLoading(false);
-    }
-  };
-
-  const handleDeleteActivity = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isModerator) return;
-    if (!window.confirm("¿Estás seguro de que deseas eliminar esta actividad?")) return;
-    
-    try {
-      await deleteDoc(doc(db, 'activities', id));
-      setGalleryActivities(prev => prev.filter(a => a.id !== id));
-      playSuccessSound();
-    } catch (error) {
-       handleFirestoreError(error, OperationType.DELETE, `activities/${id}`);
     }
   };
 
@@ -593,17 +472,8 @@ export default function App() {
       playSuccessSound();
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
-      console.error("Publication error details:", error);
-      
-      let msg = "Error al publicar. Verifica tu conexión.";
-      if (error.code === 'permission-denied') {
-        msg = "Error de permisos: No tienes autorización para publicar.";
-      } else if (error.message?.includes('quota')) {
-        msg = "Límite de publicaciones alcanzado (Cuota excedida).";
-      }
-      
-      setCreationError(msg);
-      try { handleFirestoreError(error, OperationType.WRITE, 'activities'); } catch(e) {}
+      setCreationError("Error al publicar. Verifica tu conexión.");
+      console.error(error);
       playErrorSound();
     } finally {
       setIsCreatingActivity(false);
@@ -657,9 +527,8 @@ export default function App() {
         setLoadError("Actividad no encontrada. Verifica el código.");
       }
     } catch (error) {
-      console.error("Error loading activity:", error);
-      setLoadError("No se pudo cargar. Revisa tu conexión o intenta más tarde.");
-      try { handleFirestoreError(error, OperationType.GET, `activities/${code}`); } catch(e) {}
+      setLoadError("No se pudo cargar. Revisa tu conexión.");
+      console.error(error);
     } finally {
       setIsLoadingActivity(false);
     }
@@ -679,7 +548,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
             <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
-              RELEASE 2.2
+              RELEASE 2.1
             </span>
           </div>
 
@@ -721,8 +590,7 @@ export default function App() {
         </div>
 
         <div className="flex-1 w-full md:px-4 md:overflow-y-auto md:custom-scrollbar flex md:flex-col flex-row justify-around md:justify-start items-center gap-1 md:gap-8">
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex flex-col gap-4 w-full items-center">
+          <div className="flex md:flex-col flex-row gap-1 md:gap-4 w-full md:w-full items-center">
             <NavButton 
               active={currentView === 'home'} 
               onClick={() => {
@@ -731,16 +599,6 @@ export default function App() {
               }} 
               icon={<Home size={22} />} 
               label="Inicio" 
-              theme={theme}
-            />
-            <NavButton 
-              active={currentView === 'gallery'} 
-              onClick={() => {
-                setCurrentView('gallery');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Globe size={22} />} 
-              label="Galería" 
               theme={theme}
             />
             <NavButton 
@@ -763,109 +621,20 @@ export default function App() {
               label="Examen" 
               theme={theme}
             />
-            <NavButton 
-              active={currentView === 'settings'} 
-              onClick={() => {
-                setCurrentView('settings');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Settings size={22} />} 
-              label="Ajustes" 
-              theme={theme}
-            />
-          </div>
-
-          {/* Mobile Navigation */}
-          <div className="flex md:hidden justify-around items-center w-full px-4">
-            <NavButton 
-              active={currentView === 'home'} 
-              onClick={() => {
-                setCurrentView('home');
-                setShowMoreMobileMenu(false);
-              }} 
-              icon={<Home size={24} />} 
-              label="Inicio" 
-              theme={theme}
-            />
-            <NavButton 
-              active={showMoreMobileMenu} 
-              onClick={() => {
-                setShowMoreMobileMenu(!showMoreMobileMenu);
-              }} 
-              icon={<Menu size={24} />} 
-              label="Más" 
-              theme={theme}
-            />
-          </div>
-
-          {/* Mobile Menu Overlay */}
-          <AnimatePresence>
-            {showMoreMobileMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 100 }}
-                className={`fixed bottom-24 left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden ${
-                  theme === 'black' 
-                    ? 'bg-black/90 border-white/10' 
-                    : 'bg-white/95 border-white/60'
-                }`}
-              >
-                <div className="glossy-overlay opacity-30 rounded-3xl" />
-                <div className="flex items-center justify-between mb-4 px-2">
-                  <p className={`text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    Menú Principal
-                  </p>
-                  <button 
-                    onClick={() => setShowMoreMobileMenu(false)}
-                    className={`p-1.5 rounded-full ${theme === 'black' ? 'bg-white/10' : 'bg-slate-100'} hover:scale-110 active:scale-95 transition-transform`}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <MobileMenuButton 
-                    active={currentView === 'gallery'} 
-                    onClick={() => { setCurrentView('gallery'); setShowMoreMobileMenu(false); }} 
-                    icon={<Globe size={20} />} 
-                    label="Galería" 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    active={showMobileSubjects} 
-                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
-                    icon={<Book size={20} />} 
-                    label="Materias" 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    active={currentView === 'schedule'} 
-                    onClick={() => { setCurrentView('schedule'); setShowMoreMobileMenu(false); }} 
-                    icon={<CalendarIcon size={20} />} 
-                    label="Horario" 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    active={currentView === 'exam'} 
-                    onClick={() => { setCurrentView('exam'); setShowMoreMobileMenu(false); }} 
-                    icon={<ClipboardCheck size={20} />} 
-                    label="Examen" 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    active={currentView === 'settings'} 
-                    onClick={() => { setCurrentView('settings'); setShowMoreMobileMenu(false); }} 
-                    icon={<Settings size={20} />} 
-                    label="Ajustes" 
-                    theme={theme}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showMobileSubjects && (
+            {/* New Materias Button for Mobile */}
+            <div className="md:hidden relative">
+              <NavButton 
+                active={showMobileSubjects} 
+                onClick={() => {
+                  setShowMobileSubjects(!showMobileSubjects);
+                }} 
+                icon={<Book size={22} />} 
+                label="Materias" 
+                theme={theme}
+              />
+              
+              <AnimatePresence>
+                {showMobileSubjects && (
                   <motion.div
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -913,7 +682,19 @@ export default function App() {
                     </div>
                   </motion.div>
                 )}
-          </AnimatePresence>
+              </AnimatePresence>
+            </div>
+            <NavButton 
+              active={currentView === 'settings'} 
+              onClick={() => {
+                setCurrentView('settings');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Settings size={22} />} 
+              label="Ajustes" 
+              theme={theme}
+            />
+          </div>
 
           <div className="hidden md:flex flex-col gap-2 w-full pb-8">
             <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">Materias</p>
@@ -955,7 +736,7 @@ export default function App() {
         </div>
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.2</span>
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.1</span>
         </div>
         
         <AnimatePresence>
@@ -1488,104 +1269,6 @@ export default function App() {
             </motion.div>
           )}
 
-          {currentView === 'gallery' && (
-            <motion.div 
-              key="gallery"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="space-y-8"
-            >
-              <header className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Galería</h1>
-                    <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Explora actividades creadas por la comunidad.</p>
-                  </div>
-                  <button 
-                    onClick={fetchGallery}
-                    disabled={isGalleryLoading}
-                    className={`p-3 rounded-2xl bg-white/10 border border-white/20 shadow-lg active:scale-95 transition-all ${isGalleryLoading ? 'opacity-50' : ''}`}
-                  >
-                    <Sparkles size={20} className={isGalleryLoading ? 'animate-spin' : ''} />
-                  </button>
-                </div>
-              </header>
-
-              {isGalleryLoading && galleryActivities.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <div className="w-12 h-12 border-4 border-blue-400/30 border-t-blue-500 rounded-full animate-spin" />
-                  <p className="text-sm font-black uppercase tracking-widest opacity-40">Cargando Galería...</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {galleryActivities.map((activity) => (
-                    <motion.div
-                      layout
-                      key={activity.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ y: -5 }}
-                      onClick={() => handleLoadActivity(activity.id)}
-                      className={`cursor-pointer group relative p-6 rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-48 overflow-hidden shadow-sm hover:shadow-2xl ${
-                        theme === 'black' 
-                          ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-                          : 'bg-white/60 border-white/40 hover:bg-white/80'
-                      }`}
-                    >
-                      <div className="glossy-overlay opacity-10 group-hover:opacity-30 transition-opacity" />
-                      
-                      <div className="space-y-2 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
-                            {activity.id}
-                          </span>
-                          {isModerator && (
-                            <button 
-                              onClick={(e) => handleDeleteActivity(activity.id, e)}
-                              className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
-                              title="Eliminar Actividad"
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                        <h3 className={`text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                          {activity.name}
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold">
-                            {activity.creatorName?.[0]?.toUpperCase() || 'A'}
-                          </div>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                            {activity.creatorName || 'Anónimo'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-blue-400">
-                          <Play size={12} />
-                          <span className="text-[10px] font-black tracking-widest uppercase">Jugar</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-              
-              {galleryActivities.length === 0 && !isGalleryLoading && (
-                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                  <Globe size={48} className="opacity-10 animate-pulse" />
-                  <p className="text-sm font-black uppercase tracking-widest opacity-40">No hay actividades todavía. ¡Sé el primero!</p>
-                  <GlossyButton onClick={() => setCurrentView('create-activity')}>
-                    Crear Actividad
-                  </GlossyButton>
-                </div>
-              )}
-            </motion.div>
-          )}
-
           {currentView === 'settings' && (
             <motion.div 
               key="settings"
@@ -1736,7 +1419,7 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Términos de Servicio v2.2" theme={theme} className="md:col-span-2">
+                <AeroCard title="Términos de Servicio v2.1" theme={theme} className="md:col-span-2">
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-inner'}`}>
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
@@ -2113,31 +1796,26 @@ export default function App() {
               >
                 <ArrowLeft size={20} />
               </button>
-              <div className="flex flex-col items-center gap-4 mb-6">
+              <div className="flex flex-col items-center gap-4 mb-8">
                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
                   <User size={32} />
                 </div>
                 <div className="text-center">
-                  <h2 className={`text-2xl font-black uppercase tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    {authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
-                  </h2>
-                  <p className={`text-xs font-bold opacity-40 uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    {authMode === 'login' ? 'Entra a tu perfil escolar' : 'Unete a la comunidad NewAra'}
-                  </p>
+                  <h2 className={`text-2xl font-black uppercase tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Crear Cuenta</h2>
+                  <p className={`text-xs font-bold opacity-40 uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Necesario para publicar actividades</p>
                 </div>
               </div>
 
-              <form onSubmit={authMode === 'login' ? handleLogin : handleRegister} className="space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Nombre de Usuario</label>
                   <input 
                     type="text"
-                    required
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     placeholder="Ej: Profe Juan"
                     className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
-                        theme === 'black' 
+                      theme === 'black' 
                         ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
                         : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
                     }`}
@@ -2147,49 +1825,32 @@ export default function App() {
                   <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tu Contraseña</label>
                   <input 
                     type="password"
-                    required
                     value={userPassword}
                     onChange={(e) => setUserPassword(e.target.value)}
                     placeholder="••••••••"
                     className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
-                        theme === 'black' 
+                      theme === 'black' 
                         ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/20 focus:border-blue-500/50' 
                         : 'bg-slate-50 border-slate-200 focus:ring-blue-500/10 focus:border-blue-400'
                     }`}
                   />
                 </div>
-
-                {authError && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-[10px] font-black text-red-500 uppercase tracking-widest text-center"
-                  >
-                    {authError}
-                  </motion.p>
-                )}
-
-                <div className="pt-2 flex flex-col gap-3">
-                  <GlossyButton 
-                    type="submit"
-                    disabled={isAuthLoading}
-                    className="w-full py-5 text-sm tracking-widest uppercase font-black"
-                  >
-                    {isAuthLoading ? 'Cargando...' : (authMode === 'login' ? 'Entrar Ahora' : 'Confirmar Registro')}
-                  </GlossyButton>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                        setAuthMode(authMode === 'login' ? 'register' : 'login');
-                        setAuthError(null);
-                    }}
-                    className={`text-[9px] font-black uppercase tracking-widest text-center hover:underline opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}
-                  >
-                    {authMode === 'login' ? '¿No tienes cuenta? Registrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
-                  </button>
-                </div>
-              </form>
+                <GlossyButton 
+                  onClick={() => {
+                    if (userName && userPassword) {
+                      setIsRegistering(false);
+                      setCurrentView('create-activity');
+                      playSuccessSound();
+                    } else {
+                      playErrorSound();
+                    }
+                  }}
+                  className="w-full py-5 text-lg tracking-widest"
+                  id="submit-register"
+                >
+                  COMENZAR A CREAR
+                </GlossyButton>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -2430,29 +2091,6 @@ function ExerciseRunner({
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function MobileMenuButton({ active, icon, label, onClick, theme = 'white' }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
-  return (
-    <motion.button 
-      onClick={() => {
-        playExternalBubble();
-        onClick();
-      }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${
-        active 
-          ? (theme === 'black' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600') 
-          : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/70' : 'bg-slate-50 border-transparent text-sky-950')
-      }`}
-    >
-      <div className={`${active ? 'opacity-100' : 'opacity-60'}`}>
-        {icon}
-      </div>
-      <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
-    </motion.button>
   );
 }
 
