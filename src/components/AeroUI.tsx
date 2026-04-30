@@ -10,6 +10,7 @@ interface AeroCardProps {
 }
 
 export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, theme = 'white' }) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const themeClasses = theme === 'black' 
     ? "bg-black/60 border-white/20 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]" 
     : "bg-white/40 border-t-white/80 border-l-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]";
@@ -19,11 +20,9 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className={`aero-glass rounded-[2rem] p-6 overflow-hidden relative border transition-all duration-500 ${themeClasses} ${className}`}
-      style={{ willChange: 'transform, opacity' }}
+      initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`aero-glass rounded-[2rem] p-4 md:p-6 overflow-hidden relative border transition-all duration-300 ${themeClasses} ${className}`}
     >
       <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
       <div className="glossy-overlay opacity-20" />

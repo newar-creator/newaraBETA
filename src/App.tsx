@@ -103,6 +103,9 @@ export default function App() {
   });
   const [showMobileSubjects, setShowMobileSubjects] = useState(false);
   const [showMoreMobileMenu, setShowMoreMobileMenu] = useState(false);
+  const [disableAnimations, setDisableAnimations] = useState(() => {
+    return localStorage.getItem('newara_disable_animations') === 'true';
+  });
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Profile State
@@ -227,6 +230,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('newara_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('newara_disable_animations', disableAnimations.toString());
+  }, [disableAnimations]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
@@ -995,10 +1002,10 @@ export default function App() {
           {currentView === 'home' && (
             <motion.div 
               key="home"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ duration: 0.4 }}
+              initial={disableAnimations ? { opacity: 1 } : { opacity: 0, x: 20 }}
+              animate={disableAnimations ? { opacity: 1 } : { opacity: 1, x: 0 }}
+              exit={disableAnimations ? { opacity: 1 } : { opacity: 0, scale: 0.9, y: 30 }}
+              transition={disableAnimations ? { duration: 0 } : { duration: 0.4 }}
               className="space-y-8"
             >
               <div className="flex items-center gap-3 p-4 bg-red-500/10 border-2 border-red-500/20 rounded-[28px] overflow-hidden relative group">
@@ -1534,14 +1541,16 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-                  {galleryActivities.map((activity) => (
-                    <motion.div
-                      layout
-                      key={activity.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ y: -5 }}
-                      onClick={() => handleLoadActivity(activity.id)}
+                  {galleryActivities.map((activity) => {
+                    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                    return (
+                      <motion.div
+                        layout={!isMobile}
+                        key={activity.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={!isMobile ? { y: -5 } : {}}
+                        onClick={() => handleLoadActivity(activity.id)}
                       className={`cursor-pointer group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-40 md:h-48 overflow-hidden shadow-sm hover:shadow-2xl ${
                         theme === 'black' 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10' 
@@ -1585,7 +1594,8 @@ export default function App() {
                         </div>
                       </div>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               
@@ -1735,6 +1745,24 @@ export default function App() {
                         </button>
                       </div>
                     </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/20 border border-white/30">
+                      <div>
+                        <p className={`font-black uppercase tracking-widest text-[11px] ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Desactivar Animaciones</p>
+                        <p className={`text-[10px] font-bold opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>Mejora el rendimiento en celulares viejos</p>
+                      </div>
+                      <button 
+                        onClick={() => { playExternalBubble(); setDisableAnimations(!disableAnimations); }}
+                        className={`w-14 h-8 rounded-full p-1 transition-all flex items-center ${disableAnimations ? 'bg-blue-600 justify-end' : 'bg-slate-200 justify-start border-2 border-slate-300'}`}
+                      >
+                        <motion.div 
+                          layout={!disableAnimations}
+                          className="w-6 h-6 rounded-full shadow-md bg-white flex items-center justify-center font-black text-[8px] text-blue-600"
+                        >
+                          {disableAnimations ? 'ON' : ''}
+                        </motion.div>
+                      </button>
+                    </div>
                   </div>
                 </AeroCard>
 
@@ -1792,10 +1820,10 @@ export default function App() {
           {currentView === 'subject' && selectedSubject && (
              <motion.div 
                key="subject"
-               initial={{ opacity: 0, scale: 0.8, y: 30 }}
-               animate={{ opacity: 1, scale: 1, y: 0 }}
-               exit={{ opacity: 0, x: -100, scale: 0.95 }}
-               transition={{ type: "spring", damping: 25, stiffness: 120 }}
+               initial={disableAnimations ? { opacity: 1 } : { opacity: 0, scale: 0.8, y: 30 }}
+               animate={disableAnimations ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+               exit={disableAnimations ? { opacity: 1 } : { opacity: 0, x: -100, scale: 0.95 }}
+               transition={disableAnimations ? { duration: 0 } : { type: "spring", damping: 25, stiffness: 120 }}
                className="space-y-6"
              >
               <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
@@ -1863,6 +1891,7 @@ export default function App() {
                onBack={() => setCurrentView('subject')}
                onStartExercise={() => startExercise(selectedUnitIndex)}
                theme={theme}
+               disableAnimations={disableAnimations}
                hasNextUnit={selectedUnitIndex < selectedSubject.units.length - 1}
                onNextUnit={handleNextUnit}
              />
@@ -2538,7 +2567,7 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
       {items.map((item, i) => (
         <td key={i} className="p-2 border-l border-white/5">
           {item ? (
-            <div className={`p-2 rounded-xl bg-gradient-to-br ${getColorClasses(colors[i])} text-center shadow-lg border border-white/20 transform transition-transform hover:scale-105 cursor-default`} style={{ willChange: 'transform' }}>
+            <div className={`p-2 rounded-xl bg-gradient-to-br ${getColorClasses(colors[i])} text-center shadow-lg border border-white/20 transform transition-transform md:hover:scale-105 cursor-default`} style={{ willChange: 'transform' }}>
               <p className="text-[10px] font-black uppercase tracking-tighter leading-tight">{item}</p>
             </div>
           ) : (
@@ -2637,7 +2666,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
   );
 }
 
-function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', hasNextUnit, onNextUnit }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black', hasNextUnit: boolean, onNextUnit: () => void }) {
+function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', hasNextUnit, onNextUnit, disableAnimations }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black', hasNextUnit: boolean, onNextUnit: () => void, disableAnimations?: boolean }) {
   const getGradient = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
@@ -2652,10 +2681,10 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: 100, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: -100, scale: 0.95 }}
-      transition={{ type: "spring", damping: 22, stiffness: 100 }}
+      initial={disableAnimations ? { opacity: 1 } : { opacity: 0, x: 100, scale: 0.95 }}
+      animate={disableAnimations ? { opacity: 1 } : { opacity: 1, x: 0, scale: 1 }}
+      exit={disableAnimations ? { opacity: 1 } : { opacity: 0, x: -100, scale: 0.95 }}
+      transition={disableAnimations ? { duration: 0 } : { type: "spring", damping: 22, stiffness: 100 }}
       className="max-w-4xl mx-auto space-y-8"
     >
       <header className="flex items-center gap-4 md:gap-6">

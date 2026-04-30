@@ -48,7 +48,8 @@ const Bubble: React.FC<{
 export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' }> = ({ theme = 'white' }) => {
   // Balanced set of bubbles for performance
   const bubbles = React.useMemo(() => {
-    const count = 10; // Reduced from 15 for mobile performance
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const count = isMobile ? 6 : 10; // Significantly reduced for mobile performance
     return Array.from({ length: count }).map((_, i) => ({
       size: 60 + Math.random() * 140,
       x: Math.random() * 100,
