@@ -16,8 +16,8 @@ service cloud.firestore {
 
     function isValidActivity(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 10
-          && data.createdAt == request.time
+          && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 20
+          && (data.createdAt == request.time || ('createdAt' in data && data.createdAt == resource.data.createdAt) || !('createdAt' in data))
           && data.creatorName is string && data.creatorName.size() <= 60;
     }
 
@@ -25,7 +25,8 @@ service cloud.firestore {
       allow create: if isValidId(activityId) && isValidActivity(incoming());
       allow get: if true;
       allow list: if true;
-      allow delete: if true; // Enforced by UI moderator check for now
+      allow update: if isValidId(activityId) && isValidActivity(incoming()) && incoming().creatorName == resource.data.creatorName;
+      allow delete: if true; // Enforced by UI moderator check
     }
 
     function isValidUsername(id) {

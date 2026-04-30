@@ -43,7 +43,10 @@ import {
   AlertTriangle,
   Search,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Edit3,
+  Save,
+  ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -162,6 +165,7 @@ export default function App() {
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
   const [moderatorPassword, setModeratorPassword] = useState('');
   const [isModAuthorized, setIsModAuthorized] = useState(() => localStorage.getItem('newara_mod_auth') === 'true');
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('newara_logged_in') === 'true');
 
   useEffect(() => {
@@ -501,9 +505,10 @@ export default function App() {
     }
   };
 
-  const handleDeleteActivity = async (id: string, e: React.MouseEvent) => {
+  const handleDeleteActivity = async (id: string, e: React.MouseEvent, creatorName?: string) => {
     e.stopPropagation();
-    if (!isModerator) return;
+    const canDelete = isModerator || (creatorName === userName);
+    if (!canDelete) return;
     if (!window.confirm("¿Estás seguro de que deseas eliminar esta actividad?")) return;
     
     try {
@@ -513,6 +518,34 @@ export default function App() {
     } catch (error) {
        handleFirestoreError(error, OperationType.DELETE, `activities/${id}`);
     }
+  };
+
+  const handleEditActivity = async (activity: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const canEdit = isModerator || (activity.creatorName === userName);
+    if (!canEdit) return;
+
+    setEditingActivityId(activity.id);
+    setActivityName(activity.name);
+    
+    // Map questions back to the creator format
+    const mappedQuestions = activity.questions.map((q: any) => {
+      let correctIdx = q.correctAnswer;
+      if (q.type !== 'writing') {
+        correctIdx = q.options.indexOf(q.correctAnswer);
+        if (correctIdx === -1) correctIdx = 0;
+      }
+      return {
+        question: q.question,
+        type: q.type || 'multiple-choice',
+        options: q.options || ['', '', '', ''],
+        correct: correctIdx
+      };
+    });
+    
+    setActivityQuestions(mappedQuestions);
+    navigateTo('create-activity');
+    playExternalBubble();
   };
 
   const shuffleArray = (array: any[]) => {
@@ -742,16 +775,25 @@ export default function App() {
           options: q.options,
           correctAnswer: q.type === 'writing' ? q.correct : q.options[q.correct as number]
         })),
-        createdAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        ...(editingActivityId ? {} : { createdAt: serverTimestamp() })
       };
 
-      const shortCode = generateShortCode();
-      const docRef = doc(db, 'activities', shortCode);
-      await setDoc(docRef, activityData);
+      const docId = editingActivityId || generateShortCode();
+      const docRef = doc(db, 'activities', docId);
+      
+      if (editingActivityId) {
+        await updateDoc(docRef, activityData);
+      } else {
+        await setDoc(docRef, activityData);
+      }
 
       clearTimeout(timeoutId);
-      setNewActivityCode(shortCode);
-      addToHistory(shortCode, activityName);
+      if (!editingActivityId) {
+        setNewActivityCode(docId);
+        addToHistory(docId, activityName);
+      }
+      setEditingActivityId(null);
       playSuccessSound();
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
@@ -1752,18 +1794,26 @@ export default function App() {
                           <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
                             {activity.id}
                           </span>
-                          {isModerator && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm('¿Eliminar actividad?')) handleDeleteActivity(activity.id, e as any);
-                              }}
-                              className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
-                              title="Eliminar Actividad"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
+                          <div className="flex gap-1">
+                            {(isModerator || activity.creatorName === userName) && (
+                              <>
+                                <button 
+                                  onClick={(e) => handleEditActivity(activity, e)}
+                                  className="p-2 rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                  title="Editar Actividad"
+                                >
+                                  <Edit3 size={14} />
+                                </button>
+                                <button 
+                                  onClick={(e) => handleDeleteActivity(activity.id, e, activity.creatorName)}
+                                  className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                  title="Eliminar Actividad"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
