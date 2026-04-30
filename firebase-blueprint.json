@@ -44,12 +44,28 @@
         }
       },
       "required": ["name", "creatorName", "password", "questions", "createdAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with custom password authentication",
+      "type": "object",
+      "properties": {
+        "password": { "type": "string" },
+        "bio": { "type": "string" },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["password", "createdAt"]
     }
   },
   "firestore": {
     "/activities/{activityId}": {
       "schema": "SharedActivity",
       "description": "Store for shared activities"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
     }
   }
 }

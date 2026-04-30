@@ -28,9 +28,14 @@ service cloud.firestore {
       allow delete: if true; // Enforced by UI moderator check for now
     }
 
+    function isValidUsername(id) {
+      return id is string && id.size() >= 2 && id.size() <= 64;
+    }
+
     match /users/{userId} {
       allow get: if true;
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if isValidUsername(userId) && incoming().password is string && incoming().password.size() >= 4 && incoming().createdAt == request.time;
+      allow update: if isValidUsername(userId) && incoming().password is string && incoming().password == existing().password;
     }
 
     match /admins/{adminId} {
