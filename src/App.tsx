@@ -39,7 +39,8 @@ import {
   Lock,
   Play,
   Plus,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -1000,7 +1001,18 @@ export default function App() {
               transition={{ duration: 0.4 }}
               className="space-y-8"
             >
-      <header className="flex flex-col gap-1">
+              <div className="flex items-center gap-3 p-4 bg-red-500/10 border-2 border-red-500/20 rounded-[28px] overflow-hidden relative group">
+                <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
+                <AlertTriangle size={24} className="text-red-500 relative z-10 shrink-0" />
+                <div className="relative z-10">
+                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">Version Beta</p>
+                  <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                    Esta version es Beta, Va a haber problemas.
+                  </p>
+                </div>
+              </div>
+
+              <header className="flex flex-col gap-1">
         <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
           Inicio
         </h1>
@@ -1521,7 +1533,7 @@ export default function App() {
                   <p className="text-sm font-black uppercase tracking-widest opacity-40">Cargando Galería...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                   {galleryActivities.map((activity) => (
                     <motion.div
                       layout
@@ -1530,7 +1542,7 @@ export default function App() {
                       animate={{ opacity: 1, scale: 1 }}
                       whileHover={{ y: -5 }}
                       onClick={() => handleLoadActivity(activity.id)}
-                      className={`cursor-pointer group relative p-6 rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-48 overflow-hidden shadow-sm hover:shadow-2xl ${
+                      className={`cursor-pointer group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-40 md:h-48 overflow-hidden shadow-sm hover:shadow-2xl ${
                         theme === 'black' 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10' 
                           : 'bg-white/60 border-white/40 hover:bg-white/80'
@@ -1553,7 +1565,7 @@ export default function App() {
                             </button>
                           )}
                         </div>
-                        <h3 className={`text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                        <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                           {activity.name}
                         </h3>
                       </div>
@@ -1926,7 +1938,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                           {questions[examState.currentQuestion].a.map((opt, i) => {
                             const isCorrect = i === questions[examState.currentQuestion].r;
                             const isSelected = i === selectedAnswer;
@@ -1955,7 +1967,7 @@ export default function App() {
                                 onClick={() => handleAnswer(i)}
                                 animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
                                 transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
-                                className={`p-6 rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${selectedAnswer !== null ? feedbackClass : defaultClass}`}
+                                className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${selectedAnswer !== null ? feedbackClass : defaultClass}`}
                               >
                                 {opt}
                                 <div className={`w-6 h-6 rounded-full border-4 transition-all shadow-inner ${selectedAnswer !== null && isSelected ? 'bg-white scale-125' : 'border-white group-hover:bg-blue-400 group-hover:scale-125'}`} />
@@ -2348,7 +2360,7 @@ function ExerciseRunner({
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                 {currentQ.options.map((opt: string, i: number) => {
                   const isCorrect = i === currentQ.correct;
                   const isSelected = i === selectedAnswer;
@@ -2376,12 +2388,12 @@ function ExerciseRunner({
                       onClick={() => onAnswer(i)}
                       whileHover={selectedAnswer === null ? { scale: 1.02, y: -2 } : {}}
                       whileTap={selectedAnswer === null ? { scale: 0.98 } : {}}
-                      className={`relative p-5 rounded-3xl text-left font-black transition-all border-2 flex items-center justify-between group overflow-hidden shadow-[0_8px_15px_-5px_rgba(0,0,0,0.1)] active:shadow-inner ${buttonStyle}`}
+                      className={`relative p-3 md:p-5 rounded-2xl md:rounded-3xl text-left font-black transition-all border-2 flex items-center justify-between group overflow-hidden shadow-[0_8px_15px_-5px_rgba(0,0,0,0.1)] active:shadow-inner ${buttonStyle}`}
                     >
                       {/* Glossy Reflection Overlay */}
                       <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
                       
-                      <span className="relative z-10 text-base">{opt}</span>
+                      <span className="relative z-10 text-xs md:text-base">{opt}</span>
                       
                       <div className={`relative z-10 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
                         selectedAnswer !== null && isSelected 
