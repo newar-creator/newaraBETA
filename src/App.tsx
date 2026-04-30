@@ -952,6 +952,7 @@ export default function App() {
               icon={<Globe size={22} />} 
               label="Galería" 
               theme={theme}
+              badge="NUEVO"
             />
             <NavButton 
               id="nav-schedule"
@@ -1045,6 +1046,7 @@ export default function App() {
                     icon={<Globe size={20} />} 
                     label="Galería" 
                     theme={theme}
+                    badge="NUEVO"
                   />
                   <MobileMenuButton 
                     active={showMobileSubjects} 
@@ -2815,7 +2817,7 @@ function ExerciseRunner({
   );
 }
 
-function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white' }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
+function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
   return (
     <motion.button 
       id={id}
@@ -2825,7 +2827,7 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white' }:
       }}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${
+      className={`flex items-center gap-3 p-4 rounded-2xl transition-all border relative ${
         active 
           ? (theme === 'black' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600') 
           : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/70' : 'bg-slate-50 border-transparent text-sky-950')
@@ -2835,11 +2837,16 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white' }:
         {icon}
       </div>
       <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
+      {badge && (
+        <span className="absolute -top-2 -right-1 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
+          {badge}
+        </span>
+      )}
     </motion.button>
   );
 }
 
-function NavButton({ id, active, icon, label, onClick, theme = 'white' }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' }) {
+function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
   const handleClick = () => {
     playExternalBubble();
     onClick();
@@ -2872,6 +2879,12 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white' }: { id?:
       </motion.div>
       <span className={`text-[10px] md:text-sm font-bold tracking-tight`}>{label}</span>
       
+      {badge && (
+        <span className="absolute -top-1 -right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
+          {badge}
+        </span>
+      )}
+
       {active && (
         <motion.div 
           layoutId="nav-indicator"
