@@ -16,16 +16,25 @@ service cloud.firestore {
 
     function isValidActivity(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && data.password is string && data.password.size() > 0 && data.password.size() <= 64
           && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 10
           && data.createdAt == request.time
-          && data.creatorName is string && data.creatorName.size() <= 50;
+          && data.creatorName is string && data.creatorName.size() <= 60;
     }
 
     match /activities/{activityId} {
       allow create: if isValidId(activityId) && isValidActivity(incoming());
       allow get: if true;
-      // Note: allow list is intentionally omitted as activities are accessed by specific ID (code)
+      allow list: if true;
+      allow delete: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /users/{userId} {
+      allow get: if true;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /admins/{adminId} {
+      allow read: if true;
     }
   }
 }
