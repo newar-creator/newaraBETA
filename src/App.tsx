@@ -40,7 +40,10 @@ import {
   Play,
   Plus,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Search,
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -98,6 +101,13 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
     return (localStorage.getItem('newara_view') as View) || 'home';
   });
+  const [lastView, setLastView] = useState<View>('home');
+
+  const navigateTo = (view: View) => {
+    setLastView(currentView);
+    setCurrentView(view);
+  };
+
   const [theme, setTheme] = useState<'white' | 'black'>(() => {
     return (localStorage.getItem('newara_theme') as 'white' | 'black') || 'white';
   });
@@ -110,26 +120,26 @@ export default function App() {
 
   // Profile State
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
-  const handleProtectedNameChange = (newName: string) => {
-    const trimmed = newName.trim();
-    if (MODERATORS.includes(trimmed)) {
-      const currentStoredName = localStorage.getItem('newara_user_name');
-      if (trimmed !== currentStoredName) {
-        const pass = window.prompt("Nombre de moderador detectado. Introduce la contraseña maestra:");
-        if (pass === 'n3w3naraoz') {
-          playSuccessSound();
-          setUserName(newName);
-        } else {
-          if (pass !== null) alert("Contraseña incorrecta.");
-          return;
-        }
-      } else {
-        setUserName(newName);
+  const [moderatorPassword, setModeratorPassword] = useState('');
+  const [isModAuthorized, setIsModAuthorized] = useState(() => localStorage.getItem('newara_mod_auth') === 'true');
+
+  useEffect(() => {
+    if (moderatorPassword === 'n3w3naraoz') {
+      if (!isModAuthorized) {
+        playSuccessSound();
+        setIsModAuthorized(true);
+        localStorage.setItem('newara_mod_auth', 'true');
       }
-    } else {
-      setUserName(newName);
     }
-  };
+  }, [moderatorPassword]);
+
+  useEffect(() => {
+    if (!MODERATORS.includes(userName.trim())) {
+      setIsModAuthorized(false);
+      localStorage.removeItem('newara_mod_auth');
+    }
+  }, [userName]);
+
   const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
@@ -142,6 +152,10 @@ export default function App() {
     e.preventDefault();
     if (!userName.trim() || !userPassword.trim()) {
       setAuthError("Completa todos los campos.");
+      return;
+    }
+    if (MODERATORS.includes(userName.trim()) && !isModAuthorized) {
+      setAuthError("Contraseña de moderador requerida.");
       return;
     }
     setIsAuthLoading(true);
@@ -178,6 +192,10 @@ export default function App() {
     e.preventDefault();
     if (!userName.trim() || !userPassword.trim()) {
       setAuthError("Completa todos los campos.");
+      return;
+    }
+    if (MODERATORS.includes(userName.trim()) && !isModAuthorized) {
+      setAuthError("Contraseña de moderador requerida.");
       return;
     }
     if (userPassword.length < 4) {
@@ -282,6 +300,7 @@ export default function App() {
   const [isLoadingActivity, setIsLoadingActivity] = useState(false);
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
+  const [gallerySearch, setGallerySearch] = useState('');
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -300,7 +319,7 @@ export default function App() {
   };
   const [activityName, setActivityName] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
-  const isModerator = MODERATORS.includes(userName.trim());
+  const isModerator = MODERATORS.includes(userName.trim()) && isModAuthorized;
   
   // History State
   const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
@@ -472,7 +491,7 @@ export default function App() {
       playExternalBubble();
       setSelectedUnitIndex(nextIndex);
       setActiveExercise(null);
-      setCurrentView('unit-study');
+      navigateTo('unit-study');
     }
   };
 
@@ -480,13 +499,13 @@ export default function App() {
     playExternalBubble();
     setSelectedSubject(subject);
     setSelectedUnitIndex(null);
-    setCurrentView('subject');
+    navigateTo('subject');
   };
 
   const resetExam = () => {
     playExternalBubble();
     setExamState({ active: true, currentQuestion: 0, score: 0, finished: false });
-    setCurrentView('exam');
+    navigateTo('exam');
   };
 
   const getIcon = (name: string, size = 20) => {
@@ -678,7 +697,7 @@ export default function App() {
         // Use a "fake" subject/unit for the exercise runner
         setActiveExercise({ unitIndex: -1, subjectId: 'shared', currentQuestion: 0 });
         setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions, userAnswers: [] });
-        setCurrentView('play-activity');
+        navigateTo('play-activity');
         playExternalBubble();
       } else {
         playErrorSound();
@@ -754,7 +773,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'home'} 
               onClick={() => {
-                setCurrentView('home');
+                navigateTo('home');
                 setShowMobileSubjects(false);
               }} 
               icon={<Home size={22} />} 
@@ -764,7 +783,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'gallery'} 
               onClick={() => {
-                setCurrentView('gallery');
+                navigateTo('gallery');
                 setShowMobileSubjects(false);
               }} 
               icon={<Globe size={22} />} 
@@ -774,7 +793,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'schedule'} 
               onClick={() => {
-                setCurrentView('schedule');
+                navigateTo('schedule');
                 setShowMobileSubjects(false);
               }} 
               icon={<CalendarIcon size={22} />} 
@@ -784,7 +803,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'exam'} 
               onClick={() => {
-                setCurrentView('exam');
+                navigateTo('exam');
                 setShowMobileSubjects(false);
               }} 
               icon={<ClipboardCheck size={22} />} 
@@ -794,7 +813,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'settings'} 
               onClick={() => {
-                setCurrentView('settings');
+                navigateTo('settings');
                 setShowMobileSubjects(false);
               }} 
               icon={<Settings size={22} />} 
@@ -808,7 +827,7 @@ export default function App() {
             <NavButton 
               active={currentView === 'home'} 
               onClick={() => {
-                setCurrentView('home');
+                navigateTo('home');
                 setShowMoreMobileMenu(false);
               }} 
               icon={<Home size={24} />} 
@@ -854,7 +873,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-3">
                   <MobileMenuButton 
                     active={currentView === 'gallery'} 
-                    onClick={() => { setCurrentView('gallery'); setShowMoreMobileMenu(false); }} 
+                    onClick={() => { navigateTo('gallery'); setShowMoreMobileMenu(false); }} 
                     icon={<Globe size={20} />} 
                     label="Galería" 
                     theme={theme}
@@ -868,21 +887,21 @@ export default function App() {
                   />
                   <MobileMenuButton 
                     active={currentView === 'schedule'} 
-                    onClick={() => { setCurrentView('schedule'); setShowMoreMobileMenu(false); }} 
+                    onClick={() => { navigateTo('schedule'); setShowMoreMobileMenu(false); }} 
                     icon={<CalendarIcon size={20} />} 
                     label="Horario" 
                     theme={theme}
                   />
                   <MobileMenuButton 
                     active={currentView === 'exam'} 
-                    onClick={() => { setCurrentView('exam'); setShowMoreMobileMenu(false); }} 
+                    onClick={() => { navigateTo('exam'); setShowMoreMobileMenu(false); }} 
                     icon={<ClipboardCheck size={20} />} 
                     label="Examen" 
                     theme={theme}
                   />
                   <MobileMenuButton 
                     active={currentView === 'settings'} 
-                    onClick={() => { setCurrentView('settings'); setShowMoreMobileMenu(false); }} 
+                    onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
                     icon={<Settings size={20} />} 
                     label="Ajustes" 
                     theme={theme}
@@ -923,7 +942,7 @@ export default function App() {
                           onClick={() => {
                             playExternalBubble();
                             setSelectedSubject(s);
-                            setCurrentView('subject');
+                            navigateTo('subject');
                             setShowMobileSubjects(false);
                           }}
                           className={`flex flex-col items-start gap-3 p-4 rounded-3xl transition-all active:scale-95 border-2 ${
@@ -951,7 +970,7 @@ export default function App() {
                 onClick={() => {
                   playExternalBubble();
                   setSelectedSubject(s);
-                  setCurrentView('subject');
+                  navigateTo('subject');
                 }}
                 className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
               >
@@ -1241,7 +1260,7 @@ export default function App() {
               >
                <AeroCard title={currentSharedActivity?.name || 'Actividad Compartida'} theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
                  <button 
-                  onClick={() => setCurrentView('home')}
+                  onClick={() => setCurrentView(lastView)}
                   className={`absolute top-6 right-6 p-2 rounded-full transition-all hover:bg-red-500 hover:text-white ${theme === 'black' ? 'bg-white/10 text-white/40' : 'bg-black/5 text-sky-950/40'}`}
                  >
                    <ArrowLeft size={16} />
@@ -1255,12 +1274,12 @@ export default function App() {
                    selectedAnswer={selectedAnswer}
                    onAnswer={handleExerciseAnswer}
                    onFinish={() => {
-                     setCurrentView('home');
+                     setCurrentView(lastView);
                      setActiveExercise(null);
                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                    }}
                    onClose={() => {
-                     setCurrentView('home');
+                     setCurrentView(lastView);
                      setActiveExercise(null);
                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                    }}
@@ -1283,7 +1302,7 @@ export default function App() {
             >
                <header className="flex items-center gap-4">
                   <button 
-                    onClick={() => setCurrentView('home')}
+                    onClick={() => setCurrentView(lastView)}
                     className="p-2 rounded-xl bg-white/20 border border-white/40 shadow-lg"
                   >
                     <ArrowLeft size={20} />
@@ -1535,8 +1554,8 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="space-y-8"
             >
-              <header className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
+              <header className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Galería</h1>
                     <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Explora actividades creadas por la comunidad.</p>
@@ -1544,13 +1563,29 @@ export default function App() {
                       NewAra no es responsable por la actitud de sus usuarios. Miren a sus hijos/hijas.
                     </p>
                   </div>
-                  <button 
-                    onClick={fetchGallery}
-                    disabled={isGalleryLoading}
-                    className={`p-3 rounded-2xl bg-white/10 border border-white/20 shadow-lg active:scale-95 transition-all ${isGalleryLoading ? 'opacity-50' : ''}`}
-                  >
-                    <Sparkles size={20} className={isGalleryLoading ? 'animate-spin' : ''} />
-                  </button>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative w-full sm:w-64">
+                      <Search size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
+                      <input 
+                        type="text"
+                        placeholder="Buscar por nombre, autor, código..."
+                        value={gallerySearch}
+                        onChange={(e) => setGallerySearch(e.target.value)}
+                        className={`w-full pl-12 pr-4 py-3 rounded-2xl border-2 transition-all outline-none font-bold text-sm ${
+                          theme === 'black'
+                            ? 'bg-white/5 border-white/10 text-white focus:border-white/30'
+                            : 'bg-white/60 border-white/40 text-sky-950 focus:border-blue-500'
+                        }`}
+                      />
+                    </div>
+                    <button 
+                      onClick={fetchGallery}
+                      disabled={isGalleryLoading}
+                      className={`p-3 rounded-2xl bg-white/10 border border-white/20 shadow-lg active:scale-95 transition-all ${isGalleryLoading ? 'opacity-50' : ''}`}
+                    >
+                      <RefreshCw size={20} className={isGalleryLoading ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
                 </div>
               </header>
 
@@ -1561,8 +1596,18 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-                  {galleryActivities.map((activity) => {
+                  {galleryActivities.filter(activity => {
+                    const search = gallerySearch.toLowerCase();
+                    const date = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : '';
+                    return (
+                      activity.name?.toLowerCase().includes(search) ||
+                      activity.creatorName?.toLowerCase().includes(search) ||
+                      activity.id?.toLowerCase().includes(search) ||
+                      date.includes(search)
+                    );
+                  }).map((activity) => {
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                    const dateStr = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : 'Desconocida';
                     return (
                       <motion.div
                         layout={!isMobile}
@@ -1571,7 +1616,7 @@ export default function App() {
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={!isMobile ? { y: -5 } : {}}
                         onClick={() => handleLoadActivity(activity.id)}
-                      className={`cursor-pointer group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-40 md:h-48 overflow-hidden shadow-sm hover:shadow-2xl ${
+                      className={`cursor-pointer group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-44 md:h-56 overflow-hidden shadow-sm hover:shadow-2xl ${
                         theme === 'black' 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10' 
                           : 'bg-white/60 border-white/40 hover:bg-white/80'
@@ -1586,17 +1631,25 @@ export default function App() {
                           </span>
                           {isModerator && (
                             <button 
-                              onClick={(e) => handleDeleteActivity(activity.id, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm('¿Eliminar actividad?')) handleDeleteActivity(activity.id, e as any);
+                              }}
                               className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
                               title="Eliminar Actividad"
                             >
-                              <X size={14} />
+                              <Trash2 size={14} />
                             </button>
                           )}
                         </div>
-                        <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                          {activity.name}
-                        </h3>
+                        <div>
+                          <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                            {activity.name}
+                          </h3>
+                          <p className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                            Creada el {dateStr}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
@@ -1694,13 +1747,32 @@ export default function App() {
                           <input 
                             type="text" 
                             value={userName}
-                            onChange={(e) => handleProtectedNameChange(e.target.value)}
+                            onChange={(e) => setUserName(e.target.value)}
                             className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Tu nombre"
                           />
                         </div>
+
+                        {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="space-y-1"
+                          >
+                            <label className="text-[10px] font-black uppercase tracking-wider text-red-500">Contraseña de Moderador</label>
+                            <input 
+                              type="password" 
+                              value={moderatorPassword}
+                              onChange={(e) => setModeratorPassword(e.target.value)}
+                              className={`w-full px-3 py-2 rounded-xl border text-sm font-bold border-red-500/50 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all ${
+                                theme === 'black' ? 'bg-red-500/5 text-white' : 'bg-red-50/50 text-sky-950'
+                              }`}
+                              placeholder="Introducir contraseña..."
+                            />
+                          </motion.div>
+                        )}
                         <div className="space-y-1">
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
@@ -1864,7 +1936,7 @@ export default function App() {
                         onUnitClick={(index) => {
                            playExternalBubble();
                            setSelectedUnitIndex(index);
-                           setCurrentView('unit-study');
+                           navigateTo('unit-study');
                         }}
                         theme={theme}
                       />
@@ -2131,13 +2203,12 @@ export default function App() {
                     selectedAnswer={selectedAnswer}
                     onAnswer={handleExerciseAnswer}
                     onClose={() => {
-                      setCurrentView('home');
                       setActiveExercise(null);
                       setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                     }}
                     onFinish={() => {
                        if (activeExercise.subjectId === 'shared') {
-                          setCurrentView('home');
+                          setCurrentView(lastView);
                        }
                        setActiveExercise(null);
                     }}
@@ -2198,7 +2269,7 @@ export default function App() {
                     type="text"
                     required
                     value={userName}
-                    onChange={(e) => handleProtectedNameChange(e.target.value)}
+                    onChange={(e) => setUserName(e.target.value)}
                     placeholder="Ej: Profe Juan"
                     className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
                         theme === 'black' 
@@ -2207,6 +2278,25 @@ export default function App() {
                     }`}
                   />
                 </div>
+
+                {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="space-y-1"
+                  >
+                    <label className={`text-[10px] font-black uppercase tracking-widest text-red-500 ml-2`}>Contraseña de Moderador</label>
+                    <input 
+                      type="password"
+                      value={moderatorPassword}
+                      onChange={(e) => setModeratorPassword(e.target.value)}
+                      placeholder="Introducir contraseña..."
+                      className={`w-full px-6 py-4 rounded-3xl border-2 border-red-500/50 font-bold focus:ring-4 transition-all outline-none ${
+                          theme === 'black' ? 'bg-red-500/5 text-white' : 'bg-red-50/50 text-sky-950'
+                      }`}
+                    />
+                  </motion.div>
+                )}
                 <div className="space-y-1">
                   <label className={`text-[10px] font-black uppercase tracking-widest opacity-40 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tu Contraseña</label>
                   <input 
