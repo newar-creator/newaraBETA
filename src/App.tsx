@@ -47,7 +47,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -63,6 +63,36 @@ import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/soun
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
 const auth = getAuth(app);
+
+const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+  });
+};
 
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery';
 
@@ -104,6 +134,7 @@ export default function App() {
   });
   const [lastView, setLastView] = useState<View>('home');
   const [showWelcome, setShowWelcome] = useState(false);
+  const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
 
   useEffect(() => {
     const hasVisited = localStorage.getItem('newara_visited');
@@ -198,9 +229,11 @@ export default function App() {
           setIsRegistering(false);
           // Persist profile
           setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
+          setUserRole(userData.role || 'Estudiante');
           setUserAvatar(userData.avatar || '');
           localStorage.setItem('newara_user_name', userName.trim());
           localStorage.setItem('newara_user_password', userPassword);
+          localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
           localStorage.setItem('newara_logged_in', 'true');
         } else {
           setAuthError("Contraseña incorrecta.");
@@ -240,11 +273,13 @@ export default function App() {
         setAuthError("¡Esta cuenta ya existe!");
         playErrorSound();
       } else {
+        const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
         await setDoc(doc(db, 'users', userName.trim()), {
           name: userName.trim(),
           password: userPassword,
-          bio: userBio,
-          avatar: userAvatar,
+          bio: userBio.slice(0, 300),
+          role: userRole,
+          avatar: safeAvatar,
           createdAt: serverTimestamp()
         });
         playSuccessSound();
@@ -273,8 +308,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem('newara_user_name', userName);
-  }, [userName]);
+    localStorage.setItem('newara_user_role', userRole);
+  }, [userRole]);
 
   useEffect(() => {
     localStorage.setItem('newara_user_password', userPassword);
@@ -285,8 +320,46 @@ export default function App() {
   }, [userBio]);
 
   useEffect(() => {
-    localStorage.setItem('newara_user_avatar', userAvatar);
+    // If somehow the avatar became too large, we clear it to avoid sync errors
+    if (userAvatar.length > 800000) { 
+      setUserAvatar('');
+      localStorage.removeItem('newara_user_avatar');
+    } else {
+      localStorage.setItem('newara_user_avatar', userAvatar);
+    }
   }, [userAvatar]);
+
+  const syncProfile = async () => {
+    if (!isLoggedIn || !userName.trim() || userName.trim() === 'Estudiante') return;
+    const path = `users/${userName.trim()}`;
+    try {
+      // Safeguard: Ensure we don't try to sync data that is too large
+      const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
+      const safeBio = userBio.slice(0, 300);
+
+      await updateDoc(doc(db, 'users', userName.trim()), {
+        bio: safeBio,
+        role: userRole,
+        avatar: safeAvatar,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Sync error:", error);
+      // We don't want to throw here as it's a background sync, but we want the detailed log if possible
+      try {
+        handleFirestoreError(error, OperationType.UPDATE, path);
+      } catch (e) {
+        // Log handled by handleFirestoreError
+      }
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      syncProfile();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [userBio, userAvatar, userRole]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -772,7 +845,7 @@ export default function App() {
           {/* Version Badge */}
           <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
             <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
-              RELEASE 2.2
+              RELEASE 2.3
             </span>
           </div>
 
@@ -809,7 +882,7 @@ export default function App() {
           </div>
           <div className="flex flex-col items-center">
             <span className={`hidden md:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
-            <span className={`hidden md:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>Estudiante</span>
+            <span className={`hidden md:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{userRole}</span>
           </div>
         </div>
 
@@ -1058,7 +1131,7 @@ export default function App() {
         </div>
         <NewAraLogo size="md" theme={theme} />
         <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.2</span>
+          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.3</span>
         </div>
         
         <AnimatePresence>
@@ -1107,9 +1180,9 @@ export default function App() {
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
                 <AlertTriangle size={24} className="text-red-500 relative z-10 shrink-0" />
                 <div className="relative z-10">
-                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">Version Beta</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">RELEASE 2.3</p>
                   <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    Esta version es Beta, Va a haber problemas.
+                    Release 2.3 - Revisión
                   </p>
                 </div>
               </div>
@@ -1775,8 +1848,9 @@ export default function App() {
                             const file = e.target.files?.[0];
                             if (file) {
                               const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setUserAvatar(reader.result as string);
+                              reader.onloadend = async () => {
+                                const compressed = await compressImage(reader.result as string);
+                                setUserAvatar(compressed);
                                 playSuccessSound();
                               };
                               reader.readAsDataURL(file);
@@ -1807,6 +1881,24 @@ export default function App() {
                             }`}
                             placeholder="Tu nombre"
                           />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Rol</label>
+                          <div className={`flex p-1 rounded-2xl border transition-all ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/20'}`}>
+                            <button 
+                              onClick={() => { setUserRole('Estudiante'); playExternalBubble(); }}
+                              className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Estudiante' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
+                            >
+                              Estudiante
+                            </button>
+                            <button 
+                              onClick={() => { setUserRole('Profesor'); playExternalBubble(); }}
+                              className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Profesor' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-purple-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
+                            >
+                              Profesor
+                            </button>
+                          </div>
                         </div>
 
                         {!isLoggedIn && (
@@ -1863,12 +1955,16 @@ export default function App() {
                       <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Sobre ti (Bio)</label>
                       <textarea 
                         value={userBio}
-                        onChange={(e) => setUserBio(e.target.value)}
+                        onChange={(e) => setUserBio(e.target.value.slice(0, 300))}
+                        maxLength={300}
                         className={`w-full px-3 py-2 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none h-20 ${
                           theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                         }`}
                         placeholder="Contanos algo de vos..."
                       />
+                      <div className="flex justify-end pr-2">
+                        <span className="text-[8px] font-bold opacity-30">{userBio.length}/300</span>
+                      </div>
                     </div>
 
                     {userAvatar && (
