@@ -227,6 +227,10 @@ export default function App() {
             if (data.avatar) setUserAvatar(data.avatar);
             if (data.role) setUserRole(data.role);
             if (data.bio) setUserBio(data.bio);
+            if (data.completedUnits) {
+              setCompletedUnits(data.completedUnits);
+              localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
+            }
             
             // Sync local storage too
             localStorage.setItem('newara_user_bio', data.bio || userBio);
@@ -490,7 +494,7 @@ export default function App() {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
-  const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number} | null>(null);
+  const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number, activityCode?: string} | null>(null);
   const [exerciseState, setExerciseState] = useState({ 
     score: 0, 
     finished: false, 
@@ -571,8 +575,8 @@ export default function App() {
     localStorage.setItem('newara_completed_units', JSON.stringify(completedUnits));
   }, [completedUnits]);
 
-  const markUnitAsCompleted = async (subjectId: string, unitIndex: number) => {
-    const unitKey = `${subjectId}-${unitIndex}`;
+  const markUnitAsCompleted = async (subjectId: string, unitIndex: number, activityCode?: string) => {
+    const unitKey = activityCode ? `shared-${activityCode}` : `${subjectId}-${unitIndex}`;
     if (!completedUnits.includes(unitKey)) {
       setCompletedUnits(prev => [...prev, unitKey]);
       incrementUserStat(userName, 'totalCorrect', 1);
@@ -720,6 +724,9 @@ export default function App() {
     
     if (isCorrect) {
       playSuccessSound();
+      if (isLoggedIn && userName !== 'Estudiante') {
+        incrementUserStat(userName, 'totalCorrect', 1);
+      }
     } else {
       playErrorSound();
     }
@@ -749,7 +756,7 @@ export default function App() {
       } else {
         setExerciseState(prev => ({ ...prev, finished: true }));
         // Mark unit as completed "for real"
-        markUnitAsCompleted(activeExercise.subjectId, activeExercise.unitIndex);
+        markUnitAsCompleted(activeExercise.subjectId, activeExercise.unitIndex, activeExercise.activityCode);
       }
     }, 1000);
   };
@@ -1014,7 +1021,7 @@ export default function App() {
         });
 
         // Use a "fake" subject/unit for the exercise runner
-        setActiveExercise({ unitIndex: -1, subjectId: 'shared', currentQuestion: 0 });
+        setActiveExercise({ unitIndex: -1, subjectId: 'shared', currentQuestion: 0, activityCode: code });
         setExerciseState({ score: 0, finished: false, shuffled: randomizedQuestions, userAnswers: [] });
         navigateTo('play-activity');
         playExternalBubble();
