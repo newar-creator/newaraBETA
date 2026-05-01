@@ -649,11 +649,34 @@ export default function App() {
     try {
       const q = query(collection(db, 'activities'), orderBy('createdAt', 'desc'), limit(50));
       const querySnapshot = await getDocs(q);
-      const activities = querySnapshot.docs.map(doc => ({
+      const activitiesData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setGalleryActivities(activities);
+
+      // Get unique creators to fetch their latest avatars
+      const creatorNames = Array.from(new Set(activitiesData.map((a: any) => a.creatorName).filter(Boolean)));
+      
+      // Fetch avatars in chunks or individually (since limit is 50, it's manageable)
+      const avatarMap: Record<string, string> = {};
+      await Promise.all(creatorNames.map(async (name: any) => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', name));
+          if (userDoc.exists()) {
+            avatarMap[name] = userDoc.data().avatar || '';
+          }
+        } catch (e) {
+          console.error(`Error fetching avatar for ${name}:`, e);
+        }
+      }));
+
+      // Map activities with fresh avatars
+      const enrichedActivities = activitiesData.map((a: any) => ({
+        ...a,
+        creatorAvatar: avatarMap[a.creatorName] !== undefined ? avatarMap[a.creatorName] : a.creatorAvatar
+      }));
+
+      setGalleryActivities(enrichedActivities);
     } catch (error) {
       console.error("Error fetching gallery:", error);
     } finally {
