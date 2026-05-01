@@ -1346,9 +1346,7 @@ export default function App() {
            </div>
         </div>
         <NewAraLogo size="md" theme={theme} />
-        <div className="px-1.5 py-0 rounded-full bg-gradient-to-b from-[#ffd966] to-[#f1c232] border border-white/60 shadow-sm mt-0.5 -mb-1 scale-[0.65]">
-          <span className="text-[8px] font-black text-gray-800 tracking-widest uppercase">RELEASE 2.3</span>
-        </div>
+
         
         <AnimatePresence>
           {isOffline && (
