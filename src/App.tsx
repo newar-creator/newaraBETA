@@ -1868,7 +1868,7 @@ export default function App() {
                         </div>
                         <div>
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                            {activity.name && activity.name.length > 15 ? activity.name.substring(0, 15) + '...' : activity.name}
+                            {activity.name && activity.name.length > 27 ? activity.name.substring(0, 27) + '...' : activity.name}
                           </h3>
                           <p className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                             Creada el {dateStr}
