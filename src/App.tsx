@@ -1265,7 +1265,7 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className={`md:hidden flex flex-col items-center justify-center pt-6 pb-2 z-30 sticky top-0 backdrop-blur-md border-b transition-colors duration-500 ${theme === 'black' ? 'bg-black/60 border-white/10' : 'bg-white/40 border-white/20'}`}>
+      <div className={`md:hidden flex flex-col items-center justify-center pt-4 pb-1 z-30 sticky top-0 backdrop-blur-xl transition-all duration-500 ${theme === 'black' ? 'bg-black/10' : 'bg-white/5'}`}>
         <div className="absolute left-4 top-1/2 -translate-y-1/2">
            <div 
              className="w-10 h-10 rounded-full p-0.5 bg-white/20 border border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
@@ -1281,8 +1281,8 @@ export default function App() {
            </div>
         </div>
         <NewAraLogo size="md" theme={theme} />
-        <div className="px-2 py-0.5 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-sm mt-1 -mb-2 scale-75">
-          <span className="text-[10px] font-bold text-gray-800 tracking-widest uppercase">RELEASE 2.3</span>
+        <div className="px-1.5 py-0 rounded-full bg-gradient-to-b from-[#ffd966] to-[#f1c232] border border-white/60 shadow-sm mt-0.5 -mb-1 scale-[0.65]">
+          <span className="text-[8px] font-black text-gray-800 tracking-widest uppercase">RELEASE 2.3</span>
         </div>
         
         <AnimatePresence>
