@@ -212,6 +212,25 @@ export default function App() {
     localStorage.setItem('newara_logged_in', isLoggedIn.toString());
   }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn]);
 
+  useEffect(() => {
+    const syncProfile = async () => {
+      if (isLoggedIn && userName && userName !== 'Estudiante') {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', userName.trim()));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.avatar && !userAvatar) setUserAvatar(data.avatar);
+            if (data.role) setUserRole(data.role);
+            if (data.bio && userBio === 'Explorador del conocimiento en NewAra.') setUserBio(data.bio);
+          }
+        } catch (error) {
+          console.error("Auto-sync error:", error);
+        }
+      }
+    };
+    syncProfile();
+  }, [isLoggedIn, userName]); 
+
   const checkUsername = async (name: string) => {
     if (!name.trim() || name.trim() === 'Estudiante') return;
     setIsCheckingAccount(true);
@@ -316,6 +335,35 @@ export default function App() {
       setAuthError("Error al crear la cuenta.");
     } finally {
       setIsAuthLoading(false);
+    }
+  };
+
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  const handleUpdateProfile = async () => {
+    if (!isLoggedIn) return;
+    setIsUpdatingProfile(true);
+    try {
+      const userRef = doc(db, 'users', userName.trim());
+      const safeAvatar = userAvatar && userAvatar.length > 800000 ? '' : userAvatar;
+      
+      await updateDoc(userRef, {
+        bio: userBio.slice(0, 300),
+        role: userRole,
+        avatar: safeAvatar,
+        updatedAt: serverTimestamp()
+      });
+      
+      playSuccessSound();
+      // Update local storage too to ensure sync
+      localStorage.setItem('newara_user_bio', userBio);
+      localStorage.setItem('newara_user_role', userRole);
+      localStorage.setItem('newara_user_avatar', userAvatar);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      playErrorSound();
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -1879,11 +1927,18 @@ export default function App() {
 
                       <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-600/20 border border-white/20 flex items-center justify-center text-[12px] text-white font-bold overflow-hidden shrink-0 shadow-inner">
                             {activity.creatorAvatar ? (
-                              <img src={activity.creatorAvatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              <img 
+                                src={activity.creatorAvatar} 
+                                alt="" 
+                                className="w-full h-full object-cover" 
+                                referrerPolicy="no-referrer" 
+                              />
                             ) : (
-                              activity.creatorName?.[0]?.toUpperCase() || 'A'
+                              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center shadow-inner">
+                                {activity.creatorName?.[0]?.toUpperCase() || 'A'}
+                              </div>
                             )}
                           </div>
                           <div className="flex flex-col">
@@ -1980,6 +2035,11 @@ export default function App() {
                                 const compressed = await compressImage(reader.result as string);
                                 setUserAvatar(compressed);
                                 playSuccessSound();
+                                // Auto-save if logged in
+                                if (isLoggedIn) {
+                                  const userRef = doc(db, 'users', userName.trim());
+                                  await updateDoc(userRef, { avatar: compressed });
+                                }
                               };
                               reader.readAsDataURL(file);
                             }
@@ -2015,13 +2075,25 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Rol</label>
                           <div className={`flex p-1 rounded-2xl border transition-all ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/20'}`}>
                             <button 
-                              onClick={() => { setUserRole('Estudiante'); playExternalBubble(); }}
+                              onClick={() => { 
+                                setUserRole('Estudiante'); 
+                                playExternalBubble(); 
+                                if (isLoggedIn) {
+                                  updateDoc(doc(db, 'users', userName.trim()), { role: 'Estudiante' });
+                                }
+                              }}
                               className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Estudiante' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
                               Estudiante
                             </button>
                             <button 
-                              onClick={() => { setUserRole('Profesor'); playExternalBubble(); }}
+                              onClick={() => { 
+                                setUserRole('Profesor'); 
+                                playExternalBubble(); 
+                                if (isLoggedIn) {
+                                  updateDoc(doc(db, 'users', userName.trim()), { role: 'Profesor' });
+                                }
+                              }}
                               className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Profesor' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-purple-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
                               Profesor
@@ -2094,6 +2166,23 @@ export default function App() {
                         <span className="text-[8px] font-bold opacity-30">{userBio.length}/300</span>
                       </div>
                     </div>
+
+                    {isLoggedIn && (
+                      <div className="pt-4 border-t border-white/10">
+                        <GlossyButton 
+                          onClick={handleUpdateProfile} 
+                          className="w-full text-[12px] py-3 flex items-center justify-center gap-2 group"
+                          disabled={isUpdatingProfile}
+                        >
+                          {isUpdatingProfile ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                          ) : (
+                            <Save size={16} className="group-hover:scale-110 transition-transform" />
+                          )}
+                          {isUpdatingProfile ? 'Guardando...' : 'Guardar Cambios de Perfil'}
+                        </GlossyButton>
+                      </div>
+                    )}
 
                     {userAvatar && (
                       <button 
