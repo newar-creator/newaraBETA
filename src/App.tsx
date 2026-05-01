@@ -2422,10 +2422,11 @@ export default function App() {
                       setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                     }}
                     onFinish={() => {
-                       if (activeExercise.subjectId === 'shared') {
-                          setCurrentView(lastView === 'play-activity' ? 'gallery' : lastView);
-                       }
-                       setActiveExercise(null);
+                      if (activeExercise.subjectId === 'shared') {
+                        setCurrentView(lastView === 'play-activity' ? 'gallery' : lastView);
+                      }
+                      setActiveExercise(null);
+                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                     }}
                     userAnswers={exerciseState.userAnswers}
                     title={activeExercise.subjectId === 'shared' ? currentSharedActivity?.name : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
@@ -2802,8 +2803,8 @@ function ExerciseRunner({
               ))}
             </div>
 
-            <GlossyButton onClick={onFinish} className="w-full py-4 text-sky-500 bg-white/40 border-2 border-white/60">
-               Cerrar
+            <GlossyButton onClick={onFinish} className="w-full py-4 bg-blue-500 text-white border-2 border-white/20 shadow-xl">
+               Finalizar
             </GlossyButton>
           </motion.div>
         )}
