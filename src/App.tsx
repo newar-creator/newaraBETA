@@ -46,9 +46,10 @@ import {
   RefreshCw,
   Edit3,
   Save,
-  ChevronLeft
+  ChevronLeft,
+  Heart
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -159,6 +160,13 @@ export default function App() {
   const [disableAnimations, setDisableAnimations] = useState(() => {
     return localStorage.getItem('newara_disable_animations') === 'true';
   });
+  useEffect(() => {
+    if (disableAnimations) {
+      document.body.classList.add('no-animations');
+    } else {
+      document.body.classList.remove('no-animations');
+    }
+  }, [disableAnimations]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Profile State
@@ -193,6 +201,16 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('newara_user_name', userName);
+    localStorage.setItem('newara_user_role', userRole);
+    localStorage.setItem('newara_user_password', userPassword);
+    localStorage.setItem('newara_user_bio', userBio);
+    localStorage.setItem('newara_user_avatar', userAvatar);
+    localStorage.setItem('newara_disable_animations', disableAnimations.toString());
+    localStorage.setItem('newara_logged_in', isLoggedIn.toString());
+  }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn]);
 
   const checkUsername = async (name: string) => {
     if (!name.trim() || name.trim() === 'Estudiante') return;
@@ -814,6 +832,30 @@ export default function App() {
     }
   };
 
+  const handleLikeActivity = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const docRef = doc(db, 'activities', id);
+      const activity = galleryActivities.find(a => a.id === id);
+      if (!activity) return;
+
+      const currentLikes = activity.likes || [];
+      let newLikes;
+      
+      if (currentLikes.includes(userName)) {
+        newLikes = currentLikes.filter((name: string) => name !== userName);
+      } else {
+        newLikes = [...currentLikes, userName];
+      }
+
+      await updateDoc(docRef, { likes: newLikes });
+      setGalleryActivities(prev => prev.map(a => a.id === id ? { ...a, likes: newLikes } : a));
+      playExternalBubble();
+    } catch (error) {
+       handleFirestoreError(error, OperationType.UPDATE, `activities/${id}`);
+    }
+  };
+
   const handleLoadActivity = async (code: string) => {
     if (!code) return;
     setLoadError(null);
@@ -823,6 +865,12 @@ export default function App() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
+        
+        // Incrementar vistas
+        await updateDoc(docRef, {
+          views: (data.views || 0) + 1
+        });
+
         // Transform back to exercise format
         const unitExtras = {
           name: data.name,
@@ -870,6 +918,7 @@ export default function App() {
   };
 
   return (
+    <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
       {showWelcome && <WelcomeTutorial onComplete={() => {
         setShowWelcome(false);
@@ -1224,9 +1273,9 @@ export default function App() {
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
                 <AlertTriangle size={24} className="text-red-500 relative z-10 shrink-0" />
                 <div className="relative z-10">
-                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">Version Beta</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">NewAra BETA ahora es newen.araoz.ar</p>
                   <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    Esta version es Beta, Va a haber problemas.
+                    Avisa a Newen.Araoz para denunciar bugs.
                   </p>
                 </div>
               </div>
@@ -1819,7 +1868,7 @@ export default function App() {
                         </div>
                         <div>
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                            {activity.name}
+                            {activity.name && activity.name.length > 15 ? activity.name.substring(0, 15) + '...' : activity.name}
                           </h3>
                           <p className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                             Creada el {dateStr}
@@ -1832,13 +1881,35 @@ export default function App() {
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold">
                             {activity.creatorName?.[0]?.toUpperCase() || 'A'}
                           </div>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                            {activity.creatorName || 'Anónimo'}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className={`text-[10px] font-bold opacity-80 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                              {activity.creatorName || 'Anónimo'}
+                            </span>
+                            <div className="flex items-center gap-2 opacity-40 text-[8px] font-black uppercase tracking-tighter">
+                              <span className="flex items-center gap-0.5">
+                                <Play size={8} /> {activity.views || 0}
+                              </span>
+                              <span className="flex items-center gap-0.5">
+                                <Heart size={8} /> {activity.likes?.length || 0}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-blue-400">
-                          <Play size={12} />
-                          <span className="text-[10px] font-black tracking-widest uppercase">Jugar</span>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => handleLikeActivity(activity.id, e)}
+                            className={`p-2 rounded-full transition-all active:scale-90 ${
+                              activity.likes?.includes(userName) 
+                                ? 'bg-blue-500 text-white shadow-lg' 
+                                : 'bg-white/10 text-blue-400 hover:bg-white/20'
+                            }`}
+                          >
+                            <Heart size={14} fill={activity.likes?.includes(userName) ? 'currentColor' : 'none'} />
+                          </button>
+                          <div className="flex items-center gap-1 text-blue-400">
+                            <Play size={12} />
+                            <span className="text-[10px] font-black tracking-widest uppercase">Jugar</span>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -2576,6 +2647,7 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   );
 }
 
