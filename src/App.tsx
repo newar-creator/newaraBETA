@@ -219,9 +219,15 @@ export default function App() {
           const userDoc = await getDoc(doc(db, 'users', userName.trim()));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            if (data.avatar && !userAvatar) setUserAvatar(data.avatar);
+            // Sync from Firestore as the source of truth
+            if (data.avatar) setUserAvatar(data.avatar);
             if (data.role) setUserRole(data.role);
-            if (data.bio && userBio === 'Explorador del conocimiento en NewAra.') setUserBio(data.bio);
+            if (data.bio) setUserBio(data.bio);
+            
+            // Sync local storage too
+            localStorage.setItem('newara_user_bio', data.bio || userBio);
+            localStorage.setItem('newara_user_role', data.role || userRole);
+            localStorage.setItem('newara_user_avatar', data.avatar || '');
           }
         } catch (error) {
           console.error("Auto-sync error:", error);
@@ -343,16 +349,18 @@ export default function App() {
   const handleUpdateProfile = async () => {
     if (!isLoggedIn) return;
     setIsUpdatingProfile(true);
+    const path = `users/${userName.trim()}`;
     try {
       const userRef = doc(db, 'users', userName.trim());
       const safeAvatar = userAvatar && userAvatar.length > 800000 ? '' : userAvatar;
       
-      await updateDoc(userRef, {
+      // Use setDoc with merge to ensure it works even if the document was somehow missing
+      await setDoc(userRef, {
         bio: userBio.slice(0, 300),
         role: userRole,
         avatar: safeAvatar,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
       
       playSuccessSound();
       // Update local storage too to ensure sync
@@ -360,8 +368,9 @@ export default function App() {
       localStorage.setItem('newara_user_role', userRole);
       localStorage.setItem('newara_user_avatar', userAvatar);
     } catch (error) {
-      console.error("Update profile error:", error);
+      console.error("Profile update error:", error);
       playErrorSound();
+      handleFirestoreError(error, OperationType.WRITE, path);
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -1549,7 +1558,7 @@ export default function App() {
                      setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                    }}
                    userAnswers={exerciseState.userAnswers}
-                   title={currentSharedActivity?.name || 'Actividad Compartida'}
+                   title="Actividad Compartida"
                    theme={theme}
                  />
                </AeroCard>
@@ -2607,7 +2616,7 @@ export default function App() {
                       setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                     }}
                     userAnswers={exerciseState.userAnswers}
-                    title={activeExercise.subjectId === 'shared' ? currentSharedActivity?.name : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
+                    title={activeExercise.subjectId === 'shared' ? 'Actividad Compartida' : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
                     theme={theme}
                   />
                 </div>
