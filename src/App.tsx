@@ -1118,6 +1118,18 @@ export default function App() {
               badge="NUEVO"
             />
             <NavButton 
+              id="nav-leaderboard"
+              active={currentView === 'leaderboard'} 
+              onClick={() => {
+                navigateTo('leaderboard');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Trophy size={22} />} 
+              label="Leaderboard" 
+              theme={theme}
+              badge="TOP"
+            />
+            <NavButton 
               id="nav-schedule"
               active={currentView === 'schedule'} 
               onClick={() => {
@@ -1149,18 +1161,6 @@ export default function App() {
               icon={<Settings size={22} />} 
               label="Ajustes" 
               theme={theme}
-            />
-            <NavButton 
-              id="nav-leaderboard"
-              active={currentView === 'leaderboard'} 
-              onClick={() => {
-                navigateTo('leaderboard');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Trophy size={22} />} 
-              label="Leaderboard" 
-              theme={theme}
-              badge="TOP"
             />
           </div>
 
@@ -1224,11 +1224,13 @@ export default function App() {
                     badge="NUEVO"
                   />
                   <MobileMenuButton 
-                    active={showMobileSubjects} 
-                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
-                    icon={<Book size={20} />} 
-                    label="Materias" 
+                    id="nav-leaderboard"
+                    active={currentView === 'leaderboard'} 
+                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
+                    icon={<Trophy size={20} />} 
+                    label="Leaderboard" 
                     theme={theme}
+                    badge="TOP"
                   />
                   <MobileMenuButton 
                     id="nav-schedule"
@@ -1255,13 +1257,11 @@ export default function App() {
                     theme={theme}
                   />
                   <MobileMenuButton 
-                    id="nav-leaderboard"
-                    active={currentView === 'leaderboard'} 
-                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
-                    icon={<Trophy size={20} />} 
-                    label="Leaderboard" 
+                    active={showMobileSubjects} 
+                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
+                    icon={<Book size={20} />} 
+                    label="Materias" 
                     theme={theme}
-                    badge="TOP"
                   />
                 </div>
               </motion.div>
