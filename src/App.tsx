@@ -54,7 +54,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc, increment } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -571,11 +571,23 @@ export default function App() {
     localStorage.setItem('newara_completed_units', JSON.stringify(completedUnits));
   }, [completedUnits]);
 
-  const markUnitAsCompleted = (subjectId: string, unitIndex: number) => {
+  const markUnitAsCompleted = async (subjectId: string, unitIndex: number) => {
     const unitKey = `${subjectId}-${unitIndex}`;
     if (!completedUnits.includes(unitKey)) {
       setCompletedUnits(prev => [...prev, unitKey]);
       incrementUserStat(userName, 'totalCorrect', 1);
+
+      // Sync to cloud
+      if (isLoggedIn && userName !== 'Estudiante') {
+        try {
+          const userRef = doc(db, 'users', userName.trim());
+          await updateDoc(userRef, {
+            completedUnits: arrayUnion(unitKey)
+          });
+        } catch (e) {
+          console.error("Sync error", e);
+        }
+      }
     }
   };
 
@@ -3383,40 +3395,66 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchLeaderboardData = async () => {
       setLoading(true);
       try {
+        // 1. Fetch Users
         const usersRef = collection(db, 'users');
-        // Get more users for a better list
-        const q = query(usersRef, limit(100)); 
-        const querySnapshot = await getDocs(q);
-        const userData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const userSnap = await getDocs(query(usersRef, limit(200)));
+        const userData = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // 2. Fetch Activities for Likes and Views aggregation
+        const activitiesRef = collection(db, 'activities');
+        const actSnap = await getDocs(activitiesRef);
+        const activities = actSnap.docs.map(d => d.data());
+
+        // 3. Aggregate Stats
+        const leaderboard = userData.map((u: any) => {
+          const userActivities = activities.filter(a => a.creatorName === u.id);
+          const totalViews = userActivities.reduce((acc, a) => acc + (a.views || 0), 0);
+          const totalLikes = userActivities.reduce((acc, a) => acc + (a.likes?.length || 0), 0);
+          
+          // Count completed units (from array)
+          const totalCorrect = (u.completedUnits?.length || 0) + (u.stats?.totalCorrect || 0);
+
+          return {
+            ...u,
+            computedStats: {
+              views: totalViews,
+              likes: totalLikes,
+              correct: totalCorrect
+            }
+          };
+        });
 
         const getScore = (u: any) => {
-          if (filter === 'views') return u.stats?.totalViews || 0;
-          if (filter === 'likes') return u.stats?.totalLikes || 0;
-          return u.stats?.totalCorrect || 0;
+          if (filter === 'views') return u.computedStats.views;
+          if (filter === 'likes') return u.computedStats.likes;
+          return u.computedStats.correct;
         };
 
-        const sorted = userData
-          .filter(u => u.id !== 'Estudiante' && u.id !== 'AraTester' && u.id !== 'newen.araoz') // Show all real users, exclude system/test ones
+        const sorted = leaderboard
+          .filter(u => u.id !== 'Estudiante' && u.id !== 'AraTester' && u.id !== 'newen.araoz')
           .sort((a, b) => getScore(b) - getScore(a));
 
         setUsers(sorted);
       } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'users');
+        handleFirestoreError(err, OperationType.LIST, 'leaderboard_aggregate');
       } finally {
         setLoading(false);
       }
     };
-    fetchUsers();
+    fetchLeaderboardData();
   }, [filter]);
 
   const top3 = users.slice(0, 3);
-  const others = users.slice(3, 30);
+  const others = users.slice(3, 50);
+
+  const getStatValue = (u: any) => {
+    if (filter === 'views') return u.computedStats.views;
+    if (filter === 'likes') return u.computedStats.likes;
+    return u.computedStats.correct;
+  };
 
   const getMetricLabel = () => {
     if (filter === 'views') return 'Vistas';
@@ -3494,7 +3532,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                 <div className="text-center w-24">
                   <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].id}</p>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase">
-                    {top3[1].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0} {getMetricLabel()}
+                    {getStatValue(top3[1])} {getMetricLabel()}
                   </div>
                 </div>
               </motion.div>
@@ -3524,7 +3562,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                   <p className={`text-sm font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].id}</p>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 text-xs font-black text-amber-600 mt-1">
                     {getMetricIcon(12)}
-                    {top3[0].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0}
+                    {getStatValue(top3[0])}
                   </div>
                 </div>
               </motion.div>
@@ -3553,7 +3591,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                 <div className="text-center w-24">
                   <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].id}</p>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-orange-500 uppercase">
-                    {top3[2].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0} {getMetricLabel()}
+                    {getStatValue(top3[2])} {getMetricLabel()}
                   </div>
                 </div>
               </motion.div>
@@ -3589,7 +3627,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                       </div>
                       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/50 text-[10px] font-black text-blue-600 shadow-sm border border-white/40">
                         {getMetricIcon(12)}
-                        {user.stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0}
+                        {getStatValue(user)}
                       </div>
                     </motion.div>
                   ))}
