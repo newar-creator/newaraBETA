@@ -2381,13 +2381,6 @@ export default function App() {
               className="max-w-2xl w-full relative"
             >
               <AeroCard className="max-h-[90vh] overflow-y-auto border-t-white/80 border-l-white/60 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]" theme={theme}>
-                <button 
-                  onClick={() => setActiveExercise(null)}
-                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 border border-white/40 text-sky-950/40 flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition-all z-20"
-                >
-                  <ArrowLeft size={18} />
-                </button>
-                
                 <div className="space-y-6 relative z-10 pb-4 pt-2">
                   <header className="flex items-center gap-4 mb-2">
                     <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br ${
@@ -2422,12 +2415,15 @@ export default function App() {
                     selectedAnswer={selectedAnswer}
                     onAnswer={handleExerciseAnswer}
                     onClose={() => {
+                      if (activeExercise.subjectId === 'shared') {
+                        setCurrentView(lastView === 'play-activity' ? 'gallery' : lastView);
+                      }
                       setActiveExercise(null);
                       setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
                     }}
                     onFinish={() => {
                        if (activeExercise.subjectId === 'shared') {
-                          setCurrentView(lastView);
+                          setCurrentView(lastView === 'play-activity' ? 'gallery' : lastView);
                        }
                        setActiveExercise(null);
                     }}
@@ -2641,11 +2637,10 @@ function ExerciseRunner({
             className={`p-2 rounded-xl transition-all hover:scale-110 active:scale-95 flex items-center gap-2 group ${
               theme === 'black' ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-slate-400 hover:text-slate-600'
             }`}
-            title="Salir del ejercicio"
+            title="Volver"
             id="exit-exercise-btn"
           >
-            <X size={20} />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Salir</span>
+            <ChevronLeft size={24} />
           </button>
           <div className={`p-2 rounded-xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(currentSubject.color)}`}>
              <Sparkles size={20} />
