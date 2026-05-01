@@ -787,6 +787,7 @@ export default function App() {
       const activityData = {
         name: activityName,
         creatorName: userName,
+        creatorAvatar: userAvatar,
         questions: activityQuestions.map(q => ({
           type: q.type || 'multiple-choice',
           question: q.question,
@@ -1878,8 +1879,12 @@ export default function App() {
 
                       <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold">
-                            {activity.creatorName?.[0]?.toUpperCase() || 'A'}
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden">
+                            {activity.creatorAvatar ? (
+                              <img src={activity.creatorAvatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              activity.creatorName?.[0]?.toUpperCase() || 'A'
+                            )}
                           </div>
                           <div className="flex flex-col">
                             <span className={`text-[10px] font-bold opacity-80 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
