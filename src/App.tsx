@@ -2103,9 +2103,21 @@ export default function App() {
 
                         {!isLoggedIn && (
                           <div className="pt-2">
-                             <GlossyButton onClick={() => setIsRegistering(true)} className="w-full text-[10px] py-2">
-                                Crear una Cuenta
-                             </GlossyButton>
+                             <button 
+                               onClick={() => setIsRegistering(true)} 
+                               className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-[1px] rounded-2xl group transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-500/20"
+                             >
+                               <div className="bg-slate-950/90 rounded-[15px] py-4 px-6 flex flex-col items-center justify-center gap-2 group-hover:bg-transparent transition-colors">
+                                 <span className="text-white font-black text-sm md:text-base tracking-tight uppercase italic">
+                                   ¡Ingresa a NewAra para hacer 20% más!
+                                 </span>
+                                 <div className="flex items-center gap-4 text-[10px] font-bold text-white/60 group-hover:text-white/90">
+                                   <span className="flex items-center gap-1"><Heart size={10} /> Likes</span>
+                                   <span className="flex items-center gap-1"><Play size={10} /> Visitas</span>
+                                   <span className="flex items-center gap-1"><Plus size={10} /> Crear</span>
+                                 </div>
+                               </div>
+                             </button>
                           </div>
                         )}
 
@@ -2140,9 +2152,12 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
                             type="password" 
+                            disabled={isLoggedIn}
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                              isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
+                            } ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Contraseña"
