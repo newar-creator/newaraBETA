@@ -536,6 +536,35 @@ export default function App() {
       setActivityQuestions(activityQuestions.filter((_, i) => i !== index));
     }
   };
+
+  const addOption = (qIdx: number) => {
+    const newQs = [...activityQuestions];
+    if (newQs[qIdx].options.length < 6) {
+      newQs[qIdx].options = [...newQs[qIdx].options, ''];
+      setActivityQuestions(newQs);
+      playExternalBubble();
+    }
+  };
+
+  const removeOption = (qIdx: number, optIdx: number) => {
+    const newQs = [...activityQuestions];
+    if (newQs[qIdx].options.length > 2) {
+      const currentOptions = [...newQs[qIdx].options];
+      currentOptions.splice(optIdx, 1);
+      newQs[qIdx].options = currentOptions;
+      
+      // Adjust correct index
+      const currentCorrect = newQs[qIdx].correct as number;
+      if (currentCorrect === optIdx) {
+        newQs[qIdx].correct = 0;
+      } else if (currentCorrect > optIdx) {
+        newQs[qIdx].correct = currentCorrect - 1;
+      }
+      
+      setActivityQuestions(newQs);
+      playErrorSound();
+    }
+  };
   const [activityName, setActivityName] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
   const isModerator = MODERATORS.includes(userName.trim()) && isModAuthorized;
@@ -862,53 +891,76 @@ export default function App() {
   };
 
   const handleCreateActivity = async () => {
+    if (isCreatingActivity) return;
+    
     setCreationError(null);
-    if (!userName) {
-      setCreationError("Debes configurar tu nombre en Ajustes antes de publicar.");
+    if (!userName || userName.trim() === 'Estudiante') {
+      setCreationError("Debes configurar un nombre de usuario real en Ajustes antes de publicar.");
       playErrorSound();
       return;
     }
-    if (!activityName) {
+    if (!activityName.trim()) {
       setCreationError("Falta el nombre de la actividad.");
       playErrorSound();
       return;
     }
     
-    // Simple validation: check based on type
-    const isValid = activityQuestions.every(q => {
-      if (q.type === 'writing') return q.question && q.correct !== '';
-      return q.question && q.options.length >= 2 && q.options.every(o => o) && q.correct !== undefined;
+    // Improved validation
+    const isValid = activityQuestions.every((q, idx) => {
+      if (!q.question.trim()) return false;
+      if (q.type === 'writing') return q.correct !== '';
+      if (q.type === 'true-false') return q.options.length === 2 && q.correct !== undefined;
+      // Multiple choice needs at least 2 non-empty options
+      const nonEmptyOptions = q.options.filter(o => o.trim() !== '');
+      return nonEmptyOptions.length >= 2 && q.correct !== undefined && q.correct !== null;
     });
 
     if (!isValid) {
-      setCreationError("Asegúrate de que todas las preguntas y respuestas estén completas.");
+      setCreationError("Asegúrate de que todas las preguntas tengan texto y al menos 2 opciones válidas.");
       playErrorSound();
       return;
     }
 
     let timeoutId: any;
+    setIsCreatingActivity(true);
+
     try {
-      setIsCreatingActivity(true);
-      
-      // Safety timeout for mobile users with bad connection
+      // Safety timeout
       timeoutId = setTimeout(() => {
         setIsCreatingActivity(false);
-        setCreationError("Tiempo de espera agotado. Reintenta publicar.");
-      }, 20000);
+        setCreationError("La conexión está tardando demasiado. Reintenta.");
+      }, 25000);
 
-      const activityData = {
-        name: activityName,
-        creatorName: userName,
-        creatorAvatar: userAvatar,
-        questions: activityQuestions.map(q => ({
+      const processedQuestions = activityQuestions.map(q => {
+        let finalCorrectAnswer = '';
+        if (q.type === 'writing') {
+          finalCorrectAnswer = String(q.correct).trim();
+        } else {
+          const idx = Number(q.correct);
+          finalCorrectAnswer = q.options[idx] || q.options[0] || '';
+        }
+
+        return {
           type: q.type || 'multiple-choice',
-          question: q.question,
-          options: q.options,
-          correctAnswer: q.type === 'writing' ? q.correct : q.options[q.correct as number]
-        })),
+          question: q.question.trim(),
+          options: q.options.filter(o => o.trim() !== ''),
+          correctAnswer: finalCorrectAnswer
+        };
+      });
+
+      const activityData: any = {
+        name: activityName.trim(),
+        creatorName: userName.trim(),
+        creatorAvatar: userAvatar || '',
+        questions: processedQuestions,
         updatedAt: serverTimestamp(),
-        ...(editingActivityId ? {} : { createdAt: serverTimestamp() })
       };
+
+      if (!editingActivityId) {
+        activityData.createdAt = serverTimestamp();
+        activityData.likes = [];
+        activityData.views = 0;
+      }
 
       const docId = editingActivityId || generateShortCode();
       const docRef = doc(db, 'activities', docId);
@@ -919,29 +971,32 @@ export default function App() {
         await setDoc(docRef, activityData);
       }
 
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
+      
       if (!editingActivityId) {
         setNewActivityCode(docId);
-        addToHistory(docId, activityName);
+        addToHistory(docId, activityName.trim());
       }
+      
       setEditingActivityId(null);
       playSuccessSound();
+      // Si todo salió bien, cerramos el estado de creación
+      setIsCreatingActivity(false); 
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
-      console.error("Publication error details:", error);
+      setIsCreatingActivity(false);
+      console.error("Error detallado al publicar:", error);
       
-      let msg = "Error al publicar. Verifica tu conexión.";
+      let msg = "Error al conectar con el servidor.";
       if (error.code === 'permission-denied') {
-        msg = "Error de permisos: No tienes autorización para publicar.";
+        msg = "No tienes permisos para publicar esta actividad.";
       } else if (error.message?.includes('quota')) {
-        msg = "Límite de publicaciones alcanzado (Cuota excedida).";
+        msg = "Se ha alcanzado el límite de almacenamiento gratuito.";
       }
       
       setCreationError(msg);
-      try { handleFirestoreError(error, OperationType.WRITE, 'activities'); } catch(e) {}
       playErrorSound();
-    } finally {
-      setIsCreatingActivity(false);
+      try { handleFirestoreError(error, OperationType.WRITE, 'activities'); } catch(e) {}
     }
   };
 
@@ -1731,10 +1786,15 @@ export default function App() {
                           extra={
                             activityQuestions.length > 1 && (
                               <button 
-                                onClick={() => removeQuestion(qIdx)}
-                                className="p-1 px-3 bg-red-500/10 text-red-500 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                onClick={() => {
+                                  removeQuestion(qIdx);
+                                  playErrorSound();
+                                }}
+                                className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90 group flex items-center gap-1.5"
+                                title="Eliminar pregunta"
                               >
-                                Eliminar
+                                <Trash2 size={14} className="group-hover:animate-bounce" />
+                                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Eliminar</span>
                               </button>
                             )
                           }
@@ -1805,7 +1865,7 @@ export default function App() {
                             ) : (
                               <div className="grid grid-cols-1 gap-2">
                                 {q.options.map((opt, optIdx) => (
-                                  <div key={optIdx} className="flex gap-2 items-center">
+                                  <div key={optIdx} className="flex gap-2 items-center group/opt">
                                     <input 
                                       type="text" 
                                       value={opt}
@@ -1817,9 +1877,20 @@ export default function App() {
                                       }}
                                       className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                         theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
-                                      } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500' : ''}`}
+                                      } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : ''}`}
                                       placeholder={`Opción ${optIdx + 1}`}
                                     />
+                                    
+                                    {q.type === 'multiple-choice' && q.options.length > 2 && (
+                                      <button 
+                                        onClick={() => removeOption(qIdx, optIdx)}
+                                        className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center opacity-0 group-hover/opt:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                                        title="Eliminar opción"
+                                      >
+                                        <X size={14} />
+                                      </button>
+                                    )}
+
                                     <button 
                                       onClick={() => {
                                         const newQs = [...activityQuestions];
@@ -1837,6 +1908,18 @@ export default function App() {
                                     </button>
                                   </div>
                                 ))}
+
+                                {q.type === 'multiple-choice' && q.options.length < 6 && (
+                                  <button 
+                                    onClick={() => addOption(qIdx)}
+                                    className={`mt-1 py-2 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95 ${
+                                      theme === 'black' ? 'bg-white/5 border-white/10 text-white/30 hover:border-white/20 hover:text-white/60' : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-blue-200 hover:text-blue-500 hover:bg-blue-50'
+                                    }`}
+                                  >
+                                    <Plus size={14} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Añadir opción</span>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
