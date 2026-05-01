@@ -1054,13 +1054,6 @@ export default function App() {
         <div className="hidden md:flex flex-col items-center gap-2 mb-4 mt-2 px-4">
           <NewAraLogo size="lg" theme={theme} />
           
-          {/* Version Badge */}
-          <div className="px-4 py-1 bg-gradient-to-b from-[#ffd966] to-[#f1c232] rounded-full border border-white/60 shadow-[0_3px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)] flex items-center justify-center transform hover:scale-105 transition-transform cursor-default">
-            <span className="font-logo text-[12px] font-bold text-gray-800 tracking-widest flex items-center gap-1">
-              RELEASE 2.3
-            </span>
-          </div>
-
           <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
           
           <AnimatePresence>
