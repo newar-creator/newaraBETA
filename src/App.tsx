@@ -1288,7 +1288,7 @@ export default function App() {
       </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AeroCard title="Actividades Compartidas" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
+                <AeroCard title="Actividad Compartida" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
                   <div className="space-y-4">
                     <div className="space-y-2">
                        <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Ingresar Código</p>
@@ -1480,7 +1480,7 @@ export default function App() {
                 animate={{ scale: 1, opacity: 1 }}
                 className="w-full max-w-2xl relative"
               >
-               <AeroCard title={currentSharedActivity?.name || 'Actividad Compartida'} theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
+               <AeroCard title="Actividad Compartida" theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
                  <ExerciseRunner 
                    subjectId="shared"
                    shuffled={exerciseState.shuffled}
