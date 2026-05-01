@@ -35,6 +35,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get: if true;
+      allow list: if true;
       allow create: if isValidUsername(userId) && incoming().password is string && incoming().password.size() >= 4 && incoming().createdAt == request.time;
       // Allow updates. For AraTester/NewAra we exempt the existing data check to fix the 1.5MB size error
       allow update: if isValidUsername(userId) 

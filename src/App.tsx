@@ -47,11 +47,14 @@ import {
   Edit3,
   Save,
   ChevronLeft,
-  Heart
+  Heart,
+  Trophy,
+  Award,
+  TrendingDown
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc, increment } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -98,7 +101,7 @@ const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Prom
   });
 };
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard';
 
 enum OperationType {
   CREATE = 'create',
@@ -216,7 +219,8 @@ export default function App() {
     const syncProfile = async () => {
       if (isLoggedIn && userName && userName !== 'Estudiante') {
         try {
-          const userDoc = await getDoc(doc(db, 'users', userName.trim()));
+          const userRef = doc(db, 'users', userName.trim());
+          const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const data = userDoc.data();
             // Sync from Firestore as the source of truth
@@ -228,6 +232,23 @@ export default function App() {
             localStorage.setItem('newara_user_bio', data.bio || userBio);
             localStorage.setItem('newara_user_role', data.role || userRole);
             localStorage.setItem('newara_user_avatar', data.avatar || '');
+
+            // Ensure stats structure exists for legacy users
+            if (!data.stats) {
+              await updateDoc(userRef, {
+                stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
+              });
+            }
+          } else {
+            // Create profile for user if it doesn't exist but they are logged in
+            await setDoc(userRef, {
+              password: userPassword,
+              role: userRole,
+              bio: userBio,
+              avatar: userAvatar,
+              createdAt: serverTimestamp(),
+              stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
+            });
           }
         } catch (error) {
           console.error("Auto-sync error:", error);
@@ -554,6 +575,21 @@ export default function App() {
     const unitKey = `${subjectId}-${unitIndex}`;
     if (!completedUnits.includes(unitKey)) {
       setCompletedUnits(prev => [...prev, unitKey]);
+      incrementUserStat(userName, 'totalCorrect', 1);
+    }
+  };
+
+  const incrementUserStat = async (userNameToUpdate: string, stat: 'totalViews' | 'totalLikes' | 'totalCorrect', amount: number = 1) => {
+    if (isOffline || !userNameToUpdate) return;
+    try {
+      const userRef = doc(db, 'users', userNameToUpdate.trim());
+      // Use increment for atomic updates
+      await updateDoc(userRef, {
+        [`stats.${stat}`]: increment(amount)
+      });
+    } catch (error) {
+      // If doc doesn't exist, it might fail. For now, we assume user docs are created on profile save.
+      // We could add a check but updateDoc is faster if it exists.
     }
   };
 
@@ -907,6 +943,13 @@ export default function App() {
       }
 
       await updateDoc(docRef, { likes: newLikes });
+      
+      // Update creator's total likes
+      if (activity.creatorName) {
+        const diff = newLikes.length > currentLikes.length ? 1 : -1;
+        incrementUserStat(activity.creatorName, 'totalLikes', diff);
+      }
+      
       setGalleryActivities(prev => prev.map(a => a.id === id ? { ...a, likes: newLikes } : a));
       playExternalBubble();
     } catch (error) {
@@ -924,10 +967,11 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // Incrementar vistas
-        await updateDoc(docRef, {
-          views: (data.views || 0) + 1
-        });
+        // Incrementar vistas de la actividad y del creador
+        updateDoc(docRef, { views: increment(1) });
+        if (data.creatorName) {
+          incrementUserStat(data.creatorName, 'totalViews', 1);
+        }
 
         // Transform back to exercise format
         const unitExtras = {
@@ -1094,6 +1138,18 @@ export default function App() {
               label="Ajustes" 
               theme={theme}
             />
+            <NavButton 
+              id="nav-leaderboard"
+              active={currentView === 'leaderboard'} 
+              onClick={() => {
+                navigateTo('leaderboard');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Trophy size={22} />} 
+              label="Leaderboard" 
+              theme={theme}
+              badge="TOP"
+            />
           </div>
 
           {/* Mobile Navigation */}
@@ -1185,6 +1241,15 @@ export default function App() {
                     icon={<Settings size={20} />} 
                     label="Ajustes" 
                     theme={theme}
+                  />
+                  <MobileMenuButton 
+                    id="nav-leaderboard"
+                    active={currentView === 'leaderboard'} 
+                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
+                    icon={<Trophy size={20} />} 
+                    label="Leaderboard" 
+                    theme={theme}
+                    badge="TOP"
                   />
                 </div>
               </motion.div>
@@ -1782,6 +1847,25 @@ export default function App() {
                    </div>
                  </div>
                )}
+            </motion.div>
+          )}
+
+          {currentView === 'leaderboard' && (
+            <motion.div 
+              key="leaderboard"
+              initial={disableAnimations ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              animate={disableAnimations ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              exit={disableAnimations ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              transition={disableAnimations ? { duration: 0 } : { duration: 0.4 }}
+              className="space-y-8"
+            >
+              <header className="flex flex-col gap-1">
+                <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                  Leaderboard
+                </h1>
+                <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Los mejores exploradores de <span className="font-logo font-bold">NewAra</span>.</p>
+              </header>
+              <Leaderboard theme={theme} />
             </motion.div>
           )}
 
@@ -3287,11 +3371,237 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
                 <li className="flex gap-2">✨ Repasa los conceptos antes de empezar.</li>
                 <li className="flex gap-2">✨ Presta atención a las definiciones en negrita.</li>
                 <li className="flex gap-2">✨ Si fallas, ¡no te preocupes! Puedes reintentar.</li>
-             </ul>
+              </ul>
           </AeroCard>
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
+  const [filter, setFilter] = useState<'views' | 'likes' | 'correct'>('correct');
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const usersRef = collection(db, 'users');
+        // Get more users for a better list
+        const q = query(usersRef, limit(100)); 
+        const querySnapshot = await getDocs(q);
+        const userData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        const getScore = (u: any) => {
+          if (filter === 'views') return u.stats?.totalViews || 0;
+          if (filter === 'likes') return u.stats?.totalLikes || 0;
+          return u.stats?.totalCorrect || 0;
+        };
+
+        const sorted = userData
+          .filter(u => u.id !== 'Estudiante' && u.id !== 'AraTester' && u.id !== 'newen.araoz') // Show all real users, exclude system/test ones
+          .sort((a, b) => getScore(b) - getScore(a));
+
+        setUsers(sorted);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.LIST, 'users');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [filter]);
+
+  const top3 = users.slice(0, 3);
+  const others = users.slice(3, 30);
+
+  const getMetricLabel = () => {
+    if (filter === 'views') return 'Vistas';
+    if (filter === 'likes') return 'Likes';
+    return 'Correctos';
+  };
+
+  const getMetricIcon = (size = 14) => {
+    if (filter === 'views') return <Globe size={size} />;
+    if (filter === 'likes') return <Heart size={size} />;
+    return <CheckCircle2 size={size} />;
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex justify-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+        {[
+          { id: 'correct', label: 'Correctos', icon: <CheckCircle2 size={16} /> },
+          { id: 'likes', label: 'Likes', icon: <Heart size={16} /> },
+          { id: 'views', label: 'Vistas', icon: <Globe size={16} /> }
+        ].map((btn) => (
+          <button
+            key={btn.id}
+            onClick={() => {
+              playExternalBubble();
+              setFilter(btn.id as any);
+            }}
+            className={`px-4 py-2 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+              filter === btn.id 
+                ? 'bg-blue-500 text-white shadow-[0_8px_20px_-5px_rgba(59,130,246,0.6)] scale-105' 
+                : theme === 'black' ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-white text-sky-900/60 hover:bg-sky-50 shadow-sm border border-slate-100'
+            }`}
+          >
+            {btn.icon} {btn.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <RefreshCw className="animate-spin text-blue-500" size={32} />
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Compilando Rankings...</p>
+        </div>
+      ) : users.length === 0 ? (
+        <div className="text-center py-20 space-y-4">
+          <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+            <Trophy size={40} className="text-slate-300" />
+          </div>
+          <p className="text-xs font-black opacity-30 uppercase tracking-[0.2em]">Categoría desierta por ahora</p>
+        </div>
+      ) : (
+        <div className="space-y-12">
+          {/* Podium */}
+          <div className="flex flex-wrap items-end justify-center gap-4 md:gap-8 pt-10 px-2">
+            {/* 2nd Place */}
+            {top3[1] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="flex flex-col items-center gap-4 order-2 md:order-1 scale-90 mb-2"
+              >
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-slate-400 to-slate-200 shadow-xl overflow-hidden ring-4 ring-slate-400/20">
+                    {top3[1].avatar ? (
+                      <img src={top3[1].avatar} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <User size={24} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-300 border-2 border-white flex items-center justify-center font-black text-slate-600 shadow-lg text-xs">2</div>
+                </div>
+                <div className="text-center w-24">
+                  <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].id}</p>
+                  <div className="flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase">
+                    {top3[1].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0} {getMetricLabel()}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 1st Place */}
+            {top3[0] && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center gap-6 order-1 md:order-2 scale-110 mb-8"
+              >
+                <div className="relative">
+                  <Trophy className="absolute -top-14 left-1/2 -translate-x-1/2 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,1)]" size={48} />
+                  <div className="w-24 h-24 rounded-full p-1.5 bg-gradient-to-tr from-yellow-500 via-amber-400 to-yellow-200 shadow-[0_20px_50px_-10px_rgba(234,179,8,0.5)] overflow-hidden ring-4 ring-yellow-400/30">
+                    {top3[0].avatar ? (
+                      <img src={top3[0].avatar} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-yellow-50 flex items-center justify-center text-yellow-500">
+                        <User size={32} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-yellow-500 border-4 border-white flex items-center justify-center font-black text-white shadow-xl text-lg min-w-[3rem]">1st</div>
+                </div>
+                <div className="text-center w-36 pt-2">
+                  <p className={`text-sm font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].id}</p>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 text-xs font-black text-amber-600 mt-1">
+                    {getMetricIcon(12)}
+                    {top3[0].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 3rd Place */}
+            {top3[2] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-col items-center gap-4 order-3 scale-[0.85] mb-2"
+              >
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-orange-400 to-orange-200 shadow-xl overflow-hidden ring-4 ring-orange-400/20">
+                    {top3[2].avatar ? (
+                      <img src={top3[2].avatar} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-orange-50 flex items-center justify-center text-orange-400">
+                        <User size={24} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-orange-300 border-2 border-white flex items-center justify-center font-black text-orange-700 shadow-lg text-xs">3</div>
+                </div>
+                <div className="text-center w-24">
+                  <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].id}</p>
+                  <div className="flex items-center justify-center gap-1 text-[9px] font-black text-orange-500 uppercase">
+                    {top3[2].stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0} {getMetricLabel()}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* List of others */}
+          {others.length > 0 && (
+            <div className="space-y-4">
+               <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 px-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Ranking General</h3>
+               <AeroCard theme={theme} className="overflow-hidden">
+                <div className="divide-y divide-slate-100/50">
+                  {others.map((user, i) => (
+                    <motion.div 
+                      key={user.id} 
+                      className="flex items-center justify-between py-4 group hover:bg-sky-500/5 transition-colors px-2 rounded-xl"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="w-6 text-[10px] font-black text-slate-300 group-hover:text-blue-500 transition-colors uppercase tracking-widest leading-none">{i + 4}</span>
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 bg-slate-50 group-hover:border-blue-200 transition-all">
+                          {user.avatar ? (
+                            <img src={user.avatar} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                               <User size={16} />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className={`text-xs font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.id}</p>
+                          <p className="text-[9px] font-black opacity-30 uppercase tracking-widest">{user.role || 'Explorador'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/50 text-[10px] font-black text-blue-600 shadow-sm border border-white/40">
+                        {getMetricIcon(12)}
+                        {user.stats?.[filter === 'views' ? 'totalViews' : filter === 'likes' ? 'totalLikes' : 'totalCorrect'] || 0}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </AeroCard>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

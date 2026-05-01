@@ -26,22 +26,14 @@
       "description": "User generated activity stored in Firestore",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "creatorName": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "questions": {
-          "type": "array"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "name": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "creatorAvatar": { "type": "string" },
+        "password": { "type": "string" },
+        "questions": { "type": "array" },
+        "likes": { "type": "array" },
+        "views": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "creatorName", "password", "questions", "createdAt"]
     },
@@ -51,8 +43,17 @@
       "type": "object",
       "properties": {
         "password": { "type": "string" },
+        "role": { "type": "string" },
         "bio": { "type": "string" },
         "avatar": { "type": "string" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "totalViews": { "type": "number" },
+            "totalLikes": { "type": "number" },
+            "totalCorrect": { "type": "number" }
+          }
+        },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["password", "createdAt"]
