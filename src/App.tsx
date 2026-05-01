@@ -1530,42 +1530,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {currentView === 'play-activity' && activeExercise && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-sky-400/20">
-              <BubbleBackground theme={theme} />
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="w-full max-w-2xl relative"
-              >
-               <AeroCard title="Actividad Compartida" theme={theme} className="shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
-                 <ExerciseRunner 
-                   subjectId="shared"
-                   shuffled={exerciseState.shuffled}
-                   currentQuestion={activeExercise.currentQuestion}
-                   finished={exerciseState.finished}
-                   score={exerciseState.score}
-                   selectedAnswer={selectedAnswer}
-                   onAnswer={handleExerciseAnswer}
-                   onFinish={() => {
-                     setCurrentView(lastView);
-                     setActiveExercise(null);
-                     setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
-                   }}
-                   onClose={() => {
-                     setCurrentView(lastView);
-                     setActiveExercise(null);
-                     setExerciseState({ score: 0, finished: false, shuffled: [], userAnswers: [] });
-                   }}
-                   userAnswers={exerciseState.userAnswers}
-                   title="Actividad Compartida"
-                   theme={theme}
-                 />
-               </AeroCard>
-              </motion.div>
-            </div>
-          )}
-
+          {/* Remove play-activity block here to consolidate into the main overlay */}
           {currentView === 'create-activity' && (
             <motion.div 
               key="create-activity"
@@ -2554,7 +2519,7 @@ export default function App() {
       <AnimatePresence>
         {showGeoGuide && <GeographyGuide onClose={() => setShowGeoGuide(false)} />}
         {showMathGuide && <MathGuide onClose={() => setShowMathGuide(false)} />}
-        {activeExercise && selectedSubject && exerciseState.shuffled.length > 0 && (
+        {activeExercise && (activeExercise.subjectId === 'shared' || selectedSubject) && exerciseState.shuffled.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -2571,17 +2536,23 @@ export default function App() {
                 <div className="space-y-6 relative z-10 pb-4 pt-2">
                   <header className="flex items-center gap-4 mb-2">
                     <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br ${
-                      selectedSubject.color === 'green' ? 'from-green-400 to-green-600' :
-                      selectedSubject.color === 'blue' ? 'from-blue-400 to-blue-600' :
-                      selectedSubject.color === 'amber' ? 'from-amber-400 to-amber-600' :
-                      selectedSubject.color === 'red' ? 'from-red-400 to-red-600' :
-                      'from-indigo-400 to-indigo-600'
+                      activeExercise.subjectId === 'shared' ? 'from-purple-400 to-indigo-600' : (
+                        selectedSubject?.color === 'green' ? 'from-green-400 to-green-600' :
+                        selectedSubject?.color === 'blue' ? 'from-blue-400 to-blue-600' :
+                        selectedSubject?.color === 'amber' ? 'from-amber-400 to-amber-600' :
+                        selectedSubject?.color === 'red' ? 'from-red-400 to-red-600' :
+                        'from-indigo-400 to-indigo-600'
+                      )
                     }`}>
-                      {getIcon(selectedSubject.icon, 24)}
+                      {activeExercise.subjectId === 'shared' ? <Sparkles size={24} /> : getIcon(selectedSubject?.icon || 'book', 24)}
                     </div>
                     <div>
-                      <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h2>
-                      <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Lección de Práctica</p>
+                      <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                        {activeExercise.subjectId === 'shared' ? 'Actividad Compartida' : (selectedSubject?.name || 'Lección')}
+                      </h2>
+                      <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                        {activeExercise.subjectId === 'shared' ? 'Comunidad' : 'Lección de Práctica'}
+                      </p>
                     </div>
                   </header>
 
