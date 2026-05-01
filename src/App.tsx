@@ -2058,13 +2058,11 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre Visible</label>
                           <input 
                             type="text" 
-                            disabled={isLoggedIn}
+                            disabled={true} 
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                             onBlur={() => checkUsername(userName)}
-                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                              isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
-                            } ${
+                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all opacity-50 cursor-not-allowed ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Tu nombre"
@@ -2152,11 +2150,11 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
                             type="password" 
-                            disabled={isLoggedIn}
+                            disabled={!isLoggedIn}
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                              isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
+                              !isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
                             } ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
