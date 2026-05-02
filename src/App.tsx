@@ -1026,6 +1026,10 @@ export default function App() {
 
   const handleLikeActivity = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isLoggedIn || userName === 'Estudiante') {
+      alert("Debes iniciar sesión con una cuenta para dar like.");
+      return;
+    }
     try {
       const docRef = doc(db, 'activities', id);
       const activity = galleryActivities.find(a => a.id === id);
@@ -1068,10 +1072,12 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // Incrementar vistas de la actividad y del creador
-        updateDoc(docRef, { views: increment(1) });
-        if (data.creatorName) {
-          incrementUserStat(data.creatorName, 'totalViews', 1);
+        // Incrementar vistas de la actividad y del creador solo si está logueado
+        if (isLoggedIn && userName !== 'Estudiante') {
+          updateDoc(docRef, { views: increment(1) });
+          if (data.creatorName) {
+            incrementUserStat(data.creatorName, 'totalViews', 1);
+          }
         }
 
         // Transform back to exercise format
