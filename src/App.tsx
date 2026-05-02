@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   Search,
   Trash2,
+  AlertCircle,
   RefreshCw,
   Edit3,
   Save,
@@ -531,6 +532,19 @@ export default function App() {
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [isTakingAction, setIsTakingAction] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type: 'danger' | 'warning';
+  }>({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'warning'
+  });
   const [loadingActivityDetail, setLoadingActivityDetail] = useState<string | null>(null);
   const [viewingProfile, setViewingProfile] = useState<any | null>(null);
   const [viewingProfileActivities, setViewingProfileActivities] = useState<any[]>([]);
@@ -707,13 +721,23 @@ export default function App() {
 
   const handleIgnoreReport = async (reportId: string) => {
     if (!isModerator) return;
-    try {
-      await deleteDoc(doc(db, 'reports', reportId));
-      setReports(prev => prev.filter(r => r.id !== reportId));
-      playSuccessSound();
-    } catch (error) {
-       handleFirestoreError(error, OperationType.DELETE, `reports/${reportId}`);
-    }
+    
+    setConfirmModal({
+      show: true,
+      title: '¿Ignorar Reporte?',
+      message: '¿Estás seguro de que deseas ignorar este reporte? La actividad permanecerá pública y el reporte será eliminado.',
+      type: 'warning',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          await deleteDoc(doc(db, 'reports', reportId));
+          setReports(prev => prev.filter(r => r.id !== reportId));
+          playSuccessSound();
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `reports/${reportId}`);
+        }
+      }
+    });
   };
 
   const handleTakeActionReport = (report: any) => {
@@ -804,25 +828,35 @@ export default function App() {
 
   const deleteActivityAndReport = async (report: any) => {
     if (!isModerator) return;
-    setIsTakingAction(true);
-    try {
-      // Eliminar actividad
-      await deleteDoc(doc(db, 'activities', report.activityId));
-      // Eliminar denuncia
-      await deleteDoc(doc(db, 'reports', report.id));
-      
-      setReports(prev => prev.filter(r => r.id !== report.id));
-      setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
-      
-      setReportActionModal(null);
-      playSuccessSound();
-      alert("Actividad eliminada con éxito.");
-    } catch (error) {
-      console.error("Error tomando acción:", error);
-      alert("Hubo un error al eliminar.");
-    } finally {
-      setIsTakingAction(false);
-    }
+    
+    setConfirmModal({
+      show: true,
+      title: '¿ELIMINAR ACTIVIDAD?',
+      message: 'Esta acción es irreversible. Se eliminará la actividad y se cerrará el reporte.',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        setIsTakingAction(true);
+        try {
+          // Eliminar actividad
+          await deleteDoc(doc(db, 'activities', report.activityId));
+          // Eliminar denuncia
+          await deleteDoc(doc(db, 'reports', report.id));
+          
+          setReports(prev => prev.filter(r => r.id !== report.id));
+          setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
+          
+          setReportActionModal(null);
+          playSuccessSound();
+          alert("Actividad eliminada con éxito.");
+        } catch (error) {
+          console.error("Error tomando acción:", error);
+          alert("Hubo un error al eliminar.");
+        } finally {
+          setIsTakingAction(false);
+        }
+      }
+    });
   };
 
   const fetchGallery = async () => {
@@ -869,15 +903,23 @@ export default function App() {
     e.stopPropagation();
     const canDelete = isModerator || (creatorName === userName);
     if (!canDelete) return;
-    if (!window.confirm("¿Estás seguro de que deseas eliminar esta actividad?")) return;
-    
-    try {
-      await deleteDoc(doc(db, 'activities', id));
-      setGalleryActivities(prev => prev.filter(a => a.id !== id));
-      playSuccessSound();
-    } catch (error) {
-       handleFirestoreError(error, OperationType.DELETE, `activities/${id}`);
-    }
+
+    setConfirmModal({
+      show: true,
+      title: '¿Eliminar Actividad?',
+      message: '¿Estás seguro de que deseas eliminar esta actividad? No se podrá recuperar.',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          await deleteDoc(doc(db, 'activities', id));
+          setGalleryActivities(prev => prev.filter(a => a.id !== id));
+          playSuccessSound();
+        } catch (error) {
+           handleFirestoreError(error, OperationType.DELETE, `activities/${id}`);
+        }
+      }
+    });
   };
 
   const handleEditActivity = async (activity: any, e: React.MouseEvent) => {
@@ -1324,7 +1366,7 @@ export default function App() {
       {/* Report Form Modal */}
       <AnimatePresence>
         {showReportModal && (
-           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
              <motion.div 
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
@@ -1385,7 +1427,7 @@ export default function App() {
       {/* Report Action Modal (Moderator) */}
       <AnimatePresence>
         {reportActionModal && (
-           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+           <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
              <motion.div 
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
@@ -3659,6 +3701,60 @@ export default function App() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confirmModal.show && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`max-w-md w-full p-8 rounded-[2.5rem] border-2 shadow-2xl ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
+              }`}
+            >
+              <div className={`w-16 h-16 rounded-3xl mb-6 flex items-center justify-center ${
+                confirmModal.type === 'danger' ? 'bg-pink-500/10 text-pink-500' : 'bg-amber-500/10 text-amber-500'
+              }`}>
+                <AlertCircle size={32} />
+              </div>
+              
+              <h2 className="text-2xl font-black tracking-tight mb-2 uppercase">
+                {confirmModal.title}
+              </h2>
+              <p className="text-sm opacity-60 font-medium leading-relaxed mb-10">
+                {confirmModal.message}
+              </p>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${
+                    theme === 'black' ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-100 hover:bg-slate-200'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmModal.onConfirm}
+                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${
+                    confirmModal.type === 'danger' 
+                      ? 'bg-pink-500 text-white hover:bg-pink-600 shadow-pink-500/20' 
+                      : 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/20'
+                  }`}
+                >
+                  Confirmar
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
