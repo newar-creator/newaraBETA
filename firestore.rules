@@ -48,5 +48,10 @@ service cloud.firestore {
     match /admins/{adminId} {
       allow read: if true;
     }
+
+    match /reports/{reportId} {
+      allow create: if true;
+      allow read, delete: if true;
+    }
   }
 }

@@ -54,7 +54,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -233,9 +233,9 @@ export default function App() {
             }
             
             // Sync local storage too
-            localStorage.setItem('newara_user_bio', data.bio || userBio);
-            localStorage.setItem('newara_user_role', data.role || userRole);
-            localStorage.setItem('newara_user_avatar', data.avatar || '');
+            if (data.bio) localStorage.setItem('newara_user_bio', data.bio);
+            if (data.role) localStorage.setItem('newara_user_role', data.role);
+            if (data.avatar) localStorage.setItem('newara_user_avatar', data.avatar);
 
             // Ensure stats structure exists for legacy users
             if (!data.stats) {
@@ -374,13 +374,15 @@ export default function App() {
   const handleUpdateProfile = async () => {
     if (!isLoggedIn) return;
     setIsUpdatingProfile(true);
-    const path = `users/${userName.trim()}`;
+    const userId = auth.currentUser?.uid || userName.trim();
+    const path = `users/${userId}`;
     try {
-      const userRef = doc(db, 'users', userName.trim());
+      const userRef = doc(db, 'users', userId);
       const safeAvatar = userAvatar && userAvatar.length > 800000 ? '' : userAvatar;
       
       // Use setDoc with merge to ensure it works even if the document was somehow missing
       await setDoc(userRef, {
+        name: userName.trim(), // Keep name synced
         bio: userBio.slice(0, 300),
         role: userRole,
         avatar: safeAvatar,
@@ -522,10 +524,18 @@ export default function App() {
   const [gallerySearch, setGallerySearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string} | null>(null);
+  const [reportActionModal, setReportActionModal] = useState<any | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [isTakingAction, setIsTakingAction] = useState(false);
+  const [loadingActivityDetail, setLoadingActivityDetail] = useState<string | null>(null);
+  const [viewingProfile, setViewingProfile] = useState<any | null>(null);
+  const [viewingProfileActivities, setViewingProfileActivities] = useState<any[]>([]);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -674,6 +684,7 @@ export default function App() {
       return;
     }
 
+    setIsReporting(true);
     try {
       await addDoc(collection(db, 'reports'), {
         activityId: showReportModal.id,
@@ -689,6 +700,8 @@ export default function App() {
       playSuccessSound();
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'reports');
+    } finally {
+      setIsReporting(false);
     }
   };
 
@@ -703,10 +716,95 @@ export default function App() {
     }
   };
 
-  const handleTakeActionReport = async (report: any) => {
+  const handleTakeActionReport = (report: any) => {
     if (!isModerator) return;
-    if (!window.confirm("¿Estás seguro de eliminar esta actividad definitivamente?")) return;
+    setReportActionModal(report);
+  };
+
+  const handleViewProfile = async (creatorId: string, creatorName?: string, activityFallback?: any) => {
+    if (!creatorId && !creatorName) return;
     
+    setIsProfileLoading(true);
+    // Prefer activity detail modal closure if opening profile
+    setSelectedActivityDetail(null);
+
+    try {
+      let userData: any = null;
+      let activities: any[] = [];
+
+      // 1. Try to fetch user data with multiple possible IDs
+      // Try UID first, then creatorName
+      const possibleIds = Array.from(new Set([creatorId, creatorName, activityFallback?.creatorId])).filter(Boolean);
+      
+      for (const id of possibleIds) {
+        if (!userData) {
+          const userSnap = await getDoc(doc(db, 'users', id!));
+          if (userSnap.exists()) {
+            userData = { id: userSnap.id, ...userSnap.data() };
+          }
+        }
+      }
+
+      // 2. Fetch activities by this user (trying multiple fields for compatibility)
+      // We try searching by creatorId first
+      if (creatorId || activityFallback?.creatorId) {
+        const qId = query(
+          collection(db, 'activities'), 
+          where('creatorId', '==', creatorId || activityFallback?.creatorId),
+          limit(30)
+        );
+        const snapId = await getDocs(qId);
+        snapId.forEach(doc => activities.push({ id: doc.id, ...doc.data() }));
+      }
+
+      // If we found nothing, try searching by creatorName (for old activities)
+      if (activities.length === 0 && (creatorName || activityFallback?.creatorName)) {
+        const qName = query(
+          collection(db, 'activities'),
+          where('creatorName', '==', creatorName || activityFallback?.creatorName),
+          limit(30)
+        );
+        const snapName = await getDocs(qName);
+        snapName.forEach(doc => {
+          if (!activities.find(a => a.id === doc.id)) {
+            activities.push({ id: doc.id, ...doc.data() });
+          }
+        });
+      }
+
+      // 3. Fallback/Synthetic user if doc doesn't exist
+      if (!userData) {
+        // Try to recover bio/avatar from the activity that triggered this view
+        const fallbackBio = activityFallback?.creatorBio || localStorage.getItem('newara_user_bio') || "Este usuario aún no ha configurado su biografía.";
+        const fallbackAvatar = activityFallback?.creatorAvatar || "";
+        const fallbackRole = activityFallback?.creatorRole || "Usuario de NewAra";
+        
+        userData = {
+          name: creatorName || creatorId || 'Explorador',
+          bio: fallbackBio,
+          avatar: fallbackAvatar,
+          role: fallbackRole,
+          stats: {
+            totalViews: activities.reduce((acc, curr) => acc + (curr.views || 0), 0),
+            totalLikes: activities.reduce((acc, curr) => acc + (curr.likes?.length || 0), 0),
+            totalCorrect: 0
+          }
+        };
+      }
+
+      setViewingProfile(userData);
+      setViewingProfileActivities(activities);
+    } catch (error) {
+      console.error("Error viewing profile:", error);
+      alert("No se pudo cargar el perfil.");
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
+  const deleteActivityAndReport = async (report: any) => {
+    if (!isModerator) return;
+    setIsTakingAction(true);
     try {
       // Eliminar actividad
       await deleteDoc(doc(db, 'activities', report.activityId));
@@ -716,10 +814,14 @@ export default function App() {
       setReports(prev => prev.filter(r => r.id !== report.id));
       setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
       
+      setReportActionModal(null);
       playSuccessSound();
       alert("Actividad eliminada con éxito.");
     } catch (error) {
       console.error("Error tomando acción:", error);
+      alert("Hubo un error al eliminar.");
+    } finally {
+      setIsTakingAction(false);
     }
   };
 
@@ -1053,7 +1155,10 @@ export default function App() {
       const activityData: any = {
         name: activityName.trim(),
         creatorName: userName.trim(),
+        creatorId: auth.currentUser?.uid || userName.trim(), // Use UID if available, fallback to name
         creatorAvatar: userAvatar || '',
+        creatorBio: userBio || '', // Keep bio with the activity for fallback
+        creatorRole: userRole || 'Explorador', // Keep role for fallback
         questions: processedQuestions,
         updatedAt: serverTimestamp(),
       };
@@ -1108,6 +1213,9 @@ export default function App() {
       alert("Debes iniciar sesión con una cuenta para dar like.");
       return;
     }
+    if (loadingLikes.has(id)) return;
+    
+    setLoadingLikes(prev => new Set(prev).add(id));
     try {
       const docRef = doc(db, 'activities', id);
       const activity = galleryActivities.find(a => a.id === id);
@@ -1137,6 +1245,12 @@ export default function App() {
       playExternalBubble();
     } catch (error) {
        handleFirestoreError(error, OperationType.UPDATE, `activities/${id}`);
+    } finally {
+      setLoadingLikes(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -1252,12 +1366,75 @@ export default function App() {
                    >
                      Cancelar
                    </button>
-                   <button 
+                   <GlossyButton 
+                     loading={isReporting}
                      disabled={!reportReason.trim()}
                      onClick={handleSendReport}
-                     className="flex-1 py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 transition-all"
+                     variant="pink"
+                     className="flex-1 py-3 text-xs shadow-lg shadow-red-500/20"
                    >
                      Enviar Denuncia
+                   </GlossyButton>
+                 </div>
+               </div>
+             </motion.div>
+           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Report Action Modal (Moderator) */}
+      <AnimatePresence>
+        {reportActionModal && (
+           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setReportActionModal(null)}
+               className="absolute inset-0 bg-black/70 backdrop-blur-md"
+             />
+             <motion.div
+               initial={{ scale: 0.9, y: 20 }}
+               animate={{ scale: 1, y: 0 }}
+               exit={{ scale: 0.9, y: 20 }}
+               className={`relative w-full max-w-sm rounded-[40px] border-4 p-10 shadow-2xl ${
+                 theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
+               }`}
+             >
+               <div className="glossy-overlay opacity-20 pointer-events-none" />
+               
+               <button 
+                onClick={() => setReportActionModal(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 transition-colors text-slate-400"
+               >
+                 <X size={24} />
+               </button>
+
+               <div className="flex flex-col items-center text-center">
+                 <div className="w-16 h-16 rounded-3xl bg-red-500/10 text-red-500 flex items-center justify-center mb-6 border border-red-500/20 shadow-lg shadow-red-500/10">
+                   <AlertTriangle size={32} />
+                 </div>
+                 
+                 <h2 className={`text-2xl font-black mb-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tomar Acción</h2>
+                 <p className="text-sm opacity-60 mb-8 font-medium italic">
+                   "Denuncia de {reportActionModal.reporterName}: {reportActionModal.reason}"
+                 </p>
+                 
+                 <div className="w-full space-y-3">
+                   <GlossyButton 
+                     loading={isTakingAction}
+                     onClick={() => deleteActivityAndReport(reportActionModal)}
+                     className="w-full py-4 bg-red-500 text-white border-2 border-white/20 shadow-xl"
+                   >
+                     Borrar la actividad
+                   </GlossyButton>
+                   <button 
+                     onClick={() => setReportActionModal(null)}
+                     className={`w-full py-4 rounded-full font-black text-xs uppercase tracking-widest transition-all ${
+                       theme === 'black' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                     }`}
+                   >
+                     No hacer nada
                    </button>
                  </div>
                </div>
@@ -1273,6 +1450,289 @@ export default function App() {
         }} />
       )}
       <BubbleBackground theme={theme} />
+      {/* Activity Details Modal */}
+      <AnimatePresence>
+        {selectedActivityDetail && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedActivityDetail(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-md"
+            />
+            
+            <motion.div
+              layoutId={`activity-${selectedActivityDetail.id}`}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[32px] md:rounded-[48px] border-4 shadow-2xl p-6 md:p-10 ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+              }`}
+            >
+              <div className="glossy-overlay opacity-20" />
+              
+              <div className="relative z-10 flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                      <Globe size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Actividad de la Comunidad</p>
+                        <p className="text-xs font-bold text-blue-500">ID: {selectedActivityDetail.id}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                      {(isLoggedIn && userName !== 'Estudiante') && (
+                        <button 
+                          onClick={() => {
+                            setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name});
+                          }}
+                          className="aero-icon-button bg-red-500/10 text-red-500"
+                          title="Denunciar actividad"
+                        >
+                          <AlertTriangle size={20} />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setSelectedActivityDetail(null)}
+                        className="aero-icon-button bg-white/10"
+                      >
+                        <X size={20} />
+                      </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h2 className="text-2xl md:text-3xl font-black leading-tight tracking-tight">
+                    {selectedActivityDetail.name}
+                  </h2>
+                  
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <button 
+                      onClick={() => handleViewProfile(selectedActivityDetail.creatorId, selectedActivityDetail.creatorName, selectedActivityDetail)}
+                      className="flex items-center text-left gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 transition-all active:scale-95 group"
+                    >
+                      <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 group-hover:border-blue-400 transition-colors">
+                        {selectedActivityDetail.creatorAvatar ? (
+                          <img src={selectedActivityDetail.creatorAvatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-blue-400 flex items-center justify-center text-white font-black">
+                            {selectedActivityDetail.creatorName?.[0]?.toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase opacity-40">Creador</span>
+                        <span className="text-sm font-bold truncate max-w-[120px] group-hover:text-blue-400 transition-colors">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
+                      </div>
+                      <ChevronRight size={14} className="opacity-0 group-hover:opacity-60 transition-opacity ml-auto" />
+                    </button>
+
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
+                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                          <CalendarIcon size={18} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black uppercase opacity-40">Fecha</span>
+                          <span className="text-sm font-bold">
+                            {selectedActivityDetail.createdAt?.toDate ? selectedActivityDetail.createdAt.toDate().toLocaleDateString() : 'Antigua'}
+                          </span>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-center">
+                      <div className="flex items-center justify-center gap-2 text-blue-500 mb-1">
+                        <Play size={16} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Vistas</span>
+                      </div>
+                      <p className="text-2xl font-black">{selectedActivityDetail.views || 0}</p>
+                    </div>
+                    <div className="p-4 rounded-3xl bg-pink-500/5 border border-pink-500/10 text-center">
+                      <div className="flex items-center justify-center gap-2 text-pink-500 mb-1">
+                        <Heart size={16} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">Likes</span>
+                      </div>
+                      <p className="text-2xl font-black">{selectedActivityDetail.likes?.length || 0}</p>
+                    </div>
+                </div>
+
+                <div className="p-5 rounded-3xl bg-amber-400/10 border border-amber-400/20 text-[11px] font-medium leading-relaxed opacity-80 flex gap-3">
+                    <Lightbulb className="text-amber-500 shrink-0" size={20} />
+                    <p>Esta actividad contiene <strong>{selectedActivityDetail.questions?.length || 0}</strong> preguntas interactivas. ¡Prueba tus conocimientos!</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <GlossyButton 
+                      loading={loadingLikes.has(selectedActivityDetail.id)}
+                      onClick={(e) => { e.stopPropagation(); handleLikeActivity(selectedActivityDetail.id, e); }}
+                      variant={selectedActivityDetail.likes?.includes(userName) ? 'gray' : 'pink'}
+                      className="flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3"
+                    >
+                      {selectedActivityDetail.likes?.includes(userName) ? 'SACAR LIKE' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
+                    </GlossyButton>
+                    <GlossyButton 
+                      onClick={() => {
+                        handleLoadActivity(selectedActivityDetail.id);
+                        setSelectedActivityDetail(null);
+                      }}
+                      className="flex-[1.5] py-4 text-sm font-black tracking-[0.2em] gap-3"
+                    >
+                      ¡JUGAR AHORA! <Play size={20} fill="currentColor" />
+                    </GlossyButton>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* User Profile Modal */}
+      <AnimatePresence>
+        {viewingProfile && (
+          <div className="fixed inset-0 z-[140] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setViewingProfile(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+            />
+            
+            <motion.div
+              layoutId={`user-${viewingProfile.id || viewingProfile.name}`}
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[40px] border-4 shadow-2xl p-6 md:p-12 ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+              }`}
+            >
+              <div className="glossy-overlay opacity-30" />
+              
+              <div className="relative z-10 flex flex-col gap-8">
+                <div className="flex justify-between items-start">
+                   <div className="flex gap-4 items-center">
+                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl relative group items-center justify-center flex bg-zinc-800">
+                        {viewingProfile.avatar ? (
+                          <img src={viewingProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className={`w-full h-full flex items-center justify-center text-white text-4xl font-black ${theme === 'black' ? 'bg-gradient-to-br from-zinc-700 to-zinc-900' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                            {viewingProfile.name?.[0]?.toUpperCase() || 'E'}
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-black uppercase tracking-tighter text-center px-4">
+                           <User size={24} className="mb-1" />
+                           Ver Perfil
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                          {viewingProfile.name}
+                        </h2>
+                        <div className="flex gap-2 items-center opacity-60">
+                          <ShieldCheck size={16} className="text-blue-500" />
+                          <span className="text-xs font-bold uppercase tracking-widest">{viewingProfile.role || 'Usuario de NewAra'}</span>
+                        </div>
+                      </div>
+                   </div>
+                   <button 
+                     onClick={() => setViewingProfile(null)}
+                     className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3"
+                   >
+                     <X size={24} />
+                   </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 rounded-[32px] bg-white/5 border border-white/10">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-3">BIOGRAFÍA</p>
+                    <p className="text-sm md:text-base leading-relaxed font-medium">
+                      {viewingProfile.bio || "Este usuario prefiere mantener su biografía en secreto..."}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-3xl bg-blue-500/10 border border-blue-500/10 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">PUBLICACIONES</p>
+                      <p className="text-2xl font-black">{viewingProfileActivities.length}</p>
+                    </div>
+                    <div className="p-4 rounded-3xl bg-orange-500/10 border border-orange-500/10 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">VISITAS</p>
+                      <p className="text-2xl font-black">{viewingProfile.stats?.totalViews || 0}</p>
+                    </div>
+                    <div className="p-4 rounded-3xl bg-pink-500/10 border border-pink-500/10 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">LIKES RECIBIDOS</p>
+                      <p className="text-2xl font-black">{viewingProfile.stats?.totalLikes || 0}</p>
+                    </div>
+                    <div className="p-4 rounded-3xl bg-green-500/10 border border-green-500/10 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">RESP. CORRECTAS</p>
+                      <p className="text-2xl font-black">{viewingProfile.stats?.totalCorrect || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="flex items-center justify-between">
+                     <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
+                       <Play className="text-blue-500" size={20} fill="currentColor" /> ACTIVIDADES PUBLICADAS
+                     </h3>
+                     <span className="text-xs font-bold opacity-40 uppercase tracking-widest">Recientes</span>
+                   </div>
+
+                   <div className="max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+                        {viewingProfileActivities.length > 0 ? (
+                          viewingProfileActivities.map(activity => (
+                            <motion.div 
+                              key={activity.id}
+                              whileHover={{ y: -5 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                setSelectedActivityDetail(activity);
+                                setViewingProfile(null);
+                              }}
+                              className={`p-4 rounded-3xl border-2 cursor-pointer transition-all ${
+                                theme === 'black' ? 'bg-zinc-800 border-white/5 hover:border-blue-500/50' : 'bg-gray-50 border-white hover:border-blue-500'
+                              }`}
+                            >
+                               <p className="text-[9px] font-black opacity-40 mb-1">ID: {activity.id}</p>
+                               <p className="font-bold mb-3 line-clamp-1 text-sm">{activity.name}</p>
+                               <div className="flex items-center justify-between text-[9px] font-black uppercase opacity-60">
+                                  <span className="flex items-center gap-1"><Heart size={10} /> {activity.likes?.length || 0}</span>
+                                  <span className="flex items-center gap-1"><Play size={10} /> {activity.views || 0}</span>
+                                  <span className="text-blue-500">Ver más →</span>
+                               </div>
+                            </motion.div>
+                          ))
+                        ) : (
+                          <div className="col-span-full py-12 text-center opacity-40 italic">
+                            No hay publicaciones recientes.
+                          </div>
+                        )}
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {isProfileLoading && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/20 backdrop-blur-sm">
+           <div className="flex flex-col items-center gap-4">
+              <RefreshCw className="text-blue-500 animate-spin" size={48} />
+              <p className="text-white font-black uppercase tracking-[0.3em] text-xs">Cargando Perfil...</p>
+           </div>
+        </div>
+      )}
+
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
       <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
@@ -1958,7 +2418,7 @@ export default function App() {
 
                       <GlossyButton 
                         onClick={handleCreateActivity}
-                        disabled={isCreatingActivity}
+                        loading={isCreatingActivity}
                         className={`w-full py-6 text-xl tracking-widest gap-2 shadow-[0_10px_20px_-10px_rgba(59,130,246,0.5)] ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
                       >
                          {isCreatingActivity ? (
@@ -2155,7 +2615,7 @@ export default function App() {
                 </h1>
                 <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Los mejores exploradores de <span className="font-logo font-bold">NewAra</span>.</p>
               </header>
-              <Leaderboard theme={theme} />
+              <Leaderboard theme={theme} onViewProfile={handleViewProfile} />
             </motion.div>
           )}
 
@@ -2266,9 +2726,15 @@ export default function App() {
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                             {activity.name && activity.name.length > 35 ? activity.name.substring(0, 35) + '...' : activity.name}
                           </h3>
-                          <p className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleViewProfile(activity.creatorId, activity.creatorName, activity); 
+                            }}
+                            className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 hover:opacity-100 hover:text-blue-500 transition-all ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
+                          >
                             Por {activity.creatorName || 'Anónimo'}
-                          </p>
+                          </button>
                         </div>
                       </div>
 
@@ -2283,6 +2749,7 @@ export default function App() {
                            </GlossyButton>
                            <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
+                             loading={isLoadingActivity && !currentSharedActivity}
                              className="flex-[1.5] py-2 rounded-xl text-[10px]"
                            >
                              Jugar <Play size={10} fill="currentColor" />
@@ -2305,142 +2772,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* Activity Detail Modal */}
-              <AnimatePresence>
-                {selectedActivityDetail && (
-                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setSelectedActivityDetail(null)}
-                      className="absolute inset-0 bg-black/40 backdrop-blur-md"
-                    />
-                    
-                    <motion.div
-                      layoutId={`activity-${selectedActivityDetail.id}`}
-                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                      className={`relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[32px] md:rounded-[48px] border-4 shadow-2xl p-6 md:p-10 ${
-                        theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
-                      }`}
-                    >
-                      <div className="glossy-overlay opacity-20" />
-                      
-                      <div className="relative z-10 flex flex-col gap-6">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                              <Globe size={24} />
-                            </div>
-                            <div>
-                               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Actividad de la Comunidad</p>
-                               <p className="text-xs font-bold text-blue-500">ID: {selectedActivityDetail.id}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                             {(isLoggedIn && userName !== 'Estudiante') && (
-                               <button 
-                                 onClick={() => {
-                                   setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name});
-                                 }}
-                                 className="aero-icon-button bg-red-500/10 text-red-500"
-                                 title="Denunciar actividad"
-                               >
-                                 <AlertTriangle size={20} />
-                               </button>
-                             )}
-                             <button 
-                               onClick={() => setSelectedActivityDetail(null)}
-                               className="aero-icon-button bg-white/10"
-                             >
-                               <X size={20} />
-                             </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <h2 className="text-2xl md:text-3xl font-black leading-tight tracking-tight">
-                            {selectedActivityDetail.name}
-                          </h2>
-                          
-                          <div className="flex flex-wrap gap-4 items-center">
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
-                              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20">
-                                {selectedActivityDetail.creatorAvatar ? (
-                                  <img src={selectedActivityDetail.creatorAvatar} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full bg-blue-400 flex items-center justify-center text-white font-black">
-                                    {selectedActivityDetail.creatorName?.[0]?.toUpperCase()}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase opacity-40">Creador</span>
-                                <span className="text-sm font-bold truncate max-w-[120px]">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
-                               <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                                 <CalendarIcon size={18} />
-                               </div>
-                               <div className="flex flex-col">
-                                 <span className="text-[10px] font-black uppercase opacity-40">Fecha</span>
-                                 <span className="text-sm font-bold">
-                                   {selectedActivityDetail.createdAt?.toDate ? selectedActivityDetail.createdAt.toDate().toLocaleDateString() : 'Antigua'}
-                                 </span>
-                               </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="p-4 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-center">
-                             <div className="flex items-center justify-center gap-2 text-blue-500 mb-1">
-                               <Play size={16} />
-                               <span className="text-[11px] font-black uppercase tracking-widest">Vistas</span>
-                             </div>
-                             <p className="text-2xl font-black">{selectedActivityDetail.views || 0}</p>
-                           </div>
-                           <div className="p-4 rounded-3xl bg-pink-500/5 border border-pink-500/10 text-center">
-                             <div className="flex items-center justify-center gap-2 text-pink-500 mb-1">
-                               <Heart size={16} />
-                               <span className="text-[11px] font-black uppercase tracking-widest">Likes</span>
-                             </div>
-                             <p className="text-2xl font-black">{selectedActivityDetail.likes?.length || 0}</p>
-                           </div>
-                        </div>
-
-                        <div className="p-5 rounded-3xl bg-amber-400/10 border border-amber-400/20 text-[11px] font-medium leading-relaxed opacity-80 flex gap-3">
-                           <Lightbulb className="text-amber-500 shrink-0" size={20} />
-                           <p>Esta actividad contiene <strong>{selectedActivityDetail.questions?.length || 0}</strong> preguntas interactivas. ¡Prueba tus conocimientos!</p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                           <GlossyButton 
-                             onClick={(e) => { e.stopPropagation(); handleLikeActivity(selectedActivityDetail.id, e); }}
-                             variant={selectedActivityDetail.likes?.includes(userName) ? 'gray' : 'pink'}
-                             className="flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3"
-                           >
-                             {selectedActivityDetail.likes?.includes(userName) ? 'SACAR LIKE' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
-                           </GlossyButton>
-                           <GlossyButton 
-                             onClick={() => {
-                               handleLoadActivity(selectedActivityDetail.id);
-                               setSelectedActivityDetail(null);
-                             }}
-                             className="flex-[1.5] py-4 text-sm font-black tracking-[0.2em] gap-3"
-                           >
-                             ¡JUGAR AHORA! <Play size={20} fill="currentColor" />
-                           </GlossyButton>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
-              </AnimatePresence>
             </motion.div>
           )}
 
@@ -2494,36 +2825,60 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        <button 
-                          onClick={() => {
-                             setSelectedActivityDetail(galleryActivities.find(a => a.id === report.activityId) || {
-                               id: report.activityId,
-                               name: report.activityName,
-                               questions: [] // Basic shim
-                             });
+                        <GlossyButton 
+                          variant="gray"
+                          loading={loadingActivityDetail === report.activityId}
+                          onClick={async () => {
+                             // Intenta encontrar la actividad en la galería local primero
+                             const localActivity = galleryActivities.find(a => a.id === report.activityId);
+                             if (localActivity) {
+                               setSelectedActivityDetail(localActivity);
+                               return;
+                             }
+                             
+                             // Si no está local, la busca en la base de datos
+                             setLoadingActivityDetail(report.activityId);
+                             try {
+                               const docRef = doc(db, 'activities', report.activityId);
+                               const docSnap = await getDoc(docRef);
+                               if (docSnap.exists()) {
+                                 setSelectedActivityDetail({ id: docSnap.id, ...docSnap.data() });
+                               } else {
+                                 alert("La actividad ya no existe en la base de datos.");
+                               }
+                             } catch (error) {
+                               console.error("Error fetching activity detail:", error);
+                               alert("Error al intentar cargar los detalles de la actividad.");
+                             } finally {
+                               setLoadingActivityDetail(null);
+                             }
                           }}
-                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
+                          className="px-4 py-2 text-[10px]"
                         >
-                          (VER MAS)
-                        </button>
-                        <button 
+                          Ver más
+                        </GlossyButton>
+                        <GlossyButton 
                            onClick={() => handleLoadActivity(report.activityId)}
-                           className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all"
+                           loading={isLoadingActivity}
+                           className="px-4 py-2 text-[10px]"
                         >
-                          (CONTENIDO)
-                        </button>
+                          Cargar Contenido
+                        </GlossyButton>
                         <button 
                           onClick={() => handleIgnoreReport(report.id)}
-                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-500/10 text-slate-600 border border-slate-500/20 hover:bg-slate-500 hover:text-white transition-all"
+                          className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                            theme === 'black' ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          }`}
                         >
-                          (IGNORAR)
+                          Ignorar
                         </button>
-                        <button 
+                        <GlossyButton 
+                          variant="pink"
                           onClick={() => handleTakeActionReport(report)}
-                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-500 text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all"
+                          className="px-4 py-2 text-[10px]"
                         >
-                          (TOMAR ACCION)
-                        </button>
+                          TOMAR ACCIÓN
+                        </GlossyButton>
                       </div>
                     </div>
                   ))
@@ -3286,10 +3641,10 @@ export default function App() {
                 <div className="pt-2 flex flex-col gap-3">
                   <GlossyButton 
                     type="submit"
-                    disabled={isAuthLoading}
+                    loading={isAuthLoading}
                     className="w-full py-5 text-sm tracking-widest uppercase font-black"
                   >
-                    {isAuthLoading ? 'Cargando...' : (authMode === 'login' ? 'Entrar Ahora' : 'Confirmar Registro')}
+                    {authMode === 'login' ? 'Entrar Ahora' : 'Confirmar Registro'}
                   </GlossyButton>
 
                   <button
@@ -3884,7 +4239,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
   );
 }
 
-function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
+function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
   const [filter, setFilter] = useState<'views' | 'likes' | 'correct'>('correct');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -4010,10 +4365,11 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="flex flex-col items-center gap-4 order-2 md:order-1 scale-90 mb-2"
+                onClick={() => onViewProfile(top3[1].id, top3[1].name)}
+                className="flex flex-col items-center gap-4 order-2 md:order-1 scale-90 mb-2 cursor-pointer group hover:scale-95 transition-transform"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-slate-400 to-slate-200 shadow-xl overflow-hidden ring-4 ring-slate-400/20">
+                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-slate-400 to-slate-200 shadow-xl overflow-hidden ring-4 ring-slate-400/20 group-hover:ring-blue-400 transition-all">
                     {top3[1].avatar ? (
                       <img src={top3[1].avatar} className="w-full h-full object-cover rounded-full" />
                     ) : (
@@ -4025,7 +4381,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-300 border-2 border-white flex items-center justify-center font-black text-slate-600 shadow-lg text-xs">2</div>
                 </div>
                 <div className="text-center w-24">
-                  <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].id}</p>
+                  <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].name || top3[1].id}</p>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase">
                     {getStatValue(top3[1])} {getMetricLabel()}
                   </div>
@@ -4038,11 +4394,12 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center gap-6 order-1 md:order-2 scale-110 mb-8"
+                onClick={() => onViewProfile(top3[0].id, top3[0].name)}
+                className="flex flex-col items-center gap-6 order-1 md:order-2 scale-110 mb-8 cursor-pointer group hover:scale-105 transition-transform"
               >
                 <div className="relative">
                   <Trophy className="absolute -top-14 left-1/2 -translate-x-1/2 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,1)]" size={48} />
-                  <div className="w-24 h-24 rounded-full p-1.5 bg-gradient-to-tr from-yellow-500 via-amber-400 to-yellow-200 shadow-[0_20px_50px_-10px_rgba(234,179,8,0.5)] overflow-hidden ring-4 ring-yellow-400/30">
+                  <div className="w-24 h-24 rounded-full p-1.5 bg-gradient-to-tr from-yellow-500 via-amber-400 to-yellow-200 shadow-[0_20px_50px_-10px_rgba(234,179,8,0.5)] overflow-hidden ring-4 ring-yellow-400/30 group-hover:ring-yellow-500 transition-all">
                     {top3[0].avatar ? (
                       <img src={top3[0].avatar} className="w-full h-full object-cover rounded-full" />
                     ) : (
@@ -4054,7 +4411,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-yellow-500 border-4 border-white flex items-center justify-center font-black text-white shadow-xl text-lg min-w-[3rem]">1st</div>
                 </div>
                 <div className="text-center w-36 pt-2">
-                  <p className={`text-sm font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].id}</p>
+                  <p className={`text-sm font-black truncate group-hover:text-amber-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].name || top3[0].id}</p>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 text-xs font-black text-amber-600 mt-1">
                     {getMetricIcon(12)}
                     {getStatValue(top3[0])}
@@ -4069,10 +4426,11 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex flex-col items-center gap-4 order-3 scale-[0.85] mb-2"
+                onClick={() => onViewProfile(top3[2].id, top3[2].name)}
+                className="flex flex-col items-center gap-4 order-3 scale-[0.85] mb-2 cursor-pointer group hover:scale-[0.82] transition-transform"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-orange-400 to-orange-200 shadow-xl overflow-hidden ring-4 ring-orange-400/20">
+                  <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-orange-400 to-orange-200 shadow-xl overflow-hidden ring-4 ring-orange-400/20 group-hover:ring-blue-400 transition-all">
                     {top3[2].avatar ? (
                       <img src={top3[2].avatar} className="w-full h-full object-cover rounded-full" />
                     ) : (
@@ -4084,7 +4442,7 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-orange-300 border-2 border-white flex items-center justify-center font-black text-orange-700 shadow-lg text-xs">3</div>
                 </div>
                 <div className="text-center w-24">
-                  <p className={`text-[11px] font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].id}</p>
+                  <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].name || top3[2].id}</p>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-orange-500 uppercase">
                     {getStatValue(top3[2])} {getMetricLabel()}
                   </div>
@@ -4102,11 +4460,12 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                   {others.map((user, i) => (
                     <motion.div 
                       key={user.id} 
-                      className="flex items-center justify-between py-4 group hover:bg-sky-500/5 transition-colors px-2 rounded-xl"
+                      onClick={() => onViewProfile(user.id, user.name)}
+                      className="flex items-center justify-between py-4 group hover:bg-sky-500/10 transition-all px-2 rounded-xl cursor-pointer active:scale-[0.98]"
                     >
                       <div className="flex items-center gap-4">
                         <span className="w-6 text-[10px] font-black text-slate-300 group-hover:text-blue-500 transition-colors uppercase tracking-widest leading-none">{i + 4}</span>
-                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 bg-slate-50 group-hover:border-blue-200 transition-all">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 bg-slate-50 group-hover:border-blue-400 transition-all">
                           {user.avatar ? (
                             <img src={user.avatar} className="w-full h-full object-cover" />
                           ) : (
@@ -4116,11 +4475,11 @@ function Leaderboard({ theme }: { theme: 'white' | 'black' }) {
                           )}
                         </div>
                         <div>
-                          <p className={`text-xs font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.id}</p>
+                          <p className={`text-xs font-black group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.name || user.id}</p>
                           <p className="text-[9px] font-black opacity-30 uppercase tracking-widest">{user.role || 'Explorador'}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/50 text-[10px] font-black text-blue-600 shadow-sm border border-white/40">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/50 text-[10px] font-black text-blue-600 shadow-sm border border-white/40 group-hover:bg-blue-500 group-hover:text-white transition-all">
                         {getMetricIcon(12)}
                         {getStatValue(user)}
                       </div>

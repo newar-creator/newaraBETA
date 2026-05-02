@@ -57,6 +57,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["password", "createdAt"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "A user report against an activity.",
+      "type": "object",
+      "properties": {
+        "activityId": { "type": "string" },
+        "activityName": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" }
+      },
+      "required": ["activityId", "activityName", "reporterName", "reason", "createdAt", "status"]
     }
   },
   "firestore": {
@@ -67,6 +81,10 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "User profiles"
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Collection of reports against activities."
     }
   }
 }

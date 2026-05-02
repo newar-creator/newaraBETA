@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { playExternalBubble } from '../lib/sounds';
+import { Loader2 } from 'lucide-react';
 
 interface AeroCardProps {
   children: React.ReactNode;
@@ -45,10 +46,12 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
 
 interface GlossyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'blue' | 'green' | 'pink' | 'gray';
+  loading?: boolean;
 }
 
-export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className = '', variant = 'blue', onClick, ...props }) => {
+export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className = '', variant = 'blue', onClick, loading, ...props }) => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (loading) return;
     playExternalBubble();
     if (onClick) onClick(e);
   };
@@ -60,12 +63,16 @@ export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className 
 
   return (
     <button 
-      className={`aero-button ${variantClass} ${className}`}
+      className={`aero-button ${variantClass} ${className} ${loading ? 'opacity-70 cursor-wait' : ''}`}
       onClick={handleClick}
+      disabled={loading || props.disabled}
       {...props}
     >
       <div className="glossy-overlay opacity-40" />
-      <span className="relative z-10 flex items-center gap-2">{children}</span>
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        {loading && <Loader2 size={16} className="animate-spin" />}
+        {children}
+      </span>
     </button>
   );
 };
