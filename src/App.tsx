@@ -153,6 +153,7 @@ export default function App() {
 
   const navigateTo = (view: View) => {
     setLastView(currentView);
+    setUnitSearch('');
     setCurrentView(view);
   };
 
@@ -523,6 +524,7 @@ export default function App() {
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
   const [gallerySearch, setGallerySearch] = useState('');
+  const [unitSearch, setUnitSearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string} | null>(null);
   const [reportActionModal, setReportActionModal] = useState<any | null>(null);
@@ -548,6 +550,8 @@ export default function App() {
   const [loadingActivityDetail, setLoadingActivityDetail] = useState<string | null>(null);
   const [viewingProfile, setViewingProfile] = useState<any | null>(null);
   const [viewingProfileActivities, setViewingProfileActivities] = useState<any[]>([]);
+  const [showProgramModal, setShowProgramModal] = useState(false);
+  const [selectedProgramSubject, setSelectedProgramSubject] = useState<any>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
   const [activityQuestions, setActivityQuestions] = useState([
@@ -1821,6 +1825,35 @@ export default function App() {
         </div>
 
         <div className="flex-1 w-full md:px-4 md:overflow-y-auto md:custom-scrollbar flex md:flex-col flex-row justify-around md:justify-start items-center gap-1 md:gap-8">
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex w-full mb-2">
+            <div className="relative w-full group">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${theme === 'black' ? 'text-white/30 group-focus-within:text-blue-400' : 'text-sky-900/40 group-focus-within:text-blue-500'}`} size={16} />
+              <input 
+                type="text"
+                value={gallerySearch}
+                onChange={(e) => {
+                  setGallerySearch(e.target.value);
+                  if (currentView !== 'gallery') navigateTo('gallery');
+                }}
+                placeholder="Buscar actividades..."
+                className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
+                  theme === 'black' 
+                    ? 'bg-zinc-900/50 border-white/5 focus:border-blue-500/50 text-white placeholder:text-white/20' 
+                    : 'bg-white border-slate-100 focus:border-blue-500 shadow-sm text-sky-950 placeholder:text-sky-900/30'
+                }`}
+              />
+              {gallerySearch && (
+                <button 
+                  onClick={() => setGallerySearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-pink-500 hover:text-pink-600 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex flex-col gap-4 w-full items-center">
             <NavButton 
@@ -3269,19 +3302,51 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
-                    <AeroCard title="Ruta de Aprendizaje" theme={theme}>
-                      <DuolingoPath 
-                        units={selectedSubject.units} 
-                        subjectColor={selectedSubject.color}
-                        subjectId={selectedSubject.id}
-                        completedUnits={completedUnits}
-                        onUnitClick={(index) => {
-                           playExternalBubble();
-                           setSelectedUnitIndex(index);
-                           navigateTo('unit-study');
-                        }}
-                        theme={theme}
-                      />
+                    <AeroCard title="Unidades y Temas" theme={theme}>
+                      <div className="flex flex-col gap-6">
+                        {/* Unit Search Bar */}
+                        <div className="relative group">
+                          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${theme === 'black' ? 'text-white/30 group-focus-within:text-blue-400' : 'text-sky-900/40 group-focus-within:text-blue-500'}`} size={18} />
+                          <input 
+                            type="text"
+                            value={unitSearch}
+                            onChange={(e) => setUnitSearch(e.target.value)}
+                            placeholder="Buscar temas o unidades..."
+                            className={`w-full pl-12 pr-4 py-4 rounded-3xl text-sm font-bold transition-all duration-300 outline-none border-2 bg-white/10 ${
+                              theme === 'black' 
+                                ? 'border-white/10 focus:border-blue-500/50 text-white placeholder:text-white/20' 
+                                : 'border-slate-100 focus:border-blue-500 shadow-sm text-sky-950 placeholder:text-sky-900/30'
+                            }`}
+                          />
+                          {unitSearch && (
+                            <button 
+                              onClick={() => setUnitSearch('')}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-pink-500 hover:text-pink-600 transition-colors"
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                        </div>
+
+                        <DuolingoPath 
+                          units={selectedSubject.units
+                            .map((u, idx) => ({ ...u, originalIndex: idx }))
+                            .filter(u => 
+                              u.title.toLowerCase().includes(unitSearch.toLowerCase()) || 
+                              u.description.toLowerCase().includes(unitSearch.toLowerCase())
+                            )
+                          } 
+                          subjectColor={selectedSubject.color}
+                          subjectId={selectedSubject.id}
+                          completedUnits={completedUnits}
+                          onUnitClick={(index) => {
+                             playExternalBubble();
+                             setSelectedUnitIndex(index);
+                             navigateTo('unit-study');
+                          }}
+                          theme={theme}
+                        />
+                      </div>
                     </AeroCard>
                   </div>
 
@@ -3310,7 +3375,13 @@ export default function App() {
                         </GlossyButton>
                     )}
                     
-                    <GlossyButton className="w-full py-3 text-sm opacity-40 grayscale" disabled>
+                    <GlossyButton 
+                      onClick={() => {
+                        setSelectedProgramSubject(selectedSubject);
+                        setShowProgramModal(true);
+                      }}
+                      className="w-full py-3 text-sm gap-2 border-2 border-white/40 active:scale-95 transition-all"
+                    >
                       <BookOpen size={16} /> Ver Programas
                     </GlossyButton>
                   </div>
@@ -3759,6 +3830,115 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showProgramModal && selectedProgramSubject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl"
+            onClick={() => setShowProgramModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 30 }}
+              onClick={e => e.stopPropagation()}
+              className={`max-w-4xl w-full max-h-[85vh] rounded-[3rem] border-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
+              }`}
+            >
+              {/* Header */}
+              <div className={`p-8 md:p-12 pb-6 border-b flex justify-between items-start ${theme === 'black' ? 'border-white/5 bg-white/2' : 'border-slate-50 bg-slate-50/50'}`}>
+                <div className="flex items-center gap-6">
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-white shadow-2xl bg-gradient-to-br ${
+                    selectedProgramSubject.color === 'green' ? 'from-green-400 to-green-600 shadow-green-500/20' :
+                    selectedProgramSubject.color === 'blue' ? 'from-blue-400 to-blue-600 shadow-blue-500/20' :
+                    selectedProgramSubject.color === 'amber' ? 'from-amber-400 to-amber-600 shadow-amber-500/20' :
+                    selectedProgramSubject.color === 'indigo' ? 'from-indigo-400 to-indigo-600 shadow-indigo-500/20' :
+                    selectedProgramSubject.color === 'red' ? 'from-red-400 to-red-600 shadow-red-500/20' :
+                    'from-violet-400 to-violet-600 shadow-violet-500/20'
+                  }`}>
+                    <BookOpen size={40} />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl md:text-5xl font-black tracking-tighter leading-none mb-2">
+                       PROGRAMA <span className="opacity-40">OFICIAL</span>
+                    </h2>
+                    <p className="text-xs font-black uppercase tracking-widest opacity-60 flex items-center gap-2">
+                      <span className={`w-3 h-3 rounded-full ${
+                        selectedProgramSubject.color === 'green' ? 'bg-green-500' :
+                        selectedProgramSubject.color === 'blue' ? 'bg-blue-500' :
+                        selectedProgramSubject.color === 'amber' ? 'bg-amber-500' :
+                        selectedProgramSubject.color === 'indigo' ? 'bg-indigo-500' :
+                        selectedProgramSubject.color === 'red' ? 'bg-red-500' :
+                        'bg-violet-500'
+                      }`} />
+                      {selectedProgramSubject.name} • 2024
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowProgramModal(false)}
+                  className={`p-3 rounded-2xl transition-all ${theme === 'black' ? 'hover:bg-white/10 text-white/40' : 'hover:bg-slate-200 text-slate-400'}`}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar">
+                <div className="space-y-12">
+                  <section>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-4 ml-4">Descripción General</h3>
+                    <div className={`p-8 rounded-[2rem] border-2 italic text-sm md:text-base leading-relaxed ${theme === 'black' ? 'bg-white/2 border-white/5 opacity-80' : 'bg-slate-50 border-white opacity-70'}`}>
+                      "{selectedProgramSubject.description}"
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-6 ml-4">Contenidos Curriculares</h3>
+                    <div className="space-y-4">
+                      {selectedProgramSubject.units.map((unit: any, idx: number) => (
+                        <div 
+                          key={idx}
+                          className={`p-6 rounded-3xl border-2 transition-all flex gap-6 items-center group ${
+                            theme === 'black' ? 'bg-zinc-800/50 border-white/5 hover:border-blue-500/30' : 'bg-white border-slate-100 hover:border-blue-500 shadow-sm'
+                          }`}
+                        >
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner ${
+                            theme === 'black' ? 'bg-white/5 text-white/20 group-hover:text-blue-400 group-hover:bg-blue-500/10' : 'bg-slate-50 text-slate-300 group-hover:text-blue-500 group-hover:bg-blue-50'
+                          }`}>
+                            {idx + 1}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-black uppercase tracking-tight text-sm mb-1">{unit.title}</h4>
+                            <p className="text-xs opacity-50 font-medium line-clamp-2">{unit.description}</p>
+                          </div>
+                          <div className={`p-2 rounded-xl border opacity-0 group-hover:opacity-100 transition-all ${theme === 'black' ? 'border-white/10' : 'border-slate-200'}`}>
+                             <ChevronRight size={16} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className={`p-8 border-t flex justify-end gap-4 ${theme === 'black' ? 'border-white/5' : 'border-slate-50'}`}>
+                <GlossyButton 
+                  onClick={() => setShowProgramModal(false)}
+                  className="px-12 py-3 text-[10px] font-black uppercase tracking-widest"
+                >
+                  Entendido
+                </GlossyButton>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
     </MotionConfig>
   );
@@ -4170,27 +4350,37 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
 }
 
 function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subjectId, completedUnits = [] }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black', subjectId: string, completedUnits?: string[] }) {
+  if (units.length === 0) {
+    return (
+      <div className="py-12 text-center opacity-40 italic flex flex-col items-center gap-3">
+        <Search size={32} strokeWidth={1} />
+        <p>No se encontraron temas con esa búsqueda.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative">
+    <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative w-full">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
       {units.map((unit, i) => {
+        const displayIndex = unit.originalIndex !== undefined ? unit.originalIndex : i;
         // Calculate horizontal offset for a zigzag path - reduced for mobile
         const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 80;
         const offset = Math.sin(i * 1.2) * offsetMultiplier;
-        const isCompleted = completedUnits.includes(`${subjectId}-${i}`);
+        const isCompleted = completedUnits.includes(`${subjectId}-${displayIndex}`);
         
         return (
           <div 
-            key={i} 
+            key={displayIndex} 
             style={{ transform: `translateX(${offset}px)` }}
             className="relative z-10"
           >
             <UnitButton 
-              number={i + 1} 
+              number={displayIndex + 1} 
               title={unit.title} 
               color={subjectColor} 
               isCompleted={isCompleted}
-              onClick={() => onUnitClick(i)} 
+              onClick={() => onUnitClick(displayIndex)} 
               theme={theme}
             />
             
