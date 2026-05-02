@@ -1049,6 +1049,9 @@ export default function App() {
       }
       
       setGalleryActivities(prev => prev.map(a => a.id === id ? { ...a, likes: newLikes } : a));
+      if (selectedActivityDetail && selectedActivityDetail.id === id) {
+        setSelectedActivityDetail((prev: any) => ({ ...prev, likes: newLikes }));
+      }
       playExternalBubble();
     } catch (error) {
        handleFirestoreError(error, OperationType.UPDATE, `activities/${id}`);
@@ -2265,10 +2268,12 @@ export default function App() {
                            <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); handleLikeActivity(selectedActivityDetail.id, e); }}
                              className={`flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3 ${
-                               selectedActivityDetail.likes?.includes(userName) ? 'from-pink-500 to-rose-600' : 'from-slate-400 to-slate-600'
+                               selectedActivityDetail.likes?.includes(userName) 
+                                 ? 'from-gray-400 to-gray-500 shadow-gray-500/20' 
+                                 : 'from-pink-500 to-rose-600 shadow-pink-500/20'
                              }`}
                            >
-                             {selectedActivityDetail.likes?.includes(userName) ? 'TE GUSTA' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
+                             {selectedActivityDetail.likes?.includes(userName) ? 'SACAR LIKE' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
                            </GlossyButton>
                            <GlossyButton 
                              onClick={() => {
