@@ -1210,7 +1210,7 @@ export default function App() {
   const handleLikeActivity = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isLoggedIn || userName === 'Estudiante') {
-      alert("Debes iniciar sesión con una cuenta para dar like.");
+      setIsRegistering(true);
       return;
     }
     if (loadingLikes.has(id)) return;
@@ -3534,7 +3534,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
