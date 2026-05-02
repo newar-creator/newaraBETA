@@ -101,7 +101,7 @@ const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Prom
   });
 };
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard';
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports';
 
 enum OperationType {
   CREATE = 'create',
@@ -521,6 +521,10 @@ export default function App() {
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
   const [gallerySearch, setGallerySearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
+  const [showReportModal, setShowReportModal] = useState<{id: string, name: string} | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reports, setReports] = useState<any[]>([]);
+  const [isReportsLoading, setIsReportsLoading] = useState(false);
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -644,6 +648,80 @@ export default function App() {
       fetchGallery();
     }
   }, [currentView]);
+
+  const fetchReports = async () => {
+    if (!isModerator) return;
+    setIsReportsLoading(true);
+    try {
+      const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const reportsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setReports(reportsData);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    } finally {
+      setIsReportsLoading(false);
+    }
+  };
+
+  const handleSendReport = async () => {
+    if (!showReportModal || !reportReason.trim()) return;
+    if (!isLoggedIn || userName === 'Estudiante') {
+      alert("Debes iniciar sesión para denunciar.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'reports'), {
+        activityId: showReportModal.id,
+        activityName: showReportModal.name,
+        reporterName: userName,
+        reason: reportReason,
+        createdAt: serverTimestamp(),
+        status: 'pending'
+      });
+      alert("Denuncia enviada. Gracias por ayudar a mantener NewAra seguro.");
+      setShowReportModal(null);
+      setReportReason('');
+      playSuccessSound();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'reports');
+    }
+  };
+
+  const handleIgnoreReport = async (reportId: string) => {
+    if (!isModerator) return;
+    try {
+      await deleteDoc(doc(db, 'reports', reportId));
+      setReports(prev => prev.filter(r => r.id !== reportId));
+      playSuccessSound();
+    } catch (error) {
+       handleFirestoreError(error, OperationType.DELETE, `reports/${reportId}`);
+    }
+  };
+
+  const handleTakeActionReport = async (report: any) => {
+    if (!isModerator) return;
+    if (!window.confirm("¿Estás seguro de eliminar esta actividad definitivamente?")) return;
+    
+    try {
+      // Eliminar actividad
+      await deleteDoc(doc(db, 'activities', report.activityId));
+      // Eliminar denuncia
+      await deleteDoc(doc(db, 'reports', report.id));
+      
+      setReports(prev => prev.filter(r => r.id !== report.id));
+      setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
+      
+      playSuccessSound();
+      alert("Actividad eliminada con éxito.");
+    } catch (error) {
+      console.error("Error tomando acción:", error);
+    }
+  };
 
   const fetchGallery = async () => {
     setIsGalleryLoading(true);
@@ -1129,10 +1207,71 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
-      {showWelcome && <WelcomeTutorial onComplete={() => {
-        setShowWelcome(false);
-        localStorage.setItem('newara_visited', 'true');
-      }} />}
+      {/* Report Form Modal */}
+      <AnimatePresence>
+        {showReportModal && (
+           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setShowReportModal(null)}
+               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+             />
+             <motion.div
+               initial={{ scale: 0.9, y: 20 }}
+               animate={{ scale: 1, y: 0 }}
+               exit={{ scale: 0.9, y: 20 }}
+               className={`relative w-full max-w-sm rounded-[32px] border-4 p-8 shadow-2xl ${
+                 theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
+               }`}
+             >
+               <div className="glossy-overlay opacity-20 pointer-events-none" />
+               <h2 className={`text-xl font-black mb-1 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Denunciar Actividad</h2>
+               <p className="text-xs opacity-50 mb-6 font-medium">Ayúdanos a entender por qué esta actividad no debería estar aquí.</p>
+               
+               <div className="space-y-4">
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Motivo de la denuncia</label>
+                   <textarea 
+                     value={reportReason}
+                     onChange={(e) => setReportReason(e.target.value)}
+                     className={`w-full p-4 rounded-2xl border text-sm focus:ring-2 focus:ring-red-500 focus:outline-none min-h-[120px] resize-none ${
+                       theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200'
+                     }`}
+                     placeholder="Explica qué está mal..."
+                   />
+                 </div>
+
+                 <div className="flex gap-3">
+                   <button 
+                     onClick={() => setShowReportModal(null)}
+                     className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${
+                       theme === 'black' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                     }`}
+                   >
+                     Cancelar
+                   </button>
+                   <button 
+                     disabled={!reportReason.trim()}
+                     onClick={handleSendReport}
+                     className="flex-1 py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 transition-all"
+                   >
+                     Enviar Denuncia
+                   </button>
+                 </div>
+               </div>
+             </motion.div>
+           </div>
+        )}
+      </AnimatePresence>
+
+      {showWelcome && (
+        <WelcomeTutorial onComplete={() => {
+          setShowWelcome(false);
+          localStorage.setItem('newara_visited', 'true');
+        }} />
+      )}
       <BubbleBackground theme={theme} />
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
       <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
@@ -1250,6 +1389,20 @@ export default function App() {
               label="Ajustes" 
               theme={theme}
             />
+            {isModerator && (
+              <NavButton 
+                id="nav-reports"
+                active={currentView === 'reports'} 
+                onClick={() => {
+                  navigateTo('reports');
+                  fetchReports();
+                }} 
+                icon={<AlertTriangle size={22} />} 
+                label="Denunciados" 
+                theme={theme}
+                badge={reports.length > 0 ? reports.length.toString() : undefined}
+              />
+            )}
           </div>
 
           {/* Mobile Navigation */}
@@ -1344,6 +1497,17 @@ export default function App() {
                     label="Ajustes" 
                     theme={theme}
                   />
+                  {isModerator && (
+                    <MobileMenuButton 
+                      id="nav-reports"
+                      active={currentView === 'reports'} 
+                      onClick={() => { navigateTo('reports'); fetchReports(); setShowMoreMobileMenu(false); }} 
+                      icon={<AlertTriangle size={20} />} 
+                      label="Denunciados" 
+                      theme={theme}
+                      badge={reports.length > 0 ? reports.length.toString() : undefined}
+                    />
+                  )}
                   <MobileMenuButton 
                     active={showMobileSubjects} 
                     onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
@@ -2175,12 +2339,25 @@ export default function App() {
                                <p className="text-xs font-bold text-blue-500">ID: {selectedActivityDetail.id}</p>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => setSelectedActivityDetail(null)}
-                            className="aero-icon-button bg-white/10"
-                          >
-                            <X size={20} />
-                          </button>
+                          <div className="flex gap-2">
+                             {(isLoggedIn && userName !== 'Estudiante') && (
+                               <button 
+                                 onClick={() => {
+                                   setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name});
+                                 }}
+                                 className="aero-icon-button bg-red-500/10 text-red-500"
+                                 title="Denunciar actividad"
+                               >
+                                 <AlertTriangle size={20} />
+                               </button>
+                             )}
+                             <button 
+                               onClick={() => setSelectedActivityDetail(null)}
+                               className="aero-icon-button bg-white/10"
+                             >
+                               <X size={20} />
+                             </button>
+                          </div>
                         </div>
 
                         <div className="space-y-4">
@@ -2264,6 +2441,100 @@ export default function App() {
                   </div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          )}
+
+          {currentView === 'reports' && isModerator && (
+            <motion.div 
+              key="reports"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
+            >
+              <header className="flex justify-between items-center">
+                <div>
+                  <h1 className={`text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Denunciados</h1>
+                  <p className={`font-medium opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Moderación de contenido comunitario</p>
+                </div>
+                <button 
+                  onClick={fetchReports}
+                  className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 hover:rotate-180 transition-all duration-700"
+                >
+                  <RefreshCw size={24} />
+                </button>
+              </header>
+
+              <div className="space-y-4">
+                {isReportsLoading ? (
+                  <div className="flex justify-center py-20">
+                    <RefreshCw className="animate-spin text-blue-500" size={40} />
+                  </div>
+                ) : reports.length > 0 ? (
+                  reports.map((report) => (
+                    <div 
+                      key={report.id}
+                      className={`p-6 rounded-[32px] border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-xl ${
+                        theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20">
+                           <AlertTriangle size={24} />
+                         </div>
+                         <div>
+                           <h3 className={`font-black text-lg ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                             {report.reporterName} : <span className="text-red-500">{report.reason}</span>
+                           </h3>
+                           <div className="flex items-center gap-3 mt-1 opacity-50 text-[10px] font-black uppercase tracking-widest">
+                             <span>Actividad: {report.activityName}</span>
+                             <span>ID: {report.activityId}</span>
+                           </div>
+                         </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button 
+                          onClick={() => {
+                             setSelectedActivityDetail(galleryActivities.find(a => a.id === report.activityId) || {
+                               id: report.activityId,
+                               name: report.activityName,
+                               questions: [] // Basic shim
+                             });
+                          }}
+                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
+                        >
+                          (VER MAS)
+                        </button>
+                        <button 
+                           onClick={() => handleLoadActivity(report.activityId)}
+                           className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all"
+                        >
+                          (CONTENIDO)
+                        </button>
+                        <button 
+                          onClick={() => handleIgnoreReport(report.id)}
+                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-500/10 text-slate-600 border border-slate-500/20 hover:bg-slate-500 hover:text-white transition-all"
+                        >
+                          (IGNORAR)
+                        </button>
+                        <button 
+                          onClick={() => handleTakeActionReport(report)}
+                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-500 text-white shadow-lg shadow-red-500/30 hover:scale-105 transition-all"
+                        >
+                          (TOMAR ACCION)
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center">
+                    <ShieldCheck size={64} />
+                    <p className="font-black uppercase tracking-[0.2em] mt-4">Todo está en orden</p>
+                    <p className="text-xs">No hay denuncias pendientes.</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -2892,6 +3163,7 @@ export default function App() {
                     userAnswers={exerciseState.userAnswers}
                     title={activeExercise.subjectId === 'shared' ? 'Actividad Compartida' : (selectedSubject.units[activeExercise.unitIndex]?.title || 'Lección')}
                     theme={theme}
+                    onReport={activeExercise.subjectId === 'shared' ? () => setShowReportModal({id: activeExercise.id, name: activeExercise.name || 'Actividad'}) : undefined}
                   />
                 </div>
               </AeroCard>
@@ -3051,6 +3323,7 @@ function ExerciseRunner({
   onAnswer, 
   onFinish, 
   onClose,
+  onReport,
   userAnswers, 
   title, 
   theme = 'white' 
@@ -3064,6 +3337,7 @@ function ExerciseRunner({
   onAnswer: (answer: number | string) => void, 
   onFinish: () => void, 
   onClose: () => void,
+  onReport?: () => void,
   userAnswers: any[], 
   title: string, 
   theme?: 'white' | 'black' 
@@ -3265,9 +3539,19 @@ function ExerciseRunner({
               ))}
             </div>
 
-            <GlossyButton onClick={onFinish} className="w-full py-4 bg-blue-500 text-white border-2 border-white/20 shadow-xl">
-               Finalizar
-            </GlossyButton>
+            <div className="flex gap-2 w-full">
+              <GlossyButton onClick={onFinish} className="flex-[2] py-4 bg-blue-500 text-white border-2 border-white/20 shadow-xl">
+                 Finalizar
+              </GlossyButton>
+              {onReport && (
+                <button 
+                  onClick={onReport}
+                  className="flex-1 py-4 rounded-full bg-red-500/10 text-red-500 font-black text-[10px] uppercase tracking-widest border border-red-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <AlertTriangle size={14} /> Denunciar
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
