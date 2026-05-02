@@ -2076,14 +2076,14 @@ export default function App() {
                               <>
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleEditActivity(activity, e); }}
-                                  className="p-2 rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                  className="aero-icon-button text-blue-500 bg-blue-500/10"
                                   title="Editar Actividad"
                                 >
                                   <Edit3 size={14} />
                                 </button>
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName); }}
-                                  className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                  className="aero-icon-button text-red-500 bg-red-500/10"
                                   title="Eliminar Actividad"
                                 >
                                   <Trash2 size={14} />
@@ -2103,49 +2103,20 @@ export default function App() {
                       </div>
 
                       <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
-                        <div className="flex items-center justify-between">
-                           <div className="flex items-center gap-2">
-                             <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
-                               {activity.creatorAvatar ? (
-                                 <img src={activity.creatorAvatar} alt="" className="w-full h-full object-cover" />
-                               ) : (
-                                 <div className="w-full h-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
-                                   {activity.creatorName?.[0]?.toUpperCase() || 'A'}
-                                 </div>
-                               )}
-                             </div>
-                             <div className="flex items-center gap-1.5 opacity-60 text-[9px] font-black">
-                               <span className="flex items-center gap-0.5"><Play size={8} /> {activity.views || 0}</span>
-                               <span className="flex items-center gap-0.5"><Heart size={8} /> {activity.likes?.length || 0}</span>
-                             </div>
-                           </div>
-                           <button 
-                             onClick={(e) => { e.stopPropagation(); handleLikeActivity(activity.id, e); }}
-                             className={`p-1.5 rounded-full transition-all active:scale-90 ${
-                               activity.likes?.includes(userName) 
-                                 ? 'bg-blue-500 text-white shadow-md' 
-                                 : 'bg-white/10 text-blue-400 hover:bg-white/20'
-                             }`}
-                           >
-                             <Heart size={12} fill={activity.likes?.includes(userName) ? 'currentColor' : 'none'} />
-                           </button>
-                        </div>
-
                         <div className="flex gap-2">
-                           <button 
+                           <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
-                             className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all active:scale-95 ${
-                               theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/20' : 'bg-white/60 border-blue-200 text-blue-600 hover:bg-blue-50'
-                             }`}
+                             variant="gray"
+                             className="flex-1 py-2 rounded-xl text-[10px]"
                            >
                              Ver más
-                           </button>
-                           <button 
+                           </GlossyButton>
+                           <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
-                             className="flex-[1.5] py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                             className="flex-[1.5] py-2 rounded-xl text-[10px]"
                            >
                              Jugar <Play size={10} fill="currentColor" />
-                           </button>
+                           </GlossyButton>
                         </div>
                       </div>
                     </motion.div>
@@ -2200,7 +2171,7 @@ export default function App() {
                           </div>
                           <button 
                             onClick={() => setSelectedActivityDetail(null)}
-                            className={`p-2 rounded-full transition-all active:scale-90 ${theme === 'black' ? 'bg-white/10' : 'bg-slate-100'}`}
+                            className="aero-icon-button bg-white/10"
                           >
                             <X size={20} />
                           </button>
@@ -3308,18 +3279,19 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', b
       }}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`flex items-center gap-3 p-4 rounded-2xl transition-all border relative ${
+      className={`flex items-center gap-3 p-4 rounded-2xl transition-all border relative overflow-hidden ${
         active 
           ? (theme === 'black' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600') 
           : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/70' : 'bg-slate-50 border-transparent text-sky-950')
       }`}
     >
-      <div className={`${active ? 'opacity-100' : 'opacity-60'}`}>
+      {active && <div className="glossy-overlay opacity-30" />}
+      <div className={`${active ? 'opacity-100 relative z-10' : 'opacity-60 relative z-10'}`}>
         {icon}
       </div>
-      <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
+      <span className="text-[11px] font-black uppercase tracking-widest relative z-10">{label}</span>
       {badge && (
-        <span className="absolute -top-2 -right-1 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
+        <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
           {badge}
         </span>
       )}
@@ -3348,9 +3320,10 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97, y: 0 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 ${active ? activeClasses : defaultClasses}`}
+      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
       style={{ willChange: 'transform' }}
     >
+      {active && <div className="glossy-overlay opacity-30" />}
       <motion.div 
         animate={active ? { scale: 1.1, rotate: [0, -5, 5, 0] } : { scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -3361,7 +3334,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       <span className={`text-[10px] md:text-sm font-bold tracking-tight`}>{label}</span>
       
       {badge && (
-        <span className="absolute -top-1 -right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
+        <span className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
           {badge}
         </span>
       )}
