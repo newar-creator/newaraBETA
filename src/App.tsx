@@ -520,6 +520,7 @@ export default function App() {
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
   const [gallerySearch, setGallerySearch] = useState('');
+  const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [activityQuestions, setActivityQuestions] = useState([
     { type: 'multiple-choice', question: '', options: ['', '', '', ''], correct: 0 as number | string },
@@ -2054,8 +2055,7 @@ export default function App() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={!isMobile ? { y: -5 } : {}}
-                        onClick={() => handleLoadActivity(activity.id)}
-                      className={`cursor-pointer group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-44 md:h-56 overflow-hidden shadow-sm hover:shadow-2xl ${
+                      className={`group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-52 md:h-64 overflow-hidden shadow-sm hover:shadow-2xl ${
                         theme === 'black' 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10' 
                           : 'bg-white/60 border-white/40 hover:bg-white/80'
@@ -2072,14 +2072,14 @@ export default function App() {
                             {(isModerator || activity.creatorName === userName) && (
                               <>
                                 <button 
-                                  onClick={(e) => handleEditActivity(activity, e)}
+                                  onClick={(e) => { e.stopPropagation(); handleEditActivity(activity, e); }}
                                   className="p-2 rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm active:scale-90"
                                   title="Editar Actividad"
                                 >
                                   <Edit3 size={14} />
                                 </button>
                                 <button 
-                                  onClick={(e) => handleDeleteActivity(activity.id, e, activity.creatorName)}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName); }}
                                   className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90"
                                   title="Eliminar Actividad"
                                 >
@@ -2089,61 +2089,60 @@ export default function App() {
                             )}
                           </div>
                         </div>
-                        <div>
+                        <div onClick={() => setSelectedActivityDetail(activity)}>
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                            {activity.name && activity.name.length > 27 ? activity.name.substring(0, 27) + '...' : activity.name}
+                            {activity.name && activity.name.length > 35 ? activity.name.substring(0, 35) + '...' : activity.name}
                           </h3>
                           <p className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                            Creada el {dateStr}
+                            Por {activity.creatorName || 'Anónimo'}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-600/20 border border-white/20 flex items-center justify-center text-[12px] text-white font-bold overflow-hidden shrink-0 shadow-inner">
-                            {activity.creatorAvatar ? (
-                              <img 
-                                src={activity.creatorAvatar} 
-                                alt="" 
-                                className="w-full h-full object-cover" 
-                                referrerPolicy="no-referrer" 
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center shadow-inner">
-                                {activity.creatorName?.[0]?.toUpperCase() || 'A'}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className={`text-[10px] font-bold opacity-80 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                              {activity.creatorName || 'Anónimo'}
-                            </span>
-                            <div className="flex items-center gap-2 opacity-40 text-[8px] font-black uppercase tracking-tighter">
-                              <span className="flex items-center gap-0.5">
-                                <Play size={8} /> {activity.views || 0}
-                              </span>
-                              <span className="flex items-center gap-0.5">
-                                <Heart size={8} /> {activity.likes?.length || 0}
-                              </span>
-                            </div>
-                          </div>
+                      <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
+                        <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-2">
+                             <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
+                               {activity.creatorAvatar ? (
+                                 <img src={activity.creatorAvatar} alt="" className="w-full h-full object-cover" />
+                               ) : (
+                                 <div className="w-full h-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
+                                   {activity.creatorName?.[0]?.toUpperCase() || 'A'}
+                                 </div>
+                               )}
+                             </div>
+                             <div className="flex items-center gap-1.5 opacity-60 text-[9px] font-black">
+                               <span className="flex items-center gap-0.5"><Play size={8} /> {activity.views || 0}</span>
+                               <span className="flex items-center gap-0.5"><Heart size={8} /> {activity.likes?.length || 0}</span>
+                             </div>
+                           </div>
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); handleLikeActivity(activity.id, e); }}
+                             className={`p-1.5 rounded-full transition-all active:scale-90 ${
+                               activity.likes?.includes(userName) 
+                                 ? 'bg-blue-500 text-white shadow-md' 
+                                 : 'bg-white/10 text-blue-400 hover:bg-white/20'
+                             }`}
+                           >
+                             <Heart size={12} fill={activity.likes?.includes(userName) ? 'currentColor' : 'none'} />
+                           </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={(e) => handleLikeActivity(activity.id, e)}
-                            className={`p-2 rounded-full transition-all active:scale-90 ${
-                              activity.likes?.includes(userName) 
-                                ? 'bg-blue-500 text-white shadow-lg' 
-                                : 'bg-white/10 text-blue-400 hover:bg-white/20'
-                            }`}
-                          >
-                            <Heart size={14} fill={activity.likes?.includes(userName) ? 'currentColor' : 'none'} />
-                          </button>
-                          <div className="flex items-center gap-1 text-blue-400">
-                            <Play size={12} />
-                            <span className="text-[10px] font-black tracking-widest uppercase">Jugar</span>
-                          </div>
+
+                        <div className="flex gap-2">
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
+                             className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all active:scale-95 ${
+                               theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/20' : 'bg-white/60 border-blue-200 text-blue-600 hover:bg-blue-50'
+                             }`}
+                           >
+                             Ver más
+                           </button>
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
+                             className="flex-[1.5] py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                           >
+                             Jugar <Play size={10} fill="currentColor" />
+                           </button>
                         </div>
                       </div>
                     </motion.div>
@@ -2161,6 +2160,131 @@ export default function App() {
                   </GlossyButton>
                 </div>
               )}
+
+              {/* Activity Detail Modal */}
+              <AnimatePresence>
+                {selectedActivityDetail && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setSelectedActivityDetail(null)}
+                      className="absolute inset-0 bg-black/40 backdrop-blur-md"
+                    />
+                    
+                    <motion.div
+                      layoutId={`activity-${selectedActivityDetail.id}`}
+                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                      className={`relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[32px] md:rounded-[48px] border-4 shadow-2xl p-6 md:p-10 ${
+                        theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+                      }`}
+                    >
+                      <div className="glossy-overlay opacity-20" />
+                      
+                      <div className="relative z-10 flex flex-col gap-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                              <Globe size={24} />
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Actividad de la Comunidad</p>
+                               <p className="text-xs font-bold text-blue-500">ID: {selectedActivityDetail.id}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setSelectedActivityDetail(null)}
+                            className={`p-2 rounded-full transition-all active:scale-90 ${theme === 'black' ? 'bg-white/10' : 'bg-slate-100'}`}
+                          >
+                            <X size={20} />
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h2 className="text-2xl md:text-3xl font-black leading-tight tracking-tight">
+                            {selectedActivityDetail.name}
+                          </h2>
+                          
+                          <div className="flex flex-wrap gap-4 items-center">
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
+                              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20">
+                                {selectedActivityDetail.creatorAvatar ? (
+                                  <img src={selectedActivityDetail.creatorAvatar} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-blue-400 flex items-center justify-center text-white font-black">
+                                    {selectedActivityDetail.creatorName?.[0]?.toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase opacity-40">Creador</span>
+                                <span className="text-sm font-bold truncate max-w-[120px]">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
+                               <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                                 <CalendarIcon size={18} />
+                               </div>
+                               <div className="flex flex-col">
+                                 <span className="text-[10px] font-black uppercase opacity-40">Fecha</span>
+                                 <span className="text-sm font-bold">
+                                   {selectedActivityDetail.createdAt?.toDate ? selectedActivityDetail.createdAt.toDate().toLocaleDateString() : 'Antigua'}
+                                 </span>
+                               </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="p-4 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-center">
+                             <div className="flex items-center justify-center gap-2 text-blue-500 mb-1">
+                               <Play size={16} />
+                               <span className="text-[11px] font-black uppercase tracking-widest">Vistas</span>
+                             </div>
+                             <p className="text-2xl font-black">{selectedActivityDetail.views || 0}</p>
+                           </div>
+                           <div className="p-4 rounded-3xl bg-pink-500/5 border border-pink-500/10 text-center">
+                             <div className="flex items-center justify-center gap-2 text-pink-500 mb-1">
+                               <Heart size={16} />
+                               <span className="text-[11px] font-black uppercase tracking-widest">Likes</span>
+                             </div>
+                             <p className="text-2xl font-black">{selectedActivityDetail.likes?.length || 0}</p>
+                           </div>
+                        </div>
+
+                        <div className="p-5 rounded-3xl bg-amber-400/10 border border-amber-400/20 text-[11px] font-medium leading-relaxed opacity-80 flex gap-3">
+                           <Lightbulb className="text-amber-500 shrink-0" size={20} />
+                           <p>Esta actividad contiene <strong>{selectedActivityDetail.questions?.length || 0}</strong> preguntas interactivas. ¡Prueba tus conocimientos!</p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                           <GlossyButton 
+                             onClick={(e) => { e.stopPropagation(); handleLikeActivity(selectedActivityDetail.id, e); }}
+                             className={`flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3 ${
+                               selectedActivityDetail.likes?.includes(userName) ? 'from-pink-500 to-rose-600' : 'from-slate-400 to-slate-600'
+                             }`}
+                           >
+                             {selectedActivityDetail.likes?.includes(userName) ? 'TE GUSTA' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
+                           </GlossyButton>
+                           <GlossyButton 
+                             onClick={() => {
+                               handleLoadActivity(selectedActivityDetail.id);
+                               setSelectedActivityDetail(null);
+                             }}
+                             className="flex-[1.5] py-4 text-sm font-black tracking-[0.2em] gap-3"
+                           >
+                             ¡JUGAR AHORA! <Play size={20} fill="currentColor" />
+                           </GlossyButton>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
