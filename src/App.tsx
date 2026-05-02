@@ -2267,11 +2267,8 @@ export default function App() {
                         <div className="flex flex-col sm:flex-row gap-3 pt-4">
                            <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); handleLikeActivity(selectedActivityDetail.id, e); }}
-                             className={`flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3 ${
-                               selectedActivityDetail.likes?.includes(userName) 
-                                 ? 'from-gray-400 to-gray-500 shadow-gray-500/20' 
-                                 : 'from-pink-500 to-rose-600 shadow-pink-500/20'
-                             }`}
+                             variant={selectedActivityDetail.likes?.includes(userName) ? 'gray' : 'pink'}
+                             className="flex-1 py-4 text-xs font-black tracking-[0.2em] gap-3"
                            >
                              {selectedActivityDetail.likes?.includes(userName) ? 'SACAR LIKE' : 'DAR LIKE'} <Heart size={18} fill={selectedActivityDetail.likes?.includes(userName) ? 'currentColor' : 'none'} />
                            </GlossyButton>

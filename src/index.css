@@ -57,6 +57,22 @@
       0 8px 15px -5px rgba(101,163,13,0.4);
   }
 
+  .aero-button-gray {
+    background: linear-gradient(to bottom, #d1d5db 0%, #9ca3af 50%, #6b7280 50.1%, #4b5563 100%);
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.6), 
+      inset 0 -2px 5px rgba(0,0,0,0.2),
+      0 8px 15px -5px rgba(156,163,175,0.4);
+  }
+
+  .aero-button-pink {
+    background: linear-gradient(to bottom, #f9a8d4 0%, #ec4899 50%, #db2777 50.1%, #be185d 100%);
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.6), 
+      inset 0 -2px 5px rgba(0,0,0,0.2),
+      0 8px 15px -5px rgba(236,72,153,0.4);
+  }
+
   .glossy-overlay {
     @apply absolute inset-0 pointer-events-none;
     background: linear-gradient(to bottom, 

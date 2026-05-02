@@ -44,7 +44,7 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
 };
 
 interface GlossyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'blue' | 'green';
+  variant?: 'blue' | 'green' | 'pink' | 'gray';
 }
 
 export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className = '', variant = 'blue', onClick, ...props }) => {
@@ -53,9 +53,14 @@ export const GlossyButton: React.FC<GlossyButtonProps> = ({ children, className 
     if (onClick) onClick(e);
   };
 
+  const variantClass = variant === 'green' ? 'aero-button-green' 
+    : variant === 'pink' ? 'aero-button-pink'
+    : variant === 'gray' ? 'aero-button-gray'
+    : '';
+
   return (
     <button 
-      className={`aero-button ${variant === 'green' ? 'aero-button-green' : ''} ${className}`}
+      className={`aero-button ${variantClass} ${className}`}
       onClick={handleClick}
       {...props}
     >
