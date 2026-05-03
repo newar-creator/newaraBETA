@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   Search,
   Trash2,
+  Flag,
   AlertCircle,
   RefreshCw,
   Edit3,
@@ -1823,66 +1824,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
-      {/* Report Form Modal */}
-      <AnimatePresence>
-        {showReportModal && (
-           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
-             <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setShowReportModal(null)}
-               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-             />
-             <motion.div
-               initial={{ scale: 0.9, y: 20 }}
-               animate={{ scale: 1, y: 0 }}
-               exit={{ scale: 0.9, y: 20 }}
-               className={`relative w-full max-w-sm rounded-[32px] border-4 p-8 shadow-2xl ${
-                 theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
-               }`}
-             >
-               <div className="glossy-overlay opacity-20 pointer-events-none" />
-               <h2 className={`text-xl font-black mb-1 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Denunciar Actividad</h2>
-               <p className="text-xs opacity-50 mb-6 font-medium">Ayúdanos a entender por qué esta actividad no debería estar aquí.</p>
-               
-               <div className="space-y-4">
-                 <div className="space-y-1">
-                   <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Motivo de la denuncia</label>
-                   <textarea 
-                     value={reportReason}
-                     onChange={(e) => setReportReason(e.target.value)}
-                     className={`w-full p-4 rounded-2xl border text-sm focus:ring-2 focus:ring-red-500 focus:outline-none min-h-[120px] resize-none ${
-                       theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200'
-                     }`}
-                     placeholder="Explica qué está mal..."
-                   />
-                 </div>
 
-                 <div className="flex gap-3">
-                   <button 
-                     onClick={() => setShowReportModal(null)}
-                     className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${
-                       theme === 'black' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                     }`}
-                   >
-                     Cancelar
-                   </button>
-                   <GlossyButton 
-                     loading={isReporting}
-                     disabled={!reportReason.trim()}
-                     onClick={handleSendReport}
-                     variant="pink"
-                     className="flex-1 py-3 text-xs shadow-lg shadow-red-500/20"
-                   >
-                     Enviar Denuncia
-                   </GlossyButton>
-                 </div>
-               </div>
-             </motion.div>
-           </div>
-        )}
-      </AnimatePresence>
 
       {/* Report Action Modal (Moderator) */}
       <AnimatePresence>
@@ -2856,12 +2798,27 @@ export default function App() {
                           userName={userName}
                           onClick={() => {
                             if (cls.ownerName === userName) {
-                               if (confirm("¿Quieres restaurar esta clase?")) {
-                                  updateDoc(doc(db, 'classes', cls.id), { isArchived: false }).then(() => fetchUserClasses());
-                               }
-                            } else {
-                               alert("Esta clase está archivada por el profesor.");
-                            }
+                               setConfirmModal({
+                                 show: true,
+                                 title: '¿Restaurar Clase?',
+                                 message: 'La clase volverá a estar activa para todos los estudiantes.',
+                                 type: 'warning',
+                                 onConfirm: () => {
+                                   updateDoc(doc(db, 'classes', cls.id), { isArchived: false }).then(() => {
+                                     fetchUserClasses();
+                                     setConfirmModal(prev => ({ ...prev, show: false }));
+                                   });
+                                 }
+                               });
+                             } else {
+                               setConfirmModal({
+                                 show: true,
+                                 title: 'Clase Archivada',
+                                 message: 'Esta clase ha sido archivada por el profesor.',
+                                 type: 'warning',
+                                 onConfirm: () => setConfirmModal(prev => ({ ...prev, show: false }))
+                               });
+                             }
                           }}
                         />
                       ))}
@@ -3511,7 +3468,7 @@ export default function App() {
                               className="aero-icon-button text-amber-500 bg-amber-500/10"
                               title="Denunciar Abuso"
                             >
-                              <AlertTriangle size={14} />
+                              <Flag size={14} />
                             </button>
                             {(isModerator || activity.creatorName === userName) && (
                               <>
