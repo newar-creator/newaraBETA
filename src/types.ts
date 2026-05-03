@@ -25,6 +25,44 @@ export interface Subject {
   units: Unit[];
 }
 
+export interface Class {
+  id: string;
+  name: string;
+  description: string;
+  code: string;
+  ownerName: string;
+  ownerAvatar?: string;
+  createdAt: any;
+  isArchived: boolean;
+  themeColor?: string;
+}
+
+export interface Announcement {
+  id: string;
+  classId: string;
+  authorName: string;
+  authorAvatar?: string;
+  content: string;
+  createdAt: any;
+  isDraft: boolean;
+}
+
+export interface ClassMember {
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  joinedAt: any;
+  role: 'Estudiante' | 'Profesor';
+}
+
+export interface ResourceCode {
+  id: string;
+  classId: string;
+  title: string;
+  code: string;
+  createdAt: any;
+}
+
 export const SUBJECTS: Subject[] = [
   {
     id: 'biologia',

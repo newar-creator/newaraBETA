@@ -46,6 +46,7 @@
         "role": { "type": "string" },
         "bio": { "type": "string" },
         "avatar": { "type": "string" },
+        "joinedClasses": { "type": "array" },
         "stats": {
           "type": "object",
           "properties": {
@@ -71,6 +72,108 @@
         "status": { "type": "string" }
       },
       "required": ["activityId", "activityName", "reporterName", "reason", "createdAt", "status"]
+    },
+    "Class": {
+      "title": "Classroom",
+      "description": "A Google Classroom like class",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "code": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isArchived": { "type": "boolean" },
+        "themeColor": { "type": "string" }
+      },
+      "required": ["name", "code", "ownerName", "createdAt", "isArchived"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "A post within a class",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "attachment": { 
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "url": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isDraft": { "type": "boolean" },
+        "commentsCount": { "type": "number" }
+      },
+      "required": ["classId", "authorName", "content", "createdAt", "isDraft"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on an announcement",
+      "type": "object",
+      "properties": {
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["authorName", "content", "createdAt"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "A task created by a teacher",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "attachment": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "url": { "type": "string" }
+          }
+        }
+      },
+      "required": ["classId", "title", "createdAt"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "A student's work for an assignment",
+      "type": "object",
+      "properties": {
+        "assignmentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "attachment": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "url": { "type": "string" }
+          }
+        },
+        "grade": { "type": "number" },
+        "feedback": { "type": "string" }
+      },
+      "required": ["assignmentId", "studentName", "submittedAt", "attachment"]
+    },
+    "ResourceCode": {
+      "title": "Resource Code",
+      "description": "An activity code shared by the teacher",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "title": { "type": "string" },
+        "code": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["classId", "title", "code", "createdAt"]
     }
   },
   "firestore": {
@@ -85,6 +188,34 @@
     "/reports/{reportId}": {
       "schema": "Report",
       "description": "Collection of reports against activities."
+    },
+    "/classes/{classId}": {
+      "schema": "Class",
+      "description": "Classrooms"
+    },
+    "/classes/{classId}/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Posts and announcements in a class"
+    },
+    "/classes/{classId}/announcements/{announcementId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on an announcement"
+    },
+    "/classes/{classId}/members/{userId}": {
+      "schema": "object",
+      "description": "Users joined in a class"
+    },
+    "/classes/{classId}/resources/{resourceId}": {
+      "schema": "ResourceCode",
+      "description": "Activity codes shared in a class"
+    },
+    "/classes/{classId}/assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Tasks created by teachers"
+    },
+    "/classes/{classId}/assignments/{assignmentId}/submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "Task submissions by students"
     }
   }
 }
