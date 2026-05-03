@@ -48,12 +48,6 @@ import {
   Edit3,
   Save,
   ChevronLeft,
-  Users,
-  Users2,
-  Share,
-  ClipboardList,
-  Archive,
-  LogOut,
   Heart,
   Trophy,
   Award,
@@ -61,7 +55,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
@@ -72,7 +66,6 @@ import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { WelcomeTutorial } from './components/WelcomeTutorial';
 import { playExternalBubble, playSuccessSound, playErrorSound } from './lib/sounds';
-import { ClassCard, ClassDetail } from './components/ClassroomUI';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -109,6 +102,8 @@ const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Prom
   });
 };
 
+type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports';
+
 enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -118,38 +113,28 @@ enum OperationType {
   WRITE = 'write',
 }
 
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-  }
-}
+const MODERATORS = ['AraTester', 'NewAra'];
 
-const handleFirestoreError = (error: unknown, operationType: OperationType, path: string | null) => {
-  const errInfo: FirestoreErrorInfo = {
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid || 'anonymous',
-      email: auth.currentUser?.email || null,
-      emailVerified: auth.currentUser?.emailVerified || null,
-      isAnonymous: auth.currentUser?.isAnonymous || null,
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
     },
     operationType,
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  // We don't necessarily want to crash the app, but we want the system to see the error
-  // so we can log it properly.
-};
-
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail';
-
-const MODERATORS = ['AraTester', 'NewAra'];
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -188,22 +173,6 @@ export default function App() {
     }
   }, [disableAnimations]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-
-  // Classroom States
-  const [userClasses, setUserClasses] = useState<any[]>([]);
-  const [activeClass, setActiveClass] = useState<any | null>(null);
-  const [classAnnouncements, setClassAnnouncements] = useState<any[]>([]);
-  const [classMembers, setClassMembers] = useState<any[]>([]);
-  const [classResources, setClassResources] = useState<any[]>([]);
-  const [isClassesLoading, setIsClassesLoading] = useState(false);
-  const [classAssignments, setClassAssignments] = useState<any[]>([]);
-  const [classSubmissions, setClassSubmissions] = useState<any[]>([]);
-  const [announcementComments, setAnnouncementComments] = useState<Record<string, any[]>>({});
-  const [showCreateClassModal, setShowCreateClassModal] = useState(false);
-  const [showJoinClassModal, setShowJoinClassModal] = useState(false);
-  const [classJoinCode, setClassJoinCode] = useState('');
-  const [isArchivingClass, setIsArchivingClass] = useState(false);
-  const [archiveConfirmName, setArchiveConfirmName] = useState('');
 
   // Profile State
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
@@ -499,18 +468,6 @@ export default function App() {
     }, 2000);
     return () => clearTimeout(timer);
   }, [userBio, userAvatar, userRole]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchUserClasses();
-    }
-  }, [isLoggedIn, userName]);
-
-  useEffect(() => {
-    if (activeClass) {
-      fetchClassDetails(activeClass.id);
-    }
-  }, [activeClass]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -956,273 +913,6 @@ export default function App() {
         }
       }
     });
-  };
-
-  const fetchUserClasses = async () => {
-    if (!isLoggedIn) return;
-    setIsClassesLoading(true);
-    try {
-      const ownedQuery = query(collection(db, 'classes'), where('ownerName', '==', userName.trim()));
-      const ownedSnap = await getDocs(ownedQuery);
-      const owned = ownedSnap.docs.map(d => ({ id: d.id, ...d.data(), isOwner: true }));
-
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
-      const joinedIds = userDoc.exists() ? (userDoc.data().joinedClasses || []) : [];
-      
-      const joinedClasses: any[] = [];
-      for (const id of joinedIds) {
-        if (owned.find(o => (o as any).id === id)) continue;
-        const cDoc = await getDoc(doc(db, 'classes', id));
-        if (cDoc.exists()) {
-          joinedClasses.push({ id: cDoc.id, ...cDoc.data(), isOwner: false });
-        }
-      }
-
-      setUserClasses([...owned, ...joinedClasses]);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'classes');
-      console.error("Error fetching classes:", error);
-    } finally {
-      setIsClassesLoading(false);
-    }
-  };
-
-  const createClass = async (name: string, description: string) => {
-    if (!isLoggedIn || userRole !== 'Profesor') return;
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    try {
-      const newClass = {
-        name,
-        description,
-        code,
-        ownerName: userName,
-        createdAt: serverTimestamp(),
-        isArchived: false,
-        themeColor: ['blue', 'purple', 'green', 'amber', 'rose'][Math.floor(Math.random() * 5)]
-      };
-      const docRef = await addDoc(collection(db, 'classes'), newClass);
-      
-      await setDoc(doc(db, 'classes', docRef.id, 'members', userName.trim()), {
-        userName,
-        joinedAt: serverTimestamp(),
-        role: 'Profesor'
-      });
-
-      await updateDoc(doc(db, 'users', userName.trim()), {
-        joinedClasses: arrayUnion(docRef.id)
-      });
-
-      fetchUserClasses();
-      setShowCreateClassModal(false);
-      playSuccessSound();
-    } catch (error) {
-      console.error("Error creating class:", error);
-    }
-  };
-
-  const joinClass = async (code: string) => {
-    if (!isLoggedIn) return;
-    try {
-      const q = query(collection(db, 'classes'), where('code', '==', code.trim().toUpperCase()));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        alert("Código de clase no válido.");
-        return;
-      }
-      const classData = snap.docs[0];
-      const classId = classData.id;
-
-      await setDoc(doc(db, 'classes', classId, 'members', userName.trim()), {
-        userName,
-        joinedAt: serverTimestamp(),
-        role: userRole
-      });
-
-      await updateDoc(doc(db, 'users', userName.trim()), {
-        joinedClasses: arrayUnion(classId)
-      });
-
-      fetchUserClasses();
-      setShowJoinClassModal(false);
-      playSuccessSound();
-      alert(`¡Te has unido a: ${classData.data().name}!`);
-    } catch (error) {
-      console.error("Error joining class:", error);
-    }
-  };
-
-  const leaveClass = async (classId: string) => {
-    if (!isLoggedIn) return;
-    try {
-      await deleteDoc(doc(db, 'classes', classId, 'members', userName.trim()));
-      await updateDoc(doc(db, 'users', userName.trim()), {
-        joinedClasses: arrayRemove(classId)
-      });
-      fetchUserClasses();
-      setCurrentView('classes');
-      setActiveClass(null);
-    } catch (error) {
-      console.error("Error leaving class:", error);
-    }
-  };
-
-  const archiveClassAction = async (classId: string) => {
-    if (!isLoggedIn || activeClass?.ownerName !== userName) return;
-    try {
-      await updateDoc(doc(db, 'classes', classId), { isArchived: true });
-      fetchUserClasses();
-      setCurrentView('classes');
-      setActiveClass(null);
-      alert("Clase archivada correctamente.");
-    } catch (error) {
-      console.error("Error archiving class:", error);
-    }
-  };
-
-  const postAnnouncement = async (classId: string, content: string, attachment?: any) => {
-    if (!isLoggedIn) return;
-    try {
-      await addDoc(collection(db, 'classes', classId, 'announcements'), {
-        authorName: userName,
-        authorAvatar: userAvatar,
-        content,
-        attachment: attachment || null,
-        createdAt: serverTimestamp(),
-        isDraft: false,
-        commentsCount: 0
-      });
-      fetchClassDetails(classId);
-      playSuccessSound();
-    } catch (error) {
-      console.error("Error posting announcement:", error);
-    }
-  };
-
-  const postComment = async (classId: string, announcementId: string, content: string) => {
-    if (!isLoggedIn) return;
-    try {
-      await addDoc(collection(db, 'classes', classId, 'announcements', announcementId, 'comments'), {
-        authorName: userName,
-        authorAvatar: userAvatar,
-        content,
-        createdAt: serverTimestamp()
-      });
-      await updateDoc(doc(db, 'classes', classId, 'announcements', announcementId), {
-        commentsCount: increment(1)
-      });
-      fetchClassDetails(classId);
-    } catch (error) {
-      console.error("Error posting comment:", error);
-    }
-  };
-
-  const createAssignment = async (classId: string, title: string, description: string, dueDate: string, attachment?: any) => {
-    if (!isLoggedIn || userRole !== 'Profesor') return;
-    try {
-      await addDoc(collection(db, 'classes', classId, 'assignments'), {
-        classId,
-        title,
-        description,
-        dueDate,
-        attachment: attachment || null,
-        createdAt: serverTimestamp()
-      });
-      fetchClassDetails(classId);
-      playSuccessSound();
-      alert("Tarea publicada con éxito.");
-    } catch (error) {
-      console.error("Error creating assignment:", error);
-    }
-  };
-
-  const submitTask = async (assignmentId: string, attachment: any) => {
-    if (!isLoggedIn || !activeClass) return;
-    try {
-      await addDoc(collection(db, 'classes', activeClass.id, 'assignments', assignmentId, 'submissions'), {
-        assignmentId,
-        studentName: userName,
-        studentAvatar: userAvatar,
-        attachment,
-        submittedAt: serverTimestamp(),
-        grade: null,
-        feedback: ""
-      });
-      fetchClassDetails(activeClass.id);
-      playSuccessSound();
-      alert("¡Tarea entregada con éxito!");
-    } catch (error) {
-       console.error("Error submitting task:", error);
-    }
-  };
-
-  const shareResourceCode = async (classId: string, title: string, code: string) => {
-    if (!isLoggedIn || userRole !== 'Profesor') return;
-    try {
-      await addDoc(collection(db, 'classes', classId, 'resources'), {
-        title,
-        code,
-        createdAt: serverTimestamp()
-      });
-      fetchClassDetails(classId);
-    } catch (error) {
-      console.error("Error sharing resource:", error);
-    }
-  };
-
-  const fetchClassDetails = async (classId: string) => {
-    try {
-      const annQ = query(collection(db, 'classes', classId, 'announcements'), orderBy('createdAt', 'desc'));
-      const annSnap = await getDocs(annQ);
-      const announcements = annSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setClassAnnouncements(announcements);
-
-      // Fetch comments for each announcement
-      for (const ann of announcements) {
-        const commQ = query(collection(db, 'classes', classId, 'announcements', ann.id, 'comments'), orderBy('createdAt', 'asc'));
-        const commSnap = await getDocs(commQ);
-        setAnnouncementComments(prev => ({
-          ...prev,
-          [ann.id]: commSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        }));
-      }
-
-      const memSnap = await getDocs(collection(db, 'classes', classId, 'members'));
-      const members = memSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      
-      // Fetch full profiles for avatars
-      const membersWithProfiles = await Promise.all(members.map(async (m: any) => {
-        const userDoc = await getDoc(doc(db, 'users', m.id));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          return { ...m, avatar: userData.avatar || null };
-        }
-        return m;
-      }));
-      
-      setClassMembers(membersWithProfiles);
-
-      const resQ = query(collection(db, 'classes', classId, 'resources'), orderBy('createdAt', 'desc'));
-      const resSnap = await getDocs(resQ);
-      setClassResources(resSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-
-      const assQ = query(collection(db, 'classes', classId, 'assignments'), orderBy('createdAt', 'desc'));
-      const assSnap = await getDocs(assQ);
-      const assignments = assSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setClassAssignments(assignments);
-
-      // Fetch all submissions for these assignments (for teachers) or just for current user (for students)
-      // For simplicity in this demo, we fetch all submissions linked to assignments in this class
-      const allSubmissions: any[] = [];
-      for (const ass of assignments) {
-        const subSnap = await getDocs(collection(db, 'classes', classId, 'assignments', ass.id, 'submissions'));
-        subSnap.docs.forEach(doc => allSubmissions.push({ id: doc.id, ...doc.data(), assignmentId: ass.id }));
-      }
-      setClassSubmissions(allSubmissions);
-
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `classes/${classId}`);
-      console.error("Error fetching class details:", error);
-    }
   };
 
   const fetchGallery = async () => {
@@ -1865,127 +1555,6 @@ export default function App() {
         }} />
       )}
       <BubbleBackground theme={theme} />
-      {/* Create Class Modal */}
-      <AnimatePresence>
-        {showCreateClassModal && (
-          <div className="fixed inset-0 z-[180] flex items-center justify-center p-4">
-            <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setShowCreateClassModal(false)}
-               className="absolute inset-0 bg-black/60 backdrop-blur-md"
-            />
-            <motion.div
-               initial={{ scale: 0.9, y: 20 }}
-               animate={{ scale: 1, y: 0 }}
-               exit={{ scale: 0.9, y: 20 }}
-               className={`relative w-full max-w-md rounded-[40px] border-4 p-10 shadow-2xl ${
-                 theme === 'black' ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-white'
-               }`}
-            >
-               <h2 className="text-2xl font-black mb-6">Crear nueva clase</h2>
-               <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Nombre de la clase</label>
-                    <input 
-                      type="text"
-                      className={`w-full p-4 rounded-2xl border font-bold ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}
-                      placeholder="Ej: Historia 3ero A"
-                      id="new-class-name"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Descripción (opcional)</label>
-                    <textarea 
-                      className={`w-full p-4 rounded-2xl border font-bold h-24 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}
-                      placeholder="Ej: Unidad 2 de historia moderna..."
-                      id="new-class-desc"
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <button 
-                      onClick={() => setShowCreateClassModal(false)}
-                      className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest opacity-40 hover:opacity-100"
-                    >
-                      Cancelar
-                    </button>
-                    <GlossyButton 
-                      onClick={() => {
-                        const name = (document.getElementById('new-class-name') as HTMLInputElement)?.value;
-                        const desc = (document.getElementById('new-class-desc') as HTMLTextAreaElement)?.value;
-                        if (name) createClass(name, desc);
-                      }}
-                      className="flex-1 py-4 bg-sky-500 text-white"
-                    >
-                      Crear Clase
-                    </GlossyButton>
-                  </div>
-               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Join Class Modal */}
-      <AnimatePresence>
-        {showJoinClassModal && (
-          <div className="fixed inset-0 z-[180] flex items-center justify-center p-4">
-            <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setShowJoinClassModal(false)}
-               className="absolute inset-0 bg-black/60 backdrop-blur-md"
-            />
-            <motion.div
-               initial={{ scale: 0.9, y: 20 }}
-               animate={{ scale: 1, y: 0 }}
-               exit={{ scale: 0.9, y: 20 }}
-               className={`relative w-full max-w-sm rounded-[40px] border-4 p-10 shadow-2xl ${
-                 theme === 'black' ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-white'
-               }`}
-            >
-               <div className="text-center space-y-6">
-                 <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto text-blue-500">
-                    <Users size={32} />
-                 </div>
-                 <div className="space-y-2">
-                    <h2 className="text-2xl font-black">Unirse a una clase</h2>
-                    <p className="text-xs font-bold opacity-60">Pide a tu profesor el código de la clase e ingrésalo debajo.</p>
-                 </div>
-                 <input 
-                   type="text"
-                   maxLength={6}
-                   placeholder="CÓDIGO"
-                   id="join-class-code"
-                   className={`w-full p-6 rounded-2xl border-4 text-center text-4xl font-logo font-black tracking-[0.2em] uppercase focus:ring-4 focus:ring-blue-500/20 outline-none transition-all ${
-                     theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-sky-950'
-                   }`}
-                 />
-                 <div className="flex gap-3">
-                    <button 
-                      onClick={() => setShowJoinClassModal(false)}
-                      className="flex-1 py-4 rounded-2xl font-black uppercase text-xs tracking-widest opacity-40 hover:opacity-100"
-                    >
-                      Cancelar
-                    </button>
-                    <GlossyButton 
-                      onClick={() => {
-                        const code = (document.getElementById('join-class-code') as HTMLInputElement)?.value;
-                        if (code) joinClass(code);
-                      }}
-                      className="flex-1 py-4 bg-sky-500 text-white"
-                    >
-                      Unirse
-                    </GlossyButton>
-                 </div>
-               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* Activity Details Modal */}
       <AnimatePresence>
         {selectedActivityDetail && (
@@ -2382,18 +1951,6 @@ export default function App() {
               badge="TOP"
             />
             <NavButton 
-              id="nav-classes"
-              active={currentView === 'classes' || currentView === 'class-detail'} 
-              onClick={() => {
-                navigateTo('classes');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Users size={22} />} 
-              label="Clases" 
-              theme={theme}
-              badge="NUEVO"
-            />
-            <NavButton 
               id="nav-schedule"
               active={currentView === 'schedule'} 
               onClick={() => {
@@ -2509,15 +2066,6 @@ export default function App() {
                     label="Leaderboard" 
                     theme={theme}
                     badge="TOP"
-                  />
-                  <MobileMenuButton 
-                    id="nav-classes"
-                    active={currentView === 'classes' || currentView === 'class-detail'} 
-                    onClick={() => { navigateTo('classes'); setShowMoreMobileMenu(false); }} 
-                    icon={<Users size={20} />} 
-                    label="Clases" 
-                    theme={theme}
-                    badge="NUEVO"
                   />
                   <MobileMenuButton 
                     id="nav-schedule"
@@ -2691,125 +2239,6 @@ export default function App() {
           )}
         </AnimatePresence>
         <AnimatePresence mode="wait">
-          {currentView === 'classes' && (
-            <motion.div 
-              key="classes"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="space-y-8"
-            >
-              <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                   <h1 className={`text-4xl font-black tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Mis Clases</h1>
-                   <p className={`font-bold opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                     {userRole === 'Profesor' ? 'Gestiona tus aulas y alumnos.' : 'Participa en las clases de tus profesores.'}
-                   </p>
-                </div>
-                <div className="flex gap-3">
-                  {userRole === 'Profesor' && (
-                    <GlossyButton onClick={() => setShowCreateClassModal(true)} className="px-6 py-3 bg-sky-500 text-white flex items-center gap-2">
-                       <Plus size={20} /> Crear Clase
-                    </GlossyButton>
-                  )}
-                   <GlossyButton onClick={() => setShowJoinClassModal(true)} className="px-6 py-3 bg-zinc-900 text-white flex items-center gap-2 border border-white/10">
-                      <Users size={20} /> Unirse con Código
-                   </GlossyButton>
-                </div>
-              </header>
-
-              {isClassesLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
-                  <RefreshCw className="animate-spin" size={48} />
-                  <p className="font-black uppercase tracking-widest text-xs">Sincronizando aulas...</p>
-                </div>
-              ) : userClasses.length === 0 ? (
-                <div className="text-center py-32 space-y-6 opacity-30">
-                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border-2 border-dashed border-white/20">
-                     <Users2 size={48} />
-                   </div>
-                   <div className="space-y-2">
-                     <h3 className="text-xl font-bold italic">No tienes clases aún.</h3>
-                     <p className="text-sm">Crea una nueva clase o únete a una existente con un código.</p>
-                   </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {userClasses.filter(c => !c.isArchived).map(cls => (
-                    <ClassCard 
-                      key={cls.id} 
-                      cls={cls} 
-                      theme={theme}
-                      userName={userName}
-                      onClick={() => {
-                        setActiveClass(cls);
-                        setCurrentView('class-detail');
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              {userClasses.some(c => c.isArchived) && (
-                 <div className="pt-12 border-t border-white/5">
-                    <h3 className={`text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-6 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Clases Archivadas</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-40 hover:opacity-100 transition-opacity">
-                      {userClasses.filter(c => c.isArchived).map(cls => (
-                        <ClassCard 
-                          key={cls.id} 
-                          cls={cls} 
-                          theme={theme}
-                          userName={userName}
-                          onClick={() => {
-                            if (cls.ownerName === userName) {
-                               if (confirm("¿Quieres restaurar esta clase?")) {
-                                  updateDoc(doc(db, 'classes', cls.id), { isArchived: false }).then(() => fetchUserClasses());
-                               }
-                            } else {
-                               alert("Esta clase está archivada por el profesor.");
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-                 </div>
-              )}
-            </motion.div>
-          )}
-
-          {currentView === 'class-detail' && activeClass && (
-             <motion.div
-               key="class-detail"
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               exit={{ opacity: 0, x: -20 }}
-             >
-                <ClassDetail 
-                  cls={activeClass}
-                  theme={theme}
-                  onBack={() => { setCurrentView('classes'); setActiveClass(null); }}
-                  isOwner={activeClass.ownerName === userName}
-                  announcements={classAnnouncements}
-                  comments={announcementComments}
-                  members={classMembers}
-                  resources={classResources}
-                  assignments={classAssignments}
-                  submissions={classSubmissions}
-                  userName={userName}
-                  onPostAnnouncement={(content, att) => postAnnouncement(activeClass.id, content, att)}
-                  onPostComment={(annId, content) => postComment(activeClass.id, annId, content)}
-                  onShareResource={(title, code) => shareResourceCode(activeClass.id, title, code)}
-                  onPlayActivity={(code) => {
-                    handleLoadActivity(code);
-                  }}
-                  onCreateAssignment={(t, d, due, att) => createAssignment(activeClass.id, t, d, due, att)}
-                  onSubmitTask={(assId, att) => submitTask(assId, att)}
-                  onArchive={() => archiveClassAction(activeClass.id)}
-                  onLeave={() => leaveClass(activeClass.id)}
-                />
-             </motion.div>
-          )}
-
           {currentView === 'home' && (
             <motion.div 
               key="home"
