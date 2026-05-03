@@ -571,7 +571,6 @@ export default function App() {
   const [unitSearch, setUnitSearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity'} | null>(null);
-  const [reportActionModal, setReportActionModal] = useState<any | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
@@ -791,8 +790,7 @@ export default function App() {
   };
 
   const handleTakeActionReport = (report: any) => {
-    if (!isModerator) return;
-    setReportActionModal(report);
+    // Already handled directly in UI now
   };
 
   const handleViewProfile = async (creatorId: string, creatorName?: string, activityFallback?: any) => {
@@ -896,7 +894,6 @@ export default function App() {
           setReports(prev => prev.filter(r => r.id !== report.id));
           setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
           
-          setReportActionModal(null);
           playSuccessSound();
           alert("Actividad eliminada con éxito.");
         } catch (error) {
@@ -946,7 +943,6 @@ export default function App() {
           setReports(prev => prev.filter(r => r.id !== report.id));
           setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
           
-          setReportActionModal(null);
           playSuccessSound();
           alert(`Usuario ${creatorToDelete} eliminado con éxito.`);
         } catch (error) {
@@ -1824,75 +1820,6 @@ export default function App() {
   return (
     <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
-
-
-      {/* Report Action Modal (Moderator) */}
-      <AnimatePresence>
-        {reportActionModal && (
-           <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
-             <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setReportActionModal(null)}
-               className="absolute inset-0 bg-black/70 backdrop-blur-md"
-             />
-             <motion.div
-               initial={{ scale: 0.9, y: 20 }}
-               animate={{ scale: 1, y: 0 }}
-               exit={{ scale: 0.9, y: 20 }}
-               className={`relative w-full max-w-sm rounded-[40px] border-4 p-10 shadow-2xl ${
-                 theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
-               }`}
-             >
-               <div className="glossy-overlay opacity-20 pointer-events-none" />
-               
-               <button 
-                onClick={() => setReportActionModal(null)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 transition-colors text-slate-400"
-               >
-                 <X size={24} />
-               </button>
-
-               <div className="flex flex-col items-center text-center">
-                 <div className="w-16 h-16 rounded-3xl bg-red-500/10 text-red-500 flex items-center justify-center mb-6 border border-red-500/20 shadow-lg shadow-red-500/10">
-                   <AlertTriangle size={32} />
-                 </div>
-                 
-                 <h2 className={`text-2xl font-black mb-2 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Tomar Acción</h2>
-                 <p className="text-sm opacity-60 mb-8 font-medium italic">
-                   "Denuncia de {reportActionModal.reporterName}: {reportActionModal.reason}"
-                 </p>
-                 
-                 <div className="w-full space-y-3">
-                   <GlossyButton 
-                     loading={isTakingAction}
-                     onClick={() => deleteActivityAndReport(reportActionModal)}
-                     className="w-full py-4 bg-red-500 text-white border-2 border-white/20 shadow-xl"
-                   >
-                     Borrar la actividad
-                   </GlossyButton>
-                   <GlossyButton 
-                     loading={isTakingAction}
-                     onClick={() => deleteUserAndReport(reportActionModal)}
-                     className="w-full py-4 bg-zinc-950 text-red-500 border-2 border-red-500/20 shadow-xl shadow-red-500/10"
-                   >
-                     Borrar usuario
-                   </GlossyButton>
-                   <button 
-                     onClick={() => setReportActionModal(null)}
-                     className={`w-full py-4 rounded-full font-black text-xs uppercase tracking-widest transition-all ${
-                       theme === 'black' ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                     }`}
-                   >
-                     No hacer nada
-                   </button>
-                 </div>
-               </div>
-             </motion.div>
-           </div>
-        )}
-      </AnimatePresence>
 
       {showWelcome && (
         <WelcomeTutorial onComplete={() => {
@@ -3640,13 +3567,20 @@ export default function App() {
                         >
                           Ignorar
                         </button>
-                        <GlossyButton 
-                          variant="pink"
-                          onClick={() => handleTakeActionReport(report)}
-                          className="px-4 py-2 text-[10px]"
-                        >
-                          TOMAR ACCIÓN
-                        </GlossyButton>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => deleteActivityAndReport(report)}
+                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
+                          >
+                            Borrar Actividad
+                          </button>
+                          <button 
+                            onClick={() => deleteUserAndReport(report)}
+                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-zinc-950 text-red-500 hover:bg-red-600 hover:text-white transition-all animate-pulse whitespace-nowrap"
+                          >
+                            Banear Usuario
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
