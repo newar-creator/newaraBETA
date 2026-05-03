@@ -54,10 +54,10 @@ service cloud.firestore {
       allow update: if true; 
 
       match /announcements/{annId} {
-        allow read, create, update: if true;
+        allow read, create, update, delete: if true;
         
         match /comments/{commentId} {
-          allow read, create: if true;
+          allow read, create, update, delete: if true;
         }
       }
 

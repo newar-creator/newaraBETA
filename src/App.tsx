@@ -877,25 +877,40 @@ export default function App() {
   const deleteActivityAndReport = async (report: any) => {
     if (!isModerator) return;
     
+    // Suport both activityId (old) and contentId (new unified format)
+    const targetId = report.contentId || report.activityId;
+    const contentType = report.contentType || 'activity';
+
     setConfirmModal({
       show: true,
-      title: '¿ELIMINAR ACTIVIDAD?',
-      message: 'Esta acción es irreversible. Se eliminará la actividad y se cerrará el reporte.',
+      title: '¿ELIMINAR CONTENIDO?',
+      message: `Esta acción es irreversible. Se eliminará el/la ${contentType} y se cerrará el reporte.`,
       type: 'danger',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setIsTakingAction(true);
         try {
-          // Eliminar actividad
-          await deleteDoc(doc(db, 'activities', report.activityId));
+          // Eliminar contenido según el tipo
+          if (contentType === 'activity') {
+            await deleteDoc(doc(db, 'activities', targetId));
+          } else if (contentType === 'announcement') {
+             // We need classId for these... if we don't have it, we might need to store it in report
+             // For now let's focus on activities as they are the primary gallery content
+             if (report.classId) {
+               await deleteDoc(doc(db, 'classes', report.classId, 'announcements', targetId));
+             }
+          }
+          
           // Eliminar denuncia
           await deleteDoc(doc(db, 'reports', report.id));
           
           setReports(prev => prev.filter(r => r.id !== report.id));
-          setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
+          if (contentType === 'activity') {
+            setGalleryActivities(prev => prev.filter(a => a.id !== targetId));
+          }
           
           playSuccessSound();
-          alert("Actividad eliminada con éxito.");
+          alert("Contenido eliminado con éxito.");
         } catch (error) {
           console.error("Error tomando acción:", error);
           alert("Hubo un error al eliminar.");
@@ -909,17 +924,18 @@ export default function App() {
   const deleteUserAndReport = async (report: any) => {
     if (!isModerator) return;
     
-    let creatorToDelete = report.creatorName;
+    const targetId = report.contentId || report.activityId;
+    let creatorToDelete = report.authorName || report.creatorName;
     
-    if (!creatorToDelete) {
-       try {
-         const actDoc = await getDoc(doc(db, 'activities', report.activityId));
-         if (actDoc.exists()) {
-           creatorToDelete = actDoc.data().creatorName;
-         }
-       } catch (error) {
-         console.error("Error fetching activity for creator:", error);
-       }
+    if (!creatorToDelete && targetId && report.contentType === 'activity') {
+        try {
+          const actDoc = await getDoc(doc(db, 'activities', targetId));
+          if (actDoc.exists()) {
+            creatorToDelete = actDoc.data().creatorName;
+          }
+        } catch (error) {
+          console.error("Error fetching activity for creator:", error);
+        }
     }
 
     if (!creatorToDelete) {
@@ -929,19 +945,25 @@ export default function App() {
 
     setConfirmModal({
       show: true,
-      title: '¿BORRAR USUARIO?',
-      message: `¿Estás seguro de que deseas ELIMINAR a ${creatorToDelete}? Esta acción es irreversible y borrará su cuenta de NewAra.`,
+      title: '¿BANEAR USUARIO?',
+      message: `¿Estás seguro de que deseas ELIMINAR a ${creatorToDelete}? Esta acción es irreversible y borrará su cuenta y su contenido.`,
       type: 'danger',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setIsTakingAction(true);
         try {
           await deleteDoc(doc(db, 'users', creatorToDelete));
-          await deleteDoc(doc(db, 'activities', report.activityId));
+          if (targetId) {
+            if (report.contentType === 'activity') {
+              await deleteDoc(doc(db, 'activities', targetId));
+            }
+          }
           await deleteDoc(doc(db, 'reports', report.id));
           
           setReports(prev => prev.filter(r => r.id !== report.id));
-          setGalleryActivities(prev => prev.filter(a => a.id !== report.activityId));
+          if (targetId && report.contentType === 'activity') {
+            setGalleryActivities(prev => prev.filter(a => a.id !== targetId));
+          }
           
           playSuccessSound();
           alert(`Usuario ${creatorToDelete} eliminado con éxito.`);
@@ -1391,7 +1413,7 @@ export default function App() {
     const mappedQuestions = activity.questions.map((q: any) => {
       let correctIdx = q.correctAnswer;
       if (q.type !== 'writing') {
-        correctIdx = q.options.indexOf(q.correctAnswer);
+        correctIdx = (q.options || []).indexOf(q.correctAnswer);
         if (correctIdx === -1) correctIdx = 0;
       }
       return {
@@ -1775,11 +1797,11 @@ export default function App() {
         const unitExtras = {
           name: data.name,
           creator: data.creatorName,
-          exercises: data.questions.map((q: any) => ({
+          exercises: (data.questions || []).map((q: any) => ({
             type: q.type || 'multiple-choice',
             question: q.question,
             options: q.options || [],
-            correct: (q.type === 'writing') ? q.correctAnswer : q.options.indexOf(q.correctAnswer)
+            correct: (q.type === 'writing') ? q.correctAnswer : (q.options || []).indexOf(q.correctAnswer)
           }))
         };
         setCurrentSharedActivity(unitExtras);

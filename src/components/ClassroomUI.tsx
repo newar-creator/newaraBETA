@@ -544,7 +544,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                   </div>
                 ) : (
                   announcements.map((ann) => (
-                    <AeroCard key={ann.id} theme={theme} className="p-4 md:p-6 overflow-visible">
+                    <AeroCard key={ann.id} theme={theme} className="p-4 md:p-6 overflow-visible group">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <UserAvatar name={ann.authorName} url={ann.authorAvatar} className="w-9 h-9" />
@@ -554,7 +554,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                           </div>
                         </div>
 
-                        <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => onReportAbuse('announcement', ann.id, ann.content, ann.authorName)}
                             className="p-1.5 md:p-2 hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 rounded-xl transition-all"
