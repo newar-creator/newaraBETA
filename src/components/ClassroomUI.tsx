@@ -45,10 +45,10 @@ const FileAttachment: React.FC<{ file: any; theme: 'black' | 'light' }> = ({ fil
   };
 
   return (
-    <div className={`mt-3 p-3 rounded-2xl border flex items-center gap-4 transition-all hover:bg-white/5 ${
+    <div className={`mt-3 p-4 md:p-3 rounded-2xl border flex items-center gap-3 md:gap-4 transition-all hover:bg-white/5 active:scale-[0.98] ${
       theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50 border-sky-100'
     }`}>
-      <div className="p-3 bg-sky-500/20 rounded-xl text-sky-500">
+      <div className="p-3 bg-sky-500/20 rounded-xl text-sky-500 flex-shrink-0">
         {isImage ? <ImageIcon size={20} /> : isDocument ? <FileText size={20} /> : <File size={20} />}
       </div>
       <div className="flex-1 min-w-0">
@@ -56,11 +56,11 @@ const FileAttachment: React.FC<{ file: any; theme: 'black' | 'light' }> = ({ fil
         <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{file.type.split('/')[1]}</p>
       </div>
       {isImage ? (
-         <button onClick={() => window.open(file.url, '_blank')} className="p-2 hover:bg-white/10 rounded-lg text-sky-500">
+         <button onClick={() => window.open(file.url, '_blank')} className="p-3 md:p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
            <ExternalLink size={18} />
          </button>
       ) : (
-        <button onClick={downloadFile} className="p-2 hover:bg-white/10 rounded-lg text-sky-500">
+        <button onClick={downloadFile} className="p-3 md:p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
           <Download size={18} />
         </button>
       )}
@@ -219,17 +219,17 @@ const AssignmentItem: React.FC<{
         className="p-5 md:p-6 cursor-pointer flex items-center justify-between group"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-4 md:gap-6 flex-1 min-w-0">
-          <div className={`p-3 md:p-4 rounded-2xl transition-all ${
+        <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0">
+          <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl transition-all ${
             isExpanded ? 'bg-sky-500 text-white' : 'bg-sky-500/10 text-sky-500 group-hover:bg-sky-500 group-hover:text-white'
           }`}>
-            <ClipboardList size={24} />
+            <ClipboardList size={22} className="md:w-6 md:h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-black text-base md:text-lg truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+            <h4 className={`font-black text-sm md:text-lg truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
               {ass.title}
             </h4>
-            <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-widest opacity-40">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-40">
               <span className="flex items-center gap-1"><Calendar size={10} /> {ass.createdAt?.toDate().toLocaleDateString()}</span>
               {ass.dueDate && (
                 <span className="text-rose-500 flex items-center gap-1">
@@ -238,11 +238,11 @@ const AssignmentItem: React.FC<{
               )}
               {isOwner ? (
                 <span className="text-sky-500 flex items-center gap-1">
-                  <Users size={10} /> {submissionCount} Entregas
+                  <Users size={10} /> {submissionCount} <span className="hidden xs:inline">Entregas</span>
                 </span>
               ) : userSubmission ? (
                 <span className="text-emerald-500 flex items-center gap-1">
-                  <CheckCircle2 size={10} /> Entregado
+                  <CheckCircle2 size={10} /> <span className="hidden xs:inline">Entregado</span>
                 </span>
               ) : null}
             </div>
@@ -378,7 +378,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div className={`relative rounded-3xl overflow-hidden p-6 md:p-10 shadow-2xl bg-gradient-to-br ${
+      <div className={`relative rounded-b-[40px] md:rounded-[40px] overflow-hidden p-6 md:p-10 shadow-2xl bg-gradient-to-br ${
         cls.themeColor === 'blue' ? 'from-blue-600 to-indigo-700' :
         cls.themeColor === 'purple' ? 'from-purple-600 to-pink-700' :
         cls.themeColor === 'green' ? 'from-emerald-600 to-teal-700' :
@@ -390,55 +390,57 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
           <div className="space-y-2">
              <button 
                onClick={onBack}
-               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-xs font-black uppercase tracking-widest mb-4"
+               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-[10px] md:text-xs font-black uppercase tracking-widest mb-4 md:mb-6"
              >
                <ArrowLeft size={16} /> Volver a clases
              </button>
-             <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-lg">{cls.name}</h1>
-             <p className="text-white/80 font-bold max-w-xl">{cls.description}</p>
+             <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-lg leading-tight">{cls.name}</h1>
+             <p className="text-white/80 font-bold max-w-xl text-sm md:text-base leading-relaxed">{cls.description}</p>
           </div>
-          <div className="flex flex-col items-end gap-3">
-             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-               <p className="text-[10px] font-black text-white/60 tracking-widest uppercase">Código de Clase</p>
-               <div className="flex items-center gap-3">
-                 <span className="text-2xl font-black text-white tracking-widest">{cls.code}</span>
+          <div className="flex flex-col items-center md:items-end gap-4 md:gap-3">
+             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-4 md:p-5 border border-white/20 w-full md:w-auto text-center md:text-left">
+               <p className="text-[9px] md:text-[10px] font-black text-white/60 tracking-widest uppercase mb-1">Código de Clase</p>
+               <div className="flex items-center justify-center md:justify-start gap-4">
+                 <span className="text-2xl md:text-3xl font-black text-white tracking-[0.2em]">{cls.code}</span>
                  <button 
                    onClick={() => {
                      navigator.clipboard.writeText(cls.code);
                      alert("Código copiado!");
                    }}
-                   className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                   className="p-2 hover:bg-white/20 rounded-xl transition-all active:scale-95"
                  >
-                   <Copy size={18} className="text-white" />
+                   <Copy size={20} className="text-white" />
                  </button>
                </div>
              </div>
-             {isOwner ? (
-                <button 
-                  onClick={() => setShowArchiveConfirm(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-xl transition-all text-[10px] font-black uppercase tracking-wider border border-red-500/30"
-                >
-                  <Archive size={14} /> Archivar clase
-                </button>
-             ) : (
-                <button 
-                  onClick={() => {
-                    if (confirm("¿Estás seguro de que quieres salir de la clase?")) onLeave();
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-zinc-950/20 hover:bg-zinc-950/40 text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-wider border border-white/10"
-                >
-                  <LogOut size={14} /> Salir de la clase
-                </button>
-             )}
+             <div className="flex gap-2 w-full md:w-auto">
+               {isOwner ? (
+                  <button 
+                    onClick={() => setShowArchiveConfirm(true)}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-red-500/30"
+                  >
+                    <Archive size={14} /> Archivar
+                  </button>
+               ) : (
+                  <button 
+                    onClick={() => {
+                      if (confirm("¿Estás seguro de que quieres salir de la clase?")) onLeave();
+                    }}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-950/20 hover:bg-zinc-950/40 text-white rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-white/10"
+                  >
+                    <LogOut size={14} /> Salir
+                  </button>
+               )}
+             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-6 px-2 md:px-0">
-        {/* Navigation Tabs */}
-        <div className="lg:col-span-1">
-           <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 md:gap-8 px-1 md:px-0">
+        {/* Navigation Tabs - Sticky on Mobile */}
+        <div className="lg:col-span-1 sticky top-0 z-40 bg-zinc-950/20 backdrop-blur-md lg:static lg:bg-transparent lg:backdrop-blur-none -mx-1 px-1 lg:mx-0 lg:px-0 py-2 lg:py-0">
+           <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide mask-fade-right lg:mask-none px-2 lg:px-0">
               {[
                 { id: 'anuncios', label: 'Novedades', icon: MessageSquare },
                 { id: 'tareas', label: 'Tareas', icon: ClipboardList },
@@ -447,13 +449,13 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-shrink-0 lg:w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                  className={`flex-shrink-0 lg:w-full flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${
                     activeTab === tab.id 
                       ? 'bg-sky-500 text-white shadow-xl shadow-sky-500/20' 
                       : theme === 'black' ? 'text-white/40 hover:bg-white/5' : 'text-sky-950/40 hover:bg-sky-50'
                   }`}
                 >
-                  <tab.icon size={18} />
+                  <tab.icon size={16} />
                   {tab.label}
                 </button>
               ))}
@@ -461,7 +463,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {activeTab === 'anuncios' ? (
             <>
               {/* Post Area */}
@@ -493,19 +495,29 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                        )}
                      </AnimatePresence>
 
-                     <div className="flex items-center justify-between gap-2">
-                       <label className="cursor-pointer p-2 hover:bg-sky-500/10 rounded-full text-sky-500 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                         <Paperclip size={18} /> Adjuntar
-                         <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, setAnnAttachment)} />
-                       </label>
-                       <GlossyButton 
-                         onClick={handlePost}
-                         className="px-6 py-2 bg-sky-500 text-white"
-                         disabled={!newAnnouncement.trim()}
-                       >
-                         Publicar
-                       </GlossyButton>
-                     </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                        <div className="flex items-center gap-2">
+                          <label className="cursor-pointer px-4 py-2 bg-sky-500/10 rounded-xl text-sky-500 hover:bg-sky-500/20 transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                            <Paperclip size={16} /> {annAttachment ? 'Cambiar archivo' : 'Adjuntar'}
+                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, setAnnAttachment)} />
+                          </label>
+                          {annAttachment && (
+                            <button 
+                              onClick={() => setAnnAttachment(null)}
+                              className="text-[9px] font-black uppercase text-red-500 opacity-60 hover:opacity-100 px-2 py-1"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                        <GlossyButton 
+                          onClick={handlePost}
+                          className="w-full sm:w-auto px-10 py-3 bg-sky-500 text-white shadow-lg shadow-sky-500/20"
+                          disabled={!newAnnouncement.trim()}
+                        >
+                          Publicar
+                        </GlossyButton>
+                      </div>
                    </div>
                 </div>
               </AeroCard>
@@ -656,18 +668,25 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                     </button>
                     
                     <AeroCard theme={theme} className="p-8 space-y-6">
-                       <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                            <h2 className="text-3xl font-black">{viewingAssignment.title}</h2>
-                            <p className="text-xs font-bold opacity-40 flex items-center gap-1">
-                              <Calendar size={12} /> Publicado el {viewingAssignment.createdAt?.toDate().toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                             <p className="text-[10px] font-black uppercase opacity-40 mb-1">Fecha de entrega</p>
-                             <p className="text-sm font-black text-rose-500">{viewingAssignment.dueDate || 'Sin fecha'}</p>
-                          </div>
-                       </div>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                           <div className="space-y-2">
+                             <h2 className="text-2xl md:text-3xl font-black leading-tight">{viewingAssignment.title}</h2>
+                             <div className="flex flex-wrap items-center gap-3">
+                               <p className="text-xs font-bold opacity-40 flex items-center gap-1">
+                                 <Calendar size={12} /> {viewingAssignment.createdAt?.toDate().toLocaleDateString()}
+                               </p>
+                               {viewingAssignment.dueDate && (
+                                 <div className="md:hidden flex items-center gap-1 px-2 py-0.5 bg-rose-500/10 rounded-full text-[10px] font-black text-rose-500 uppercase">
+                                   <Clock size={10} /> {viewingAssignment.dueDate}
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                           <div className="hidden md:block text-right bg-white/5 p-3 rounded-2xl border border-white/5">
+                              <p className="text-[10px] font-black uppercase opacity-40 mb-1 tracking-widest">Fecha de entrega</p>
+                              <p className="text-sm font-black text-rose-500">{viewingAssignment.dueDate || 'Abierta'}</p>
+                           </div>
+                        </div>
                        
                        <p className="text-sm font-medium leading-relaxed opacity-80">{viewingAssignment.description}</p>
                        
@@ -714,17 +733,17 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                <FileAttachment file={submissions.find(s => s.assignmentId === viewingAssignment.id && s.studentName === userName).attachment} theme={theme} />
                             </AeroCard>
                           ) : (
-                            <AeroCard theme={theme} className="p-8 text-center space-y-6">
+                             <AeroCard theme={theme} className="p-6 md:p-10 text-center space-y-6 border-dashed border-2 border-white/5 bg-white/[0.02]">
                                <div className="w-16 h-16 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto text-sky-500">
                                  <Plus size={32} />
                                </div>
                                <div>
-                                 <h4 className="text-lg font-black">Entregar tarea</h4>
-                                 <p className="text-xs font-bold opacity-40">Sube tu archivo PDF o Word para completar la tarea.</p>
+                                 <h4 className="text-xl font-black">Entregar tarea</h4>
+                                 <p className="text-xs font-bold opacity-40 max-w-[200px] mx-auto">Sube tu archivo PDF, Word o imagen para completar el trabajo.</p>
                                </div>
                                
                                <div className="max-w-xs mx-auto">
-                                  <label className="w-full py-4 rounded-2xl bg-zinc-900 text-white font-black uppercase text-xs tracking-widest cursor-pointer flex items-center justify-center gap-2 hover:bg-sky-500/80 transition-all">
+                                  <label className="w-full py-5 rounded-3xl bg-sky-500 text-white font-black uppercase text-[10px] md:text-xs tracking-widest cursor-pointer flex items-center justify-center gap-3 shadow-2xl shadow-sky-500/30 hover:scale-[1.02] active:scale-95 transition-all">
                                     <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => {
                                       const file = e.target.files?.[0];
                                       if (file) {
@@ -741,6 +760,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                         reader.readAsDataURL(file);
                                       }
                                     }} />
+                                    <Paperclip size={18} />
                                     Subir y Entregar
                                   </label>
                                </div>
