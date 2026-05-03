@@ -552,6 +552,7 @@ export default function App() {
   const [viewingProfileActivities, setViewingProfileActivities] = useState<any[]>([]);
   const [showProgramModal, setShowProgramModal] = useState(false);
   const [selectedProgramSubject, setSelectedProgramSubject] = useState<any>(null);
+  const [expandedProgramUnits, setExpandedProgramUnits] = useState<Set<number>>(new Set());
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
   const [activityQuestions, setActivityQuestions] = useState([
@@ -1655,84 +1656,84 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[40px] border-4 shadow-2xl p-6 md:p-12 ${
+              className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] md:rounded-[40px] border-2 md:border-4 shadow-2xl p-6 md:p-12 ${
                 theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
               }`}
             >
               <div className="glossy-overlay opacity-30" />
               
-              <div className="relative z-10 flex flex-col gap-8">
+              <div className="relative z-10 flex flex-col gap-6 md:gap-8">
                 <div className="flex justify-between items-start">
-                   <div className="flex gap-4 items-center">
-                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl relative group items-center justify-center flex bg-zinc-800">
+                   <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-start text-center md:text-left">
+                      <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden border-2 md:border-4 border-white/20 shadow-2xl relative group items-center justify-center flex bg-zinc-800">
                         {viewingProfile.avatar ? (
                           <img src={viewingProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
-                          <div className={`w-full h-full flex items-center justify-center text-white text-4xl font-black ${theme === 'black' ? 'bg-gradient-to-br from-zinc-700 to-zinc-900' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                          <div className={`w-full h-full flex items-center justify-center text-white text-2xl md:text-4xl font-black ${theme === 'black' ? 'bg-gradient-to-br from-zinc-700 to-zinc-900' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
                             {viewingProfile.name?.[0]?.toUpperCase() || 'E'}
                           </div>
                         )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-black uppercase tracking-tighter text-center px-4">
-                           <User size={24} className="mb-1" />
-                           Ver Perfil
+                           <User size={20} className="mb-1" />
+                           Perfil
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                      <div className="space-y-1 md:space-y-2">
+                        <h2 className="text-2xl md:text-5xl font-black tracking-tight leading-tight">
                           {viewingProfile.name}
                         </h2>
-                        <div className="flex gap-2 items-center opacity-60">
-                          <ShieldCheck size={16} className="text-blue-500" />
-                          <span className="text-xs font-bold uppercase tracking-widest">{viewingProfile.role || 'Usuario de NewAra'}</span>
+                        <div className="flex gap-2 items-center justify-center md:justify-start opacity-60">
+                          <ShieldCheck size={14} className="text-blue-500" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">{viewingProfile.role || 'Usuario de NewAra'}</span>
                         </div>
                       </div>
                    </div>
                    <button 
                      onClick={() => setViewingProfile(null)}
-                     className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3"
+                     className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-2 md:p-3"
                    >
-                     <X size={24} />
+                     <X size={20} className="md:w-6 md:h-6" />
                    </button>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="p-6 rounded-[32px] bg-white/5 border border-white/10">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-3">BIOGRAFÍA</p>
-                    <p className="text-sm md:text-base leading-relaxed font-medium">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="p-5 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/5 border border-white/10">
+                    <p className="text-[9px] md:text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-2 md:mb-3">BIOGRAFÍA</p>
+                    <p className="text-xs md:text-base leading-relaxed font-medium">
                       {viewingProfile.bio || "Este usuario prefiere mantener su biografía en secreto..."}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-3xl bg-blue-500/10 border border-blue-500/10 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">PUBLICACIONES</p>
-                      <p className="text-2xl font-black">{viewingProfileActivities.length}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    <div className="p-3 md:p-4 rounded-2xl md:rounded-3xl bg-blue-500/10 border border-blue-500/10 text-center">
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">PUBLICACIONES</p>
+                      <p className="text-xl md:text-2xl font-black">{viewingProfileActivities.length}</p>
                     </div>
-                    <div className="p-4 rounded-3xl bg-orange-500/10 border border-orange-500/10 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">VISITAS</p>
-                      <p className="text-2xl font-black">{viewingProfile.stats?.totalViews || 0}</p>
+                    <div className="p-3 md:p-4 rounded-2xl md:rounded-3xl bg-orange-500/10 border border-orange-500/10 text-center">
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">VISITAS</p>
+                      <p className="text-xl md:text-2xl font-black">{viewingProfile.stats?.totalViews || 0}</p>
                     </div>
-                    <div className="p-4 rounded-3xl bg-pink-500/10 border border-pink-500/10 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">LIKES RECIBIDOS</p>
-                      <p className="text-2xl font-black">{viewingProfile.stats?.totalLikes || 0}</p>
+                    <div className="p-3 md:p-4 rounded-2xl md:rounded-3xl bg-pink-500/10 border border-pink-500/10 text-center">
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">LIKES RECIBIDOS</p>
+                      <p className="text-xl md:text-2xl font-black">{viewingProfile.stats?.totalLikes || 0}</p>
                     </div>
-                    <div className="p-4 rounded-3xl bg-green-500/10 border border-green-500/10 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">RESP. CORRECTAS</p>
-                      <p className="text-2xl font-black">{viewingProfile.stats?.totalCorrect || 0}</p>
+                    <div className="p-3 md:p-4 rounded-2xl md:rounded-3xl bg-green-500/10 border border-green-500/10 text-center">
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">RESP. CORRECTAS</p>
+                      <p className="text-xl md:text-2xl font-black">{viewingProfile.stats?.totalCorrect || 0}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                    <div className="flex items-center justify-between">
-                     <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
-                       <Play className="text-blue-500" size={20} fill="currentColor" /> ACTIVIDADES PUBLICADAS
+                     <h3 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2">
+                       <Play className="text-blue-500 w-4 h-4 md:w-5 md:h-5" fill="currentColor" /> ACTIVIDADES
                      </h3>
-                     <span className="text-xs font-bold opacity-40 uppercase tracking-widest">Recientes</span>
+                     <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest">Recientes</span>
                    </div>
 
-                   <div className="max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+                   <div className="max-h-[300px] md:max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-4">
                         {viewingProfileActivities.length > 0 ? (
                           viewingProfileActivities.map(activity => (
                             <motion.div 
@@ -1743,21 +1744,21 @@ export default function App() {
                                 setSelectedActivityDetail(activity);
                                 setViewingProfile(null);
                               }}
-                              className={`p-4 rounded-3xl border-2 cursor-pointer transition-all ${
+                              className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border-2 cursor-pointer transition-all ${
                                 theme === 'black' ? 'bg-zinc-800 border-white/5 hover:border-blue-500/50' : 'bg-gray-50 border-white hover:border-blue-500'
                               }`}
                             >
-                               <p className="text-[9px] font-black opacity-40 mb-1">ID: {activity.id}</p>
-                               <p className="font-bold mb-3 line-clamp-1 text-sm">{activity.name}</p>
-                               <div className="flex items-center justify-between text-[9px] font-black uppercase opacity-60">
-                                  <span className="flex items-center gap-1"><Heart size={10} /> {activity.likes?.length || 0}</span>
-                                  <span className="flex items-center gap-1"><Play size={10} /> {activity.views || 0}</span>
-                                  <span className="text-blue-500">Ver más →</span>
+                               <p className="text-[8px] font-black opacity-40 mb-1">ID: {activity.id}</p>
+                               <p className="font-bold mb-2 md:mb-3 line-clamp-1 text-xs md:text-sm">{activity.name}</p>
+                               <div className="flex items-center justify-between text-[8px] font-black uppercase opacity-60">
+                                  <span className="flex items-center gap-1"><Heart size={8} className="md:w-[10px] md:h-[10px]" /> {activity.likes?.length || 0}</span>
+                                  <span className="flex items-center gap-1"><Play size={8} className="md:w-[10px] md:h-[10px]" /> {activity.views || 0}</span>
+                                  <span className="text-blue-500">Ver →</span>
                                </div>
                             </motion.div>
                           ))
                         ) : (
-                          <div className="col-span-full py-12 text-center opacity-40 italic">
+                          <div className="col-span-full py-8 md:py-12 text-center opacity-40 italic text-sm">
                             No hay publicaciones recientes.
                           </div>
                         )}
@@ -2984,9 +2985,9 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <AeroCard title="Mi Perfil" theme={theme}>
                   <div className="space-y-6">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-4 text-center sm:text-left">
                       <div className="relative group">
-                        <div className="w-20 h-20 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden">
+                        <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden">
                           {userAvatar ? (
                             <img 
                               src={userAvatar} 
@@ -2996,7 +2997,7 @@ export default function App() {
                             />
                           ) : (
                             <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white'}`}>
-                              <User size={32} />
+                              <User className="w-10 h-10 sm:w-8 sm:h-8" />
                             </div>
                           )}
                         </div>
@@ -3025,13 +3026,13 @@ export default function App() {
                         />
                         <label 
                           htmlFor="avatar-upload"
-                          className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-blue-500 text-white border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform shadow-lg"
+                          className="absolute -bottom-1 -right-1 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform shadow-lg"
                         >
                           <Sparkles size={14} />
                         </label>
                       </div>
                       
-                      <div className="flex-1 space-y-3">
+                      <div className="flex-1 w-full space-y-4 sm:space-y-3">
                         <div className="space-y-1">
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre Visible</label>
                           <input 
@@ -3040,15 +3041,15 @@ export default function App() {
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                             onBlur={() => checkUsername(userName)}
-                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all opacity-50 cursor-not-allowed ${
+                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all opacity-50 cursor-not-allowed ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Tu nombre"
                           />
                         </div>
 
-                        <div className="space-y-1">
-                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Rol</label>
+                        <div className="space-y-1 text-left">
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Rol</label>
                           <div className={`flex p-1 rounded-2xl border transition-all ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/20'}`}>
                             <button 
                               onClick={() => { 
@@ -3058,7 +3059,7 @@ export default function App() {
                                   updateDoc(doc(db, 'users', userName.trim()), { role: 'Estudiante' });
                                 }
                               }}
-                              className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Estudiante' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
+                              className={`flex-1 py-2 sm:py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Estudiante' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
                               Estudiante
                             </button>
@@ -3070,7 +3071,7 @@ export default function App() {
                                   updateDoc(doc(db, 'users', userName.trim()), { role: 'Profesor' });
                                 }
                               }}
-                              className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Profesor' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-purple-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
+                              className={`flex-1 py-2 sm:py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Profesor' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-purple-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
                               Profesor
                             </button>
@@ -3084,54 +3085,57 @@ export default function App() {
                                className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-[1px] rounded-2xl group transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-500/20"
                              >
                                <div className="bg-slate-950/90 rounded-[15px] py-4 px-6 flex flex-col items-center justify-center gap-2 group-hover:bg-transparent transition-colors">
-                                 <span className="text-white font-black text-sm md:text-base tracking-tight uppercase italic">
-                                   ¡Ingresa a NewAra para hacer 20% más!
+                                 <span className="text-white font-black text-sm md:text-base tracking-tight uppercase italic line-clamp-1">
+                                   ¡Registrate en NewAra!
                                  </span>
-                                 <div className="flex items-center gap-4 text-[10px] font-bold text-white/60 group-hover:text-white/90">
+                                 <div className="flex items-center gap-4 text-[9px] sm:text-[10px] font-bold text-white/60 group-hover:text-white/90">
                                    <span className="flex items-center gap-1"><Heart size={10} /> Likes</span>
                                    <span className="flex items-center gap-1"><Play size={10} /> Visitas</span>
                                    <span className="flex items-center gap-1"><Plus size={10} /> Crear</span>
                                  </div>
-                               </div>
-                             </button>
+                                </div>
+                              </button>
                           </div>
                         )}
-
+                        
                         {isLoggedIn && (
-                          <button 
-                            onClick={logout}
-                            className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
-                          >
-                            Cerrar Sesión / Cambiar Usuario
-                          </button>
+                          <div className="pt-2">
+                            <button 
+                              onClick={logout}
+                              className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
+                            >
+                              Cerrar Sesión
+                            </button>
+                          </div>
                         )}
 
                         {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="space-y-1"
+                            className="space-y-1 text-left"
                           >
-                            <label className="text-[10px] font-black uppercase tracking-wider text-red-500">Contraseña de Moderador</label>
+                            <label className="text-[10px] font-black uppercase tracking-wider text-red-500 ml-2">Contraseña de Moderador</label>
                             <input 
                               type="password" 
                               value={moderatorPassword}
                               onChange={(e) => setModeratorPassword(e.target.value)}
-                              className={`w-full px-3 py-2 rounded-xl border text-sm font-bold border-red-500/50 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all ${
+                              className={`w-full px-4 py-3 rounded-xl border text-sm font-bold border-red-500/50 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all ${
                                 theme === 'black' ? 'bg-red-500/5 text-white' : 'bg-red-50/50 text-sky-950'
                               }`}
                               placeholder="Introducir contraseña..."
                             />
                           </motion.div>
                         )}
-                        <div className="space-y-1">
-                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
+
+                        <div className="space-y-1 text-left">
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
                             type="password" 
                             disabled={!isLoggedIn}
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
                               !isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
                             } ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
@@ -3837,22 +3841,25 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl"
-            onClick={() => setShowProgramModal(false)}
+            className="fixed inset-0 z-[260] flex items-center justify-center p-2 md:p-4 bg-black/70 backdrop-blur-xl"
+            onClick={() => {
+              setShowProgramModal(false);
+              setExpandedProgramUnits(new Set());
+            }}
           >
             <motion.div
               initial={{ scale: 0.95, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 30 }}
               onClick={e => e.stopPropagation()}
-              className={`max-w-4xl w-full max-h-[85vh] rounded-[3rem] border-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col ${
+              className={`max-w-4xl w-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col ${
                 theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
               }`}
             >
               {/* Header */}
-              <div className={`p-8 md:p-12 pb-6 border-b flex justify-between items-start ${theme === 'black' ? 'border-white/5 bg-white/2' : 'border-slate-50 bg-slate-50/50'}`}>
-                <div className="flex items-center gap-6">
-                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-white shadow-2xl bg-gradient-to-br ${
+              <div className={`p-6 md:p-12 pb-6 border-b flex justify-between items-start ${theme === 'black' ? 'border-white/5 bg-white/2' : 'border-slate-50 bg-slate-50/50'}`}>
+                <div className="flex items-center gap-4 md:gap-6">
+                  <div className={`w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white shadow-2xl bg-gradient-to-br ${
                     selectedProgramSubject.color === 'green' ? 'from-green-400 to-green-600 shadow-green-500/20' :
                     selectedProgramSubject.color === 'blue' ? 'from-blue-400 to-blue-600 shadow-blue-500/20' :
                     selectedProgramSubject.color === 'amber' ? 'from-amber-400 to-amber-600 shadow-amber-500/20' :
@@ -3860,14 +3867,14 @@ export default function App() {
                     selectedProgramSubject.color === 'red' ? 'from-red-400 to-red-600 shadow-red-500/20' :
                     'from-violet-400 to-violet-600 shadow-violet-500/20'
                   }`}>
-                    <BookOpen size={40} />
+                    <BookOpen className="w-8 h-8 md:w-10 md:h-10" />
                   </div>
                   <div>
-                    <h2 className="text-3xl md:text-5xl font-black tracking-tighter leading-none mb-2">
+                    <h2 className="text-2xl md:text-5xl font-black tracking-tighter leading-none mb-1 md:mb-2">
                        PROGRAMA <span className="opacity-40">OFICIAL</span>
                     </h2>
-                    <p className="text-xs font-black uppercase tracking-widest opacity-60 flex items-center gap-2">
-                      <span className={`w-3 h-3 rounded-full ${
+                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-60 flex items-center gap-2">
+                      <span className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${
                         selectedProgramSubject.color === 'green' ? 'bg-green-500' :
                         selectedProgramSubject.color === 'blue' ? 'bg-blue-500' :
                         selectedProgramSubject.color === 'amber' ? 'bg-amber-500' :
@@ -3880,57 +3887,117 @@ export default function App() {
                   </div>
                 </div>
                 <button 
-                  onClick={() => setShowProgramModal(false)}
-                  className={`p-3 rounded-2xl transition-all ${theme === 'black' ? 'hover:bg-white/10 text-white/40' : 'hover:bg-slate-200 text-slate-400'}`}
+                  onClick={() => {
+                    setShowProgramModal(false);
+                    setExpandedProgramUnits(new Set());
+                  }}
+                  className={`p-2 md:p-3 rounded-xl md:rounded-2xl transition-all ${theme === 'black' ? 'hover:bg-white/10 text-white/40' : 'hover:bg-slate-200 text-slate-400'}`}
                 >
-                  <X size={24} />
+                  <X size={20} className="md:w-6 md:h-6" />
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar">
-                <div className="space-y-12">
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                <div className="space-y-8 md:y-12">
                   <section>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-4 ml-4">Descripción General</h3>
-                    <div className={`p-8 rounded-[2rem] border-2 italic text-sm md:text-base leading-relaxed ${theme === 'black' ? 'bg-white/2 border-white/5 opacity-80' : 'bg-slate-50 border-white opacity-70'}`}>
+                    <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-3 md:mb-4 ml-2 md:ml-4">Descripción General</h3>
+                    <div className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 italic text-xs md:text-base leading-relaxed ${theme === 'black' ? 'bg-white/2 border-white/5 opacity-80' : 'bg-slate-50 border-white opacity-70'}`}>
                       "{selectedProgramSubject.description}"
                     </div>
                   </section>
 
                   <section>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-6 ml-4">Contenidos Curriculares</h3>
-                    <div className="space-y-4">
-                      {selectedProgramSubject.units.map((unit: any, idx: number) => (
-                        <div 
-                          key={idx}
-                          className={`p-6 rounded-3xl border-2 transition-all flex gap-6 items-center group ${
-                            theme === 'black' ? 'bg-zinc-800/50 border-white/5 hover:border-blue-500/30' : 'bg-white border-slate-100 hover:border-blue-500 shadow-sm'
-                          }`}
-                        >
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner ${
-                            theme === 'black' ? 'bg-white/5 text-white/20 group-hover:text-blue-400 group-hover:bg-blue-500/10' : 'bg-slate-50 text-slate-300 group-hover:text-blue-500 group-hover:bg-blue-50'
-                          }`}>
-                            {idx + 1}
+                    <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-4 md:mb-6 ml-2 md:ml-4">Contenidos Curriculares</h3>
+                    <div className="space-y-3 md:space-y-4">
+                      {selectedProgramSubject.units.map((unit: any, idx: number) => {
+                        const isExpanded = expandedProgramUnits.has(idx);
+                        return (
+                          <div 
+                            key={idx}
+                            onClick={() => {
+                              setExpandedProgramUnits(prev => {
+                                const next = new Set(prev);
+                                if (next.has(idx)) next.delete(idx);
+                                else next.add(idx);
+                                return next;
+                              });
+                            }}
+                            className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all flex flex-col gap-2 md:gap-4 cursor-pointer group ${
+                              theme === 'black' ? 'bg-zinc-800/50 border-white/5 hover:border-blue-500/30' : 'bg-white border-slate-100 hover:border-blue-500 shadow-sm'
+                            }`}
+                          >
+                            <div className="flex gap-4 md:gap-6 items-center">
+                              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-sm md:text-xl shadow-inner ${
+                                theme === 'black' ? 'bg-white/5 text-white/20 group-hover:text-blue-400 group-hover:bg-blue-500/10' : 'bg-slate-50 text-slate-300 group-hover:text-blue-500 group-hover:bg-blue-50'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-black uppercase tracking-tight text-[11px] md:text-sm mb-0.5 md:mb-1">{unit.title}</h4>
+                                <p className={`text-[10px] md:text-xs opacity-50 font-medium transition-all ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                  {unit.description}
+                                </p>
+                              </div>
+                              <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl border transition-all ${
+                                isExpanded ? 'rotate-90 bg-blue-500/10 border-blue-500/20 text-blue-500' : 
+                                theme === 'black' ? 'border-white/10 opacity-40 group-hover:opacity-100' : 'border-slate-200 opacity-40 group-hover:opacity-100'
+                              }`}>
+                                <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
+                              </div>
+                            </div>
+                            
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className={`pt-4 md:pt-6 mt-4 md:mt-6 border-t ${theme === 'black' ? 'border-white/5' : 'border-slate-50'}`}>
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-4">
+                                           <h5 className="text-[9px] font-black uppercase tracking-widest opacity-40">Objetivos de la Unidad</h5>
+                                           <ul className="space-y-2">
+                                              {['Dominio de conceptos básicos', 'Aplicación en casos prácticos', 'Análisis crítico del tema'].map((obj, i) => (
+                                                <li key={i} className="flex gap-2 items-center text-[10px] font-bold opacity-60">
+                                                   <CheckCircle2 size={12} className="text-green-500" /> {obj}
+                                                </li>
+                                              ))}
+                                           </ul>
+                                        </div>
+                                        <div className="space-y-4">
+                                           <h5 className="text-[9px] font-black uppercase tracking-widest opacity-40">Recursos Sugeridos</h5>
+                                           <div className="flex gap-2 flex-wrap">
+                                              {['Video-Lección', 'Guía PDF', 'Simulacro'].map((tag, i) => (
+                                                <span key={i} className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase border ${theme === 'black' ? 'bg-white/5 border-white/10 opacity-60' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                                                  {tag}
+                                                </span>
+                                              ))}
+                                           </div>
+                                        </div>
+                                     </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-black uppercase tracking-tight text-sm mb-1">{unit.title}</h4>
-                            <p className="text-xs opacity-50 font-medium line-clamp-2">{unit.description}</p>
-                          </div>
-                          <div className={`p-2 rounded-xl border opacity-0 group-hover:opacity-100 transition-all ${theme === 'black' ? 'border-white/10' : 'border-slate-200'}`}>
-                             <ChevronRight size={16} />
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </section>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className={`p-8 border-t flex justify-end gap-4 ${theme === 'black' ? 'border-white/5' : 'border-slate-50'}`}>
+              <div className={`p-6 md:p-8 border-t flex justify-end gap-4 ${theme === 'black' ? 'border-white/5' : 'border-slate-50'}`}>
                 <GlossyButton 
-                  onClick={() => setShowProgramModal(false)}
-                  className="px-12 py-3 text-[10px] font-black uppercase tracking-widest"
+                  onClick={() => {
+                    setShowProgramModal(false);
+                    setExpandedProgramUnits(new Set());
+                  }}
+                  className="px-8 md:px-12 py-3 text-[10px] font-black uppercase tracking-widest"
                 >
                   Entendido
                 </GlossyButton>
