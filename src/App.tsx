@@ -144,8 +144,6 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  // We don't necessarily want to crash the app, but we want the system to see the error
-  // so we can log it properly.
 };
 
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail';
@@ -439,6 +437,7 @@ export default function App() {
 
   const logout = () => {
     setIsLoggedIn(false);
+    auth.signOut(); // Ensure Firebase Auth session is also cleared
     setUserName('Estudiante');
     setUserPassword('');
     localStorage.removeItem('newara_user_name');
@@ -3826,12 +3825,9 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
                             type="password" 
-                            disabled={!isLoggedIn}
+                            disabled={true}
                             value={userPassword}
-                            onChange={(e) => setUserPassword(e.target.value)}
-                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                              !isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
-                            } ${
+                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold opacity-50 cursor-not-allowed ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Contraseña"
