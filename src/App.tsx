@@ -62,8 +62,33 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  doc, 
+  getDoc, 
+  serverTimestamp, 
+  setDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  deleteDoc, 
+  updateDoc, 
+  increment, 
+  arrayUnion, 
+  arrayRemove 
+} from 'firebase/firestore';
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged, 
+  signOut,
+  updateProfile
+} from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton } from './components/AeroUI';
@@ -207,11 +232,11 @@ export default function App() {
   const [archiveConfirmName, setArchiveConfirmName] = useState('');
 
   // Profile State
-  const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
+  const [userName, setUserName] = useState('Estudiante');
   const [moderatorPassword, setModeratorPassword] = useState('');
   const [isModAuthorized, setIsModAuthorized] = useState(() => localStorage.getItem('newara_mod_auth') === 'true');
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('newara_logged_in') === 'true');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     if (moderatorPassword === 'n3w3naraoz') {
@@ -230,9 +255,9 @@ export default function App() {
     }
   }, [userName]);
 
-  const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
-  const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
-  const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
+  const [userPassword, setUserPassword] = useState('');
+  const [userBio, setUserBio] = useState('');
+  const [userAvatar, setUserAvatar] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authError, setAuthError] = useState<string | null>(null);
@@ -242,12 +267,8 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('newara_user_name', userName);
     localStorage.setItem('newara_user_role', userRole);
-    localStorage.setItem('newara_user_password', userPassword);
-    localStorage.setItem('newara_user_bio', userBio);
-    localStorage.setItem('newara_user_avatar', userAvatar);
     localStorage.setItem('newara_disable_animations', disableAnimations.toString());
-    localStorage.setItem('newara_logged_in', isLoggedIn.toString());
-  }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn]);
+  }, [userName, userRole, disableAnimations]);
 
   useEffect(() => {
     const syncProfile = async () => {
@@ -300,7 +321,7 @@ export default function App() {
     if (!name.trim() || name.trim() === 'Estudiante') return;
     setIsCheckingAccount(true);
     try {
-      const userDoc = await getDoc(doc(db, 'users', name.trim()));
+      const userDoc = await getDoc(doc(db, 'users', name.trim().toLowerCase()));
       if (userDoc.exists()) {
         setAuthMode('login');
       } else {
@@ -315,7 +336,9 @@ export default function App() {
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
+    const cleanName = userName.trim().toLowerCase();
+    
+    if (!cleanName || !userPassword.trim()) {
       setAuthError("Completa todos los campos.");
       return;
     }
@@ -326,32 +349,22 @@ export default function App() {
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.password === userPassword) {
-          playSuccessSound();
-          setIsLoggedIn(true);
-          setIsRegistering(false);
-          // Persist profile
-          setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
-          setUserRole(userData.role || 'Estudiante');
-          setUserAvatar(userData.avatar || '');
-          localStorage.setItem('newara_user_name', userName.trim());
-          localStorage.setItem('newara_user_password', userPassword);
-          localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
-          localStorage.setItem('newara_logged_in', 'true');
-        } else {
-          setAuthError("Contraseña incorrecta.");
-          playErrorSound();
-        }
-      } else {
-        setAuthError("El usuario no existe.");
-        playErrorSound();
-      }
-    } catch (error) {
+      // Use virtual email for Firebase Auth
+      const virtualEmail = `${cleanName}@newara.app`;
+      await signInWithEmailAndPassword(auth, virtualEmail, userPassword);
+      
+      playSuccessSound();
+      setIsRegistering(false);
+    } catch (error: any) {
       console.error("Login error:", error);
-      setAuthError("Error al conectar con el servidor.");
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        setAuthError("Usuario o contraseña incorrectos.");
+      } else if (error.code === 'auth/operation-not-allowed') {
+        setAuthError("El inicio de sesión con Email/Password no está habilitado en Firebase Console.");
+      } else {
+        setAuthError("Error al conectar con el servidor.");
+      }
+      playErrorSound();
     } finally {
       setIsAuthLoading(false);
     }
@@ -359,45 +372,56 @@ export default function App() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
+    const cleanName = userName.trim();
+    if (!cleanName || !userPassword.trim()) {
       setAuthError("Completa todos los campos.");
       return;
     }
-    if (MODERATORS.includes(userName.trim()) && !isModAuthorized) {
+    if (isBlocked(cleanName)) {
+      setAuthError("Este nombre de usuario no está permitido.");
+      return;
+    }
+    if (MODERATORS.includes(cleanName) && !isModAuthorized) {
       setAuthError("Contraseña de moderador requerida.");
       return;
     }
-    if (userPassword.length < 4) {
-      setAuthError("La contraseña debe tener al menos 4 caracteres.");
+    if (userPassword.length < 6) {
+      setAuthError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
-      if (userDoc.exists()) {
-        setAuthError("¡Esta cuenta ya existe!");
-        playErrorSound();
-      } else {
-        const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
-        await setDoc(doc(db, 'users', userName.trim()), {
-          name: userName.trim(),
-          password: userPassword,
-          bio: userBio.slice(0, 300),
-          role: userRole,
-          avatar: safeAvatar,
-          createdAt: serverTimestamp()
-        });
-        playSuccessSound();
-        setIsLoggedIn(true);
-        setIsRegistering(false);
-        localStorage.setItem('newara_user_name', userName.trim());
-        localStorage.setItem('newara_user_password', userPassword);
-        localStorage.setItem('newara_logged_in', 'true');
-      }
-    } catch (error) {
+      const virtualEmail = `${cleanName.toLowerCase()}@newara.app`;
+      const userCredential = await createUserWithEmailAndPassword(auth, virtualEmail, userPassword);
+      
+      // Update Auth Profile
+      await updateProfile(userCredential.user, { displayName: cleanName });
+
+      // Create Firestore Profile
+      const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
+      await setDoc(doc(db, 'users', cleanName.toLowerCase()), {
+        uid: userCredential.user.uid,
+        name: cleanName,
+        bio: userBio.slice(0, 300),
+        role: userRole,
+        avatar: safeAvatar,
+        createdAt: serverTimestamp(),
+        stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
+      });
+
+      playSuccessSound();
+      setIsRegistering(false);
+    } catch (error: any) {
       console.error("Register error:", error);
-      setAuthError("Error al crear la cuenta.");
+      if (error.code === 'auth/email-already-in-use') {
+        setAuthError("¡Este nombre de usuario ya existe!");
+      } else if (error.code === 'auth/operation-not-allowed') {
+        setAuthError("El registro con Email/Password no está habilitado en Firebase Console.");
+      } else {
+        setAuthError("Error al crear la cuenta.");
+      }
+      playErrorSound();
     } finally {
       setIsAuthLoading(false);
     }
@@ -406,17 +430,20 @@ export default function App() {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const handleUpdateProfile = async () => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !auth.currentUser) return;
     setIsUpdatingProfile(true);
-    const userId = auth.currentUser?.uid || userName.trim();
+    
+    // Use lowercased name as doc ID for consistency
+    const userId = (auth.currentUser.displayName || userName).trim().toLowerCase();
     const path = `users/${userId}`;
+    
     try {
       const userRef = doc(db, 'users', userId);
       const safeAvatar = userAvatar && userAvatar.length > 800000 ? '' : userAvatar;
       
-      // Use setDoc with merge to ensure it works even if the document was somehow missing
       await setDoc(userRef, {
-        name: userName.trim(), // Keep name synced
+        uid: auth.currentUser.uid,
+        name: auth.currentUser.displayName || userName.trim(),
         bio: userBio.slice(0, 300),
         role: userRole,
         avatar: safeAvatar,
@@ -424,10 +451,6 @@ export default function App() {
       }, { merge: true });
       
       playSuccessSound();
-      // Update local storage too to ensure sync
-      localStorage.setItem('newara_user_bio', userBio);
-      localStorage.setItem('newara_user_role', userRole);
-      localStorage.setItem('newara_user_avatar', userAvatar);
     } catch (error) {
       console.error("Profile update error:", error);
       playErrorSound();
@@ -437,23 +460,52 @@ export default function App() {
     }
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    setUserName('Estudiante');
-    setUserPassword('');
-    localStorage.removeItem('newara_user_name');
-    localStorage.removeItem('newara_user_password');
-    localStorage.removeItem('newara_logged_in');
-    playExternalBubble();
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setIsLoggedIn(false);
+      setUserName('Estudiante');
+      setUserPassword('');
+      playExternalBubble();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
+  // Auth State Listener
   useEffect(() => {
-    localStorage.setItem('newara_user_role', userRole);
-  }, [userRole]);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        const name = user.displayName || 'Usuario';
+        setUserName(name);
+        
+        // Sync profile from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', name.toLowerCase()));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUserBio(data.bio || '');
+            setUserRole(data.role || 'Estudiante');
+            setUserAvatar(data.avatar || '');
+          }
+        } catch (e) {
+          console.error("Sync profile error:", e);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserName('Estudiante');
+        setUserRole('Estudiante');
+        setUserBio('');
+        setUserAvatar('');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('newara_user_password', userPassword);
-  }, [userPassword]);
+    localStorage.setItem('newara_theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('newara_user_bio', userBio);
@@ -463,43 +515,8 @@ export default function App() {
     // If somehow the avatar became too large, we clear it to avoid sync errors
     if (userAvatar.length > 800000) { 
       setUserAvatar('');
-      localStorage.removeItem('newara_user_avatar');
-    } else {
-      localStorage.setItem('newara_user_avatar', userAvatar);
     }
   }, [userAvatar]);
-
-  const syncProfile = async () => {
-    if (!isLoggedIn || !userName.trim() || userName.trim() === 'Estudiante') return;
-    const path = `users/${userName.trim()}`;
-    try {
-      // Safeguard: Ensure we don't try to sync data that is too large
-      const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
-      const safeBio = userBio.slice(0, 300);
-
-      await updateDoc(doc(db, 'users', userName.trim()), {
-        bio: safeBio,
-        role: userRole,
-        avatar: safeAvatar,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error("Sync error:", error);
-      // We don't want to throw here as it's a background sync, but we want the detailed log if possible
-      try {
-        handleFirestoreError(error, OperationType.UPDATE, path);
-      } catch (e) {
-        // Log handled by handleFirestoreError
-      }
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      syncProfile();
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [userBio, userAvatar, userRole]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -1008,6 +1025,10 @@ export default function App() {
 
   const createClass = async (name: string, description: string) => {
     if (!isLoggedIn || userRole !== 'Profesor') return;
+    if (isBlocked(name) || isBlocked(description)) {
+      alert("El nombre o descripción de la clase contiene palabras no permitidas.");
+      return;
+    }
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
       const newClass = {
@@ -1099,7 +1120,11 @@ export default function App() {
   };
 
   const postAnnouncement = async (classId: string, content: string, attachment?: any) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !content.trim()) return;
+    if (isBlocked(content)) {
+      alert("Tu mensaje contiene palabras no permitidas.");
+      return;
+    }
     try {
       await addDoc(collection(db, 'classes', classId, 'announcements'), {
         authorName: userName,
@@ -1118,7 +1143,11 @@ export default function App() {
   };
 
   const postComment = async (classId: string, announcementId: string, content: string) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !content.trim()) return;
+    if (isBlocked(content)) {
+      alert("Tu comentario contiene palabras no permitidas.");
+      return;
+    }
     try {
       await addDoc(collection(db, 'classes', classId, 'announcements', announcementId, 'comments'), {
         authorName: userName,
@@ -1137,6 +1166,10 @@ export default function App() {
 
   const createAssignment = async (classId: string, title: string, description: string, dueDate: string, attachment?: any) => {
     if (!isLoggedIn || userRole !== 'Profesor') return;
+    if (isBlocked(title) || isBlocked(description)) {
+      alert("El título o descripción contiene palabras no permitidas.");
+      return;
+    }
     try {
       await addDoc(collection(db, 'classes', classId, 'assignments'), {
         classId,
@@ -1643,6 +1676,10 @@ export default function App() {
     return code;
   };
 
+  const isBlocked = (text: string) => {
+    return text.toLowerCase().includes('newara');
+  };
+
   const handleCreateActivity = async () => {
     if (isCreatingActivity) return;
     
@@ -1654,6 +1691,11 @@ export default function App() {
     }
     if (!activityName.trim()) {
       setCreationError("Falta el nombre de la actividad.");
+      playErrorSound();
+      return;
+    }
+    if (isBlocked(activityName)) {
+      setCreationError("El nombre de la actividad no está permitido.");
       playErrorSound();
       return;
     }

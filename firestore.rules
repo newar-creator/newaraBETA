@@ -21,6 +21,7 @@ service cloud.firestore {
     // --- Activities ---
     function isValidActivity(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+          && !data.name.toLower().matches('.*newara.*')
           && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 20
           && (data.createdAt == request.time || ('createdAt' in data && data.createdAt == resource.data.createdAt) || !('createdAt' in data))
           && data.creatorName is string && data.creatorName.size() <= 64;
@@ -36,7 +37,8 @@ service cloud.firestore {
 
     // --- Users ---
     function isValidUsername(id) {
-      return id is string && id.size() >= 2 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() >= 2 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$')
+          && !id.toLower().matches('.*newara.*');
     }
 
     match /users/{userId} {
