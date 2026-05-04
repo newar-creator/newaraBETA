@@ -239,6 +239,8 @@ export default function App() {
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loginUserName, setLoginUserName] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -321,11 +323,11 @@ export default function App() {
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
+    if (!loginUserName.trim() || !loginPassword.trim()) {
       setAuthError("Completa todos los campos.");
       return;
     }
-    if (MODERATORS.includes(userName.trim()) && !isModAuthorized) {
+    if (MODERATORS.includes(loginUserName.trim()) && !isModAuthorized) {
       const hashedModInput = await hashPassword(moderatorPassword);
       const MOD_HASH = 'c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990';
       if (hashedModInput === MOD_HASH || moderatorPassword === 'n3w3naraoz') {
@@ -339,35 +341,37 @@ export default function App() {
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
+      const userDoc = await getDoc(doc(db, 'users', loginUserName.trim()));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const hashedPassword = await hashPassword(userPassword);
+        const hashedPassword = await hashPassword(loginPassword);
         
         // Multi-stage verification:
         // 1. Check if it matches the stored hash
         // 2. Check if it matches as plain text (legacy accounts)
-        const isCorrect = userData.password === hashedPassword || userData.password === userPassword;
+        const isCorrect = userData.password === hashedPassword || userData.password === loginPassword;
 
         if (isCorrect) {
           // Automatic migration to hashing if it was plain text
-          if (userData.password === userPassword && userData.password !== hashedPassword) {
+          if (userData.password === loginPassword && userData.password !== hashedPassword) {
             console.log("Migrating account to secure hashing...");
-            await updateDoc(doc(db, 'users', userName.trim()), { 
+            await updateDoc(doc(db, 'users', loginUserName.trim()), { 
               password: hashedPassword,
               migrationDate: serverTimestamp() 
             });
           }
 
           playSuccessSound();
+          setUserName(loginUserName.trim());
+          setUserPassword(loginPassword);
           setIsLoggedIn(true);
           setIsRegistering(false);
           // Persist profile
           setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
           setUserRole(userData.role || 'Estudiante');
           setUserAvatar(userData.avatar || '');
-          localStorage.setItem('newara_user_name', userName.trim());
-          localStorage.setItem('newara_user_password', userPassword);
+          localStorage.setItem('newara_user_name', loginUserName.trim());
+          localStorage.setItem('newara_user_password', loginPassword);
           localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
           localStorage.setItem('newara_logged_in', 'true');
         } else {
@@ -388,11 +392,11 @@ export default function App() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName.trim() || !userPassword.trim()) {
+    if (!loginUserName.trim() || !loginPassword.trim()) {
       setAuthError("Completa todos los campos.");
       return;
     }
-    if (MODERATORS.includes(userName.trim()) && !isModAuthorized) {
+    if (MODERATORS.includes(loginUserName.trim()) && !isModAuthorized) {
       const hashedModInput = await hashPassword(moderatorPassword);
       const MOD_HASH = 'c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990';
       if (hashedModInput === MOD_HASH || moderatorPassword === 'n3w3naraoz') {
@@ -403,22 +407,22 @@ export default function App() {
         return;
       }
     }
-    if (userPassword.length < 4) {
+    if (loginPassword.length < 4) {
       setAuthError("La contraseña debe tener al menos 4 caracteres.");
       return;
     }
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', userName.trim()));
+      const userDoc = await getDoc(doc(db, 'users', loginUserName.trim()));
       if (userDoc.exists()) {
         setAuthError("¡Esta cuenta ya existe!");
         playErrorSound();
       } else {
-        const hashedPassword = await hashPassword(userPassword);
+        const hashedPassword = await hashPassword(loginPassword);
         const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
-        await setDoc(doc(db, 'users', userName.trim()), {
-          name: userName.trim(),
+        await setDoc(doc(db, 'users', loginUserName.trim()), {
+          name: loginUserName.trim(),
           password: hashedPassword,
           bio: userBio.slice(0, 300),
           role: userRole,
@@ -426,10 +430,12 @@ export default function App() {
           createdAt: serverTimestamp()
         });
         playSuccessSound();
+        setUserName(loginUserName.trim());
+        setUserPassword(loginPassword);
         setIsLoggedIn(true);
         setIsRegistering(false);
-        localStorage.setItem('newara_user_name', userName.trim());
-        localStorage.setItem('newara_user_password', userPassword);
+        localStorage.setItem('newara_user_name', loginUserName.trim());
+        localStorage.setItem('newara_user_password', loginPassword);
         localStorage.setItem('newara_logged_in', 'true');
       }
     } catch (error) {
@@ -3888,9 +3894,12 @@ export default function App() {
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
                           <input 
                             type="password" 
-                            disabled={true}
+                            disabled={!isLoggedIn}
                             value={userPassword}
-                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold opacity-50 cursor-not-allowed ${
+                            onChange={(e) => setUserPassword(e.target.value)}
+                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                              !isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
+                            } ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Contraseña"
@@ -4558,12 +4567,12 @@ export default function App() {
                     <input 
                       type="text"
                       required
-                      value={userName}
+                      value={loginUserName}
                       onChange={(e) => {
-                        setUserName(e.target.value);
+                        setLoginUserName(e.target.value);
                         setAuthError(null);
                       }}
-                      onBlur={() => checkUsername(userName)}
+                      onBlur={() => checkUsername(loginUserName)}
                       placeholder="Ej: Profe Juan"
                       className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
                           theme === 'black' 
@@ -4579,7 +4588,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {MODERATORS.includes(userName.trim()) && !isModAuthorized && (
+                {MODERATORS.includes(loginUserName.trim()) && !isModAuthorized && (
                   <motion.div 
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -4602,8 +4611,8 @@ export default function App() {
                   <input 
                     type="password"
                     required
-                    value={userPassword}
-                    onChange={(e) => setUserPassword(e.target.value)}
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="••••••••"
                     className={`w-full px-6 py-4 rounded-3xl border-2 font-bold focus:ring-4 transition-all outline-none ${
                         theme === 'black' 
