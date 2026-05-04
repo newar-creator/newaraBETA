@@ -18,10 +18,18 @@ service cloud.firestore {
     // request.auth is not currently used by the client app for identity verification.
     // We validate based on the data fields provided until standard auth is implemented.
 
+    // --- Users ---
+    function isValidUsername(id) {
+      return id is string && id.size() >= 2 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
     // --- Activities ---
     function isValidActivity(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && !data.name.toLower().matches('.*newara.*')
           && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 20
           && (data.createdAt == request.time || ('createdAt' in data && data.createdAt == resource.data.createdAt) || !('createdAt' in data))
           && data.creatorName is string && data.creatorName.size() <= 64;
@@ -33,20 +41,6 @@ service cloud.firestore {
       allow update: if isValidId(activityId) && isValidActivity(incoming()) 
                      && incoming().creatorName == existing().creatorName;
       allow delete: if true; // Moderator deletion handled via UI logic validation
-    }
-
-    // --- Users ---
-    function isValidUsername(id) {
-      return id is string && id.size() >= 2 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$')
-          && !id.toLower().matches('.*newara.*');
-    }
-
-    match /users/{userId} {
-      allow get, list: if true;
-      allow create: if isValidUsername(userId) 
-                     && incoming().password is string && incoming().password.size() >= 4 
-                     && (incoming().createdAt == request.time || !('createdAt' in incoming()));
-      allow update, delete: if true; // Permissive for debugging/testing moderating
     }
 
     // --- Classroom ---
