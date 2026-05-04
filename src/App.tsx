@@ -212,13 +212,20 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('newara_logged_in') === 'true');
 
   useEffect(() => {
-    if (moderatorPassword === 'n3w3naraoz') {
-      if (!isModAuthorized) {
-        playSuccessSound();
-        setIsModAuthorized(true);
-        localStorage.setItem('newara_mod_auth', 'true');
+    const checkMod = async () => {
+      if (moderatorPassword) {
+        const hashedInput = await hashPassword(moderatorPassword);
+        // c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990 is the hash of the mod password
+        if (hashedInput === 'c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990') {
+          if (!isModAuthorized) {
+            playSuccessSound();
+            setIsModAuthorized(true);
+            localStorage.setItem('newara_mod_auth', 'true');
+          }
+        }
       }
-    }
+    };
+    checkMod();
   }, [moderatorPassword]);
 
   useEffect(() => {
@@ -327,7 +334,23 @@ export default function App() {
       const userDoc = await getDoc(doc(db, 'users', userName.trim()));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        if (userData.password === userPassword) {
+        const hashedPassword = await hashPassword(userPassword);
+        
+        // Multi-stage verification:
+        // 1. Check if it matches the stored hash
+        // 2. Check if it matches as plain text (legacy accounts)
+        const isCorrect = userData.password === hashedPassword || userData.password === userPassword;
+
+        if (isCorrect) {
+          // Automatic migration to hashing if it was plain text
+          if (userData.password === userPassword && userData.password !== hashedPassword) {
+            console.log("Migrating account to secure hashing...");
+            await updateDoc(doc(db, 'users', userName.trim()), { 
+              password: hashedPassword,
+              migrationDate: serverTimestamp() 
+            });
+          }
+
           playSuccessSound();
           setIsLoggedIn(true);
           setIsRegistering(false);
@@ -377,10 +400,11 @@ export default function App() {
         setAuthError("¡Esta cuenta ya existe!");
         playErrorSound();
       } else {
+        const hashedPassword = await hashPassword(userPassword);
         const safeAvatar = userAvatar.length > 800000 ? '' : userAvatar;
         await setDoc(doc(db, 'users', userName.trim()), {
           name: userName.trim(),
-          password: userPassword,
+          password: hashedPassword,
           bio: userBio.slice(0, 300),
           role: userRole,
           avatar: safeAvatar,
@@ -432,6 +456,21 @@ export default function App() {
       handleFirestoreError(error, OperationType.WRITE, path);
     } finally {
       setIsUpdatingProfile(false);
+    }
+  };
+
+  const hashPassword = async (password: string): Promise<string> => {
+    if (!password) return '';
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    } catch (err) {
+      console.error("Hashing error:", err);
+      return password; // Fallback to plain text if crypto fails (unlikely in modern browsers)
     }
   };
 
