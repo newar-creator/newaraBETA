@@ -284,8 +284,9 @@ export default function App() {
             }
           } else {
             // Create profile for user if it doesn't exist but they are logged in
+            const hashedPassword = await hashPassword(userPassword);
             await setDoc(userRef, {
-              password: userPassword,
+              password: hashedPassword,
               role: userRole,
               bio: userBio,
               avatar: userAvatar,
@@ -2512,24 +2513,51 @@ export default function App() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="flex md:hidden justify-around items-center w-full px-4">
+          <div className="flex md:hidden justify-around items-center w-full px-2">
             <NavButton 
-              id="nav-home"
+              id="mobile-nav-home"
               active={currentView === 'home'} 
               onClick={() => {
                 navigateTo('home');
                 setShowMoreMobileMenu(false);
+                setShowMobileSubjects(false);
               }} 
-              icon={<Home size={24} />} 
+              icon={<Home size={22} />} 
               label="Inicio" 
               theme={theme}
             />
             <NavButton 
+              id="mobile-nav-gallery"
+              active={currentView === 'gallery'} 
+              onClick={() => {
+                navigateTo('gallery');
+                setShowMoreMobileMenu(false);
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Globe size={22} />} 
+              label="Galería" 
+              theme={theme}
+            />
+            <NavButton 
+              id="mobile-nav-classes"
+              active={currentView === 'classes' || currentView === 'class-detail'} 
+              onClick={() => {
+                navigateTo('classes');
+                setShowMoreMobileMenu(false);
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Users size={22} />} 
+              label="Clases" 
+              theme={theme}
+            />
+            <NavButton 
+              id="mobile-nav-more"
               active={showMoreMobileMenu} 
               onClick={() => {
                 setShowMoreMobileMenu(!showMoreMobileMenu);
+                setShowMobileSubjects(false);
               }} 
-              icon={<Menu size={24} />} 
+              icon={<Menu size={22} />} 
               label="Más" 
               theme={theme}
             />
@@ -2562,15 +2590,6 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MobileMenuButton 
-                    id="nav-gallery"
-                    active={currentView === 'gallery'} 
-                    onClick={() => { navigateTo('gallery'); setShowMoreMobileMenu(false); }} 
-                    icon={<Globe size={20} />} 
-                    label="Galería" 
-                    theme={theme}
-                    badge="NUEVO"
-                  />
-                  <MobileMenuButton 
                     id="nav-leaderboard"
                     active={currentView === 'leaderboard'} 
                     onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
@@ -2578,15 +2597,6 @@ export default function App() {
                     label="Leaderboard" 
                     theme={theme}
                     badge="TOP"
-                  />
-                  <MobileMenuButton 
-                    id="nav-classes"
-                    active={currentView === 'classes' || currentView === 'class-detail'} 
-                    onClick={() => { navigateTo('classes'); setShowMoreMobileMenu(false); }} 
-                    icon={<Users size={20} />} 
-                    label="Clases" 
-                    theme={theme}
-                    badge="NUEVO"
                   />
                   <MobileMenuButton 
                     id="nav-schedule"
