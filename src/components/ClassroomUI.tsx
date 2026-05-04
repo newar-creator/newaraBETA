@@ -554,7 +554,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                           </div>
                         </div>
 
-                        <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1">
                           <button 
                             onClick={() => onReportAbuse('announcement', ann.id, ann.content, ann.authorName)}
                             className="p-1.5 md:p-2 hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 rounded-xl transition-all"

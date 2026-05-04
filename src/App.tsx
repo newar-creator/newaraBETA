@@ -644,7 +644,7 @@ export default function App() {
   };
   const [activityName, setActivityName] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
-  const isModerator = MODERATORS.includes(userName.trim()) && isModAuthorized;
+  const isModerator = MODERATORS.includes((userName || '').trim()) && isModAuthorized;
   
   // History State
   const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
@@ -891,9 +891,9 @@ export default function App() {
         setIsTakingAction(true);
         try {
           // Eliminar contenido según el tipo
-          if (contentType === 'activity') {
+          if (contentType === 'activity' && targetId) {
             await deleteDoc(doc(db, 'activities', targetId));
-          } else if (contentType === 'announcement') {
+          } else if (contentType === 'announcement' && targetId) {
              // We need classId for these... if we don't have it, we might need to store it in report
              // For now let's focus on activities as they are the primary gallery content
              if (report.classId) {
@@ -1189,8 +1189,36 @@ export default function App() {
   };
 
 
+  const editAnnouncement = async (classId: string, annId: string, content: string) => {
+    if (!isLoggedIn || !content.trim()) return;
+    try {
+      await updateDoc(doc(db, 'classes', classId, 'announcements', annId), {
+        content: content.trim(),
+        updatedAt: serverTimestamp()
+      });
+      fetchClassDetails(classId);
+      playSuccessSound();
+    } catch (error) {
+      console.error("Error editing announcement:", error);
+    }
+  };
+
+  const editComment = async (classId: string, annId: string, commId: string, content: string) => {
+    if (!isLoggedIn || !content.trim()) return;
+    try {
+      await updateDoc(doc(db, 'classes', classId, 'announcements', annId, 'comments', commId), {
+        content: content.trim(),
+        updatedAt: serverTimestamp()
+      });
+      fetchClassDetails(classId);
+      playSuccessSound();
+    } catch (error) {
+      console.error("Error editing comment:", error);
+    }
+  };
+
   const deleteAnnouncement = async (classId: string, annId: string) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !classId || !annId) return;
     setConfirmModal({
       show: true,
       title: '¿Eliminar Anuncio?',
@@ -1410,14 +1438,14 @@ export default function App() {
     setActivityName(activity.name);
     
     // Map questions back to the creator format
-    const mappedQuestions = activity.questions.map((q: any) => {
+    const mappedQuestions = (activity.questions || []).filter(Boolean).map((q: any) => {
       let correctIdx = q.correctAnswer;
       if (q.type !== 'writing') {
         correctIdx = (q.options || []).indexOf(q.correctAnswer);
         if (correctIdx === -1) correctIdx = 0;
       }
       return {
-        question: q.question,
+        question: q.question || '',
         type: q.type || 'multiple-choice',
         options: q.options || ['', '', '', ''],
         correct: correctIdx
@@ -1797,7 +1825,7 @@ export default function App() {
         const unitExtras = {
           name: data.name,
           creator: data.creatorName,
-          exercises: (data.questions || []).map((q: any) => ({
+          exercises: (data.questions || []).filter(Boolean).map((q: any) => ({
             type: q.type || 'multiple-choice',
             question: q.question,
             options: q.options || [],
@@ -2006,6 +2034,24 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {(isModerator || (selectedActivityDetail && selectedActivityDetail.creatorName === userName)) && (
+                      <>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleEditActivity(selectedActivityDetail, e); }}
+                          className="aero-icon-button bg-blue-500/10 text-blue-500 shadow-lg shadow-blue-500/10"
+                          title="Editar"
+                        >
+                          <Edit3 size={18} />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName); }}
+                          className="aero-icon-button bg-red-500/10 text-red-500 shadow-lg shadow-red-500/10"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
                       {(isLoggedIn && userName !== 'Estudiante') && (
                         <button 
                           onClick={() => {
@@ -4539,60 +4585,6 @@ export default function App() {
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {confirmModal.show && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className={`max-w-md w-full p-8 rounded-[2.5rem] border-2 shadow-2xl ${
-                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
-              }`}
-            >
-              <div className={`w-16 h-16 rounded-3xl mb-6 flex items-center justify-center ${
-                confirmModal.type === 'danger' ? 'bg-pink-500/10 text-pink-500' : 'bg-amber-500/10 text-amber-500'
-              }`}>
-                <AlertCircle size={32} />
-              </div>
-              
-              <h2 className="text-2xl font-black tracking-tight mb-2 uppercase">
-                {confirmModal.title}
-              </h2>
-              <p className="text-sm opacity-60 font-medium leading-relaxed mb-10">
-                {confirmModal.message}
-              </p>
-              
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
-                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${
-                    theme === 'black' ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-100 hover:bg-slate-200'
-                  }`}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmModal.onConfirm}
-                  className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${
-                    confirmModal.type === 'danger' 
-                      ? 'bg-pink-500 text-white hover:bg-pink-600 shadow-pink-500/20' 
-                      : 'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/20'
-                  }`}
-                >
-                  Confirmar
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         )}

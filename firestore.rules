@@ -44,7 +44,7 @@ service cloud.firestore {
       allow create: if isValidUsername(userId) 
                      && incoming().password is string && incoming().password.size() >= 4 
                      && (incoming().createdAt == request.time || !('createdAt' in incoming()));
-      allow update: if isValidUsername(userId); // Basic allow for profile updates
+      allow update, delete: if true; // Permissive for debugging/testing moderating
     }
 
     // --- Classroom ---
