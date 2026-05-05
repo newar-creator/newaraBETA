@@ -187,6 +187,123 @@ export default function App() {
     }
   }, [disableAnimations]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
+  const [language, setLanguage] = useState<'es' | 'en' | 'ru'>(() => {
+    return (localStorage.getItem('newara_language') as 'es' | 'en' | 'ru') || 'es';
+  });
+
+  const translations: any = {
+    es: {
+      materias: "Materias",
+      horario: "Horario",
+      examen: "Examen",
+      leaderboard: "Leaderboard",
+      ajustes: "Ajustes",
+      denunciados: "Denunciados",
+      mas: "Más",
+      perfil: "Perfil",
+      apariencia: "Apariencia",
+      acercaDe: "Acerca de",
+      terminos: "Términos de Servicio",
+      cerrarSesión: "Cerrar Sesión",
+      idioma: "Idioma",
+      nombreVisible: "Nombre Visible",
+      tuRol: "Tu Rol",
+      estudiante: "Estudiante",
+      profesor: "Profesor",
+      bio: "Sobre ti (Bio)",
+      bioPlaceholder: "Contanos algo de vos...",
+      guardarCambios: "Guardar Cambios",
+      eliminarFoto: "Eliminar Foto de Perfil",
+      temaWeb: "Tema del Web",
+      blanco: "Blanco",
+      negro: "Negro",
+      desactivarAnimaciones: "Desactivar Animaciones",
+      mejoraRendimiento: "Mejora el rendimiento en celulares viejos",
+      version: "Versión",
+      desarrollador: "Desarrollador",
+      guardando: "Guardando...",
+      confirmar: "Confirmar",
+      cancelar: "Cancelar",
+      bienvenida: "Bienvenido a NewAra",
+      explorar: "Explora y aprende",
+      inicio: "Inicio"
+    },
+    en: {
+      materias: "Subjects",
+      horario: "Schedule",
+      examen: "Exam",
+      leaderboard: "Leaderboard",
+      ajustes: "Settings",
+      denunciados: "Reported",
+      mas: "More",
+      perfil: "Profile",
+      apariencia: "Appearance",
+      acercaDe: "About",
+      terminos: "Terms of Service",
+      cerrarSesión: "Log Out",
+      idioma: "Language",
+      nombreVisible: "Display Name",
+      tuRol: "Your Role",
+      estudiante: "Student",
+      profesor: "Teacher",
+      bio: "About you (Bio)",
+      bioPlaceholder: "Tell us something about yourself...",
+      guardarCambios: "Save Changes",
+      eliminarFoto: "Remove Profile Picture",
+      temaWeb: "Web Theme",
+      blanco: "Light",
+      negro: "Dark",
+      desactivarAnimaciones: "Disable Animations",
+      mejoraRendimiento: "Improves performance on old phones",
+      version: "Version",
+      desarrollador: "Developer",
+      guardando: "Saving...",
+      confirmar: "Confirm",
+      cancelar: "Cancel",
+      bienvenida: "Welcome to NewAra",
+      explorar: "Explore and learn",
+      inicio: "Home"
+    },
+    ru: {
+      materias: "Предметы",
+      horario: "Расписание",
+      examen: "Экзамен",
+      leaderboard: "Таблица лидеров",
+      ajustes: "Настройки",
+      denunciados: "Жалобы",
+      mas: "Ещё",
+      perfil: "Профиль",
+      apariencia: "Оформление",
+      acercaDe: "О программе",
+      terminos: "Условия использования",
+      cerrarSesión: "Выйти",
+      idioma: "Язык",
+      nombreVisible: "Отображаемое имя",
+      tuRol: "Ваша роль",
+      estudiante: "Студент",
+      profesor: "Преподаватель",
+      bio: "О себе (Биография)",
+      bioPlaceholder: "Расскажите что-нибудь о себе...",
+      guardarCambios: "Сохранить изменения",
+      eliminarFoto: "Удалить фото профиля",
+      temaWeb: "Тема сайта",
+      blanco: "Светлая",
+      negro: "Тёмная",
+      desactivarAnimaciones: "Отключить анимации",
+      mejoraRendimiento: "Улучшает работу на старых телефонах",
+      version: "Версия",
+      desarrollador: "Разработчик",
+      guardando: "Сохранение...",
+      confirmar: "Подтвердить",
+      cancelar: "Отмена",
+      bienvenida: "Добро пожаловать в NewAra",
+      explorar: "Исследуй и учись",
+      inicio: "Главная"
+    }
+  };
+
+  const t = (key: string) => translations[language][key] || key;
 
   // Classroom States
   const [userClasses, setUserClasses] = useState<any[]>([]);
@@ -254,7 +371,8 @@ export default function App() {
     localStorage.setItem('newara_user_avatar', userAvatar);
     localStorage.setItem('newara_disable_animations', disableAnimations.toString());
     localStorage.setItem('newara_logged_in', isLoggedIn.toString());
-  }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn]);
+    localStorage.setItem('newara_language', language);
+  }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn, language]);
 
   useEffect(() => {
     const syncProfile = async () => {
@@ -2449,7 +2567,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<Home size={22} />} 
-              label="Inicio" 
+              label={t('inicio')} 
               theme={theme}
             />
             <NavButton 
@@ -2472,7 +2590,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<Trophy size={22} />} 
-              label="Leaderboard" 
+              label={t('leaderboard')} 
               theme={theme}
               badge="TOP"
             />
@@ -2496,7 +2614,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<CalendarIcon size={22} />} 
-              label="Horario" 
+              label={t('horario')} 
               theme={theme}
             />
             <NavButton 
@@ -2507,7 +2625,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<ClipboardCheck size={22} />} 
-              label="Examen" 
+              label={t('examen')} 
               theme={theme}
             />
             <NavButton 
@@ -2518,7 +2636,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<Settings size={22} />} 
-              label="Ajustes" 
+              label={t('ajustes')} 
               theme={theme}
             />
             {isModerator && (
@@ -2548,7 +2666,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<Home size={22} />} 
-              label="Inicio" 
+              label={t('inicio')} 
               theme={theme}
             />
             <NavButton 
@@ -2583,7 +2701,7 @@ export default function App() {
                 setShowMobileSubjects(false);
               }} 
               icon={<Menu size={22} />} 
-              label="Más" 
+              label={t('mas')} 
               theme={theme}
             />
           </div>
@@ -2618,7 +2736,7 @@ export default function App() {
                     active={showMobileSubjects} 
                     onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
                     icon={<Book size={20} />} 
-                    label="Materias" 
+                    label={t('materias')} 
                     theme={theme}
                   />
                   <MobileMenuButton 
@@ -2626,7 +2744,7 @@ export default function App() {
                     active={currentView === 'schedule'} 
                     onClick={() => { navigateTo('schedule'); setShowMoreMobileMenu(false); }} 
                     icon={<CalendarIcon size={20} />} 
-                    label="Horario" 
+                    label={t('horario')} 
                     theme={theme}
                   />
                   <MobileMenuButton 
@@ -2634,7 +2752,7 @@ export default function App() {
                     active={currentView === 'exam'} 
                     onClick={() => { navigateTo('exam'); setShowMoreMobileMenu(false); }} 
                     icon={<ClipboardCheck size={20} />} 
-                    label="Examen" 
+                    label={t('examen')} 
                     theme={theme}
                   />
                   <MobileMenuButton 
@@ -2642,7 +2760,7 @@ export default function App() {
                     active={currentView === 'leaderboard'} 
                     onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
                     icon={<Trophy size={20} />} 
-                    label="Leaderboard" 
+                    label={t('leaderboard')} 
                     theme={theme}
                     badge="TOP"
                   />
@@ -2651,7 +2769,7 @@ export default function App() {
                     active={currentView === 'settings'} 
                     onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
                     icon={<Settings size={20} />} 
-                    label="Ajustes" 
+                    label={t('ajustes')} 
                     theme={theme}
                   />
                   {isModerator && (
@@ -2660,7 +2778,7 @@ export default function App() {
                       active={currentView === 'reports'} 
                       onClick={() => { navigateTo('reports'); fetchReports(); setShowMoreMobileMenu(false); }} 
                       icon={<AlertTriangle size={20} />} 
-                      label="Denunciados" 
+                      label={t('denunciados')} 
                       theme={theme}
                       badge={reports.length > 0 ? reports.length.toString() : undefined}
                     />
@@ -2955,11 +3073,11 @@ export default function App() {
               </div>
 
               <header className="flex flex-col gap-1">
-        <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-          Inicio
-        </h1>
-        <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Gestiona tu aprendizaje en <span className={`font-logo font-bold transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-900'}`}>NewAra</span>.</p>
-      </header>
+                <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                  {t('inicio')}
+                </h1>
+                <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>{t('explorar')} <span className={`font-logo font-bold transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-900'}`}>NewAra</span>.</p>
+              </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AeroCard title="Actividad Compartida" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
@@ -3091,7 +3209,7 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Materias" theme={theme}>
+                <AeroCard title={t('materias')} theme={theme}>
                   <div className="grid grid-cols-2 gap-3">
                     {SUBJECTS.map(s => (
                       <button 
@@ -3745,12 +3863,12 @@ export default function App() {
               className="space-y-8"
             >
               <header className="flex flex-col gap-1">
-                <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Configuración</h1>
-                <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Personaliza tu experiencia en NewAra.</p>
+                <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('ajustes')}</h1>
+                <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>{t('explorar')}</p>
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AeroCard title="Mi Perfil" theme={theme}>
+                <AeroCard title={t('perfil')} theme={theme}>
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-4 text-center sm:text-left">
                       <div className="relative group">
@@ -3801,7 +3919,7 @@ export default function App() {
                       
                       <div className="flex-1 w-full space-y-4 sm:space-y-3">
                         <div className="space-y-1">
-                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre Visible</label>
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{t('nombreVisible')}</label>
                           <input 
                             type="text" 
                             disabled={true} 
@@ -3809,12 +3927,12 @@ export default function App() {
                             className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold opacity-50 cursor-not-allowed ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
-                            placeholder="Tu nombre"
+                            placeholder={t('nombreVisible')}
                           />
                         </div>
 
                         <div className="space-y-1 text-left">
-                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Rol</label>
+                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{t('tuRol')}</label>
                           <div className={`flex p-1 rounded-2xl border transition-all ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/20'}`}>
                             <button 
                               onClick={() => { 
@@ -3826,7 +3944,7 @@ export default function App() {
                               }}
                               className={`flex-1 py-2 sm:py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Estudiante' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
-                              Estudiante
+                              {t('estudiante')}
                             </button>
                             <button 
                               onClick={() => { 
@@ -3838,7 +3956,7 @@ export default function App() {
                               }}
                               className={`flex-1 py-2 sm:py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'Profesor' ? (theme === 'black' ? 'bg-white/20 text-white shadow-lg' : 'bg-purple-500 text-white shadow-lg') : 'opacity-40 hover:opacity-100'}`}
                             >
-                              Profesor
+                              {t('profesor')}
                             </button>
                           </div>
                         </div>
@@ -3869,7 +3987,7 @@ export default function App() {
                               onClick={logout}
                               className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
                             >
-                              Cerrar Sesión
+                              {t('cerrarSesión')}
                             </button>
                           </div>
                         )}
@@ -3912,7 +4030,7 @@ export default function App() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Sobre ti (Bio)</label>
+                      <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{t('bio')}</label>
                       <textarea 
                         value={userBio}
                         onChange={(e) => setUserBio(e.target.value.slice(0, 300))}
@@ -3920,7 +4038,7 @@ export default function App() {
                         className={`w-full px-3 py-2 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none h-20 ${
                           theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                         }`}
-                        placeholder="Contanos algo de vos..."
+                        placeholder={t('bioPlaceholder')}
                       />
                       <div className="flex justify-end pr-2">
                         <span className="text-[8px] font-bold opacity-30">{userBio.length}/300</span>
@@ -3939,7 +4057,7 @@ export default function App() {
                           ) : (
                             <Save size={16} className="group-hover:scale-110 transition-transform" />
                           )}
-                          {isUpdatingProfile ? 'Guardando...' : 'Guardar Cambios de Perfil'}
+                          {isUpdatingProfile ? t('guardando') : t('guardarCambios')}
                         </GlossyButton>
                       </div>
                     )}
@@ -3952,17 +4070,17 @@ export default function App() {
                         }}
                         className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
                       >
-                        Eliminar Foto de Perfil
+                        {t('eliminarFoto')}
                       </button>
                     )}
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Apariencia" theme={theme}>
+                <AeroCard title={t('apariencia')} theme={theme}>
                   <div className="space-y-6">
                     <div>
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
-                        Tema del Web
+                        {t('temaWeb')}
                       </p>
                       <div className="grid grid-cols-2 gap-4">
                         <button 
@@ -3970,22 +4088,48 @@ export default function App() {
                           className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-100 to-white shadow-inner border border-sky-100" />
-                          <span className="text-sm font-bold text-sky-950">Blanco</span>
+                          <span className="text-sm font-bold text-sky-950">{t('blanco')}</span>
                         </button>
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('black'); }}
                           className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 to-black shadow-inner border border-slate-800" />
-                          <span className="text-sm font-bold text-sky-950">Negro</span>
+                          <span className="text-sm font-bold text-sky-950">{t('negro')}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
+                        {t('idioma')}
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button 
+                          onClick={() => { playExternalBubble(); setLanguage('es'); }}
+                          className={`py-3 rounded-2xl flex flex-col items-center gap-1 transition-all border-2 ${language === 'es' ? 'bg-blue-500 text-white border-blue-400 shadow-lg scale-105' : 'bg-white/20 border-white/30 hover:bg-white/40'}`}
+                        >
+                          <span className="text-[10px] font-bold">Español</span>
+                        </button>
+                        <button 
+                          onClick={() => { playExternalBubble(); setLanguage('en'); }}
+                          className={`py-3 rounded-2xl flex flex-col items-center gap-1 transition-all border-2 ${language === 'en' ? 'bg-blue-500 text-white border-blue-400 shadow-lg scale-105' : 'bg-white/20 border-white/30 hover:bg-white/40'}`}
+                        >
+                          <span className="text-[10px] font-bold">English</span>
+                        </button>
+                        <button 
+                          onClick={() => { playExternalBubble(); setLanguage('ru'); }}
+                          className={`py-3 rounded-2xl flex flex-col items-center gap-1 transition-all border-2 ${language === 'ru' ? 'bg-blue-500 text-white border-blue-400 shadow-lg scale-105' : 'bg-white/20 border-white/30 hover:bg-white/40'}`}
+                        >
+                          <span className="text-[10px] font-bold">Русский</span>
                         </button>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between p-4 rounded-2xl bg-white/20 border border-white/30">
                       <div>
-                        <p className={`font-black uppercase tracking-widest text-[11px] ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Desactivar Animaciones</p>
-                        <p className={`text-[10px] font-bold opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>Mejora el rendimiento en celulares viejos</p>
+                        <p className={`font-black uppercase tracking-widest text-[11px] ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('desactivarAnimaciones')}</p>
+                        <p className={`text-[10px] font-bold opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{t('mejoraRendimiento')}</p>
                       </div>
                       <button 
                         onClick={() => { playExternalBubble(); setDisableAnimations(!disableAnimations); }}
@@ -4002,20 +4146,20 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Acerca de" theme={theme}>
+                <AeroCard title={t('acercaDe')} theme={theme}>
                   <div className="space-y-4">
                     <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
-                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Desarrollador</p>
+                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>{t('desarrollador')}</p>
                       <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>NewAra Team</p>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
-                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>Version</p>
+                      <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>{t('version')}</p>
                       <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>RELEASE 2 - Frutiger Edition</p>
                     </div>
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Términos de Servicio v2.2" theme={theme} className="md:col-span-2">
+                <AeroCard title={t('terminos')} theme={theme} className="md:col-span-2">
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-inner'}`}>
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
