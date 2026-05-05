@@ -227,7 +227,53 @@ export default function App() {
       cancelar: "Cancelar",
       bienvenida: "Bienvenido a NewAra",
       explorar: "Explora y aprende",
-      inicio: "Inicio"
+      inicio: "Inicio",
+      explorarMaterias: "Explorar Materias",
+      unidadesYTemas: "Unidades y Temas",
+      informacion: "Información",
+      verProgramas: "Ver Programas",
+      miHorario: "Mi Horario Escolar",
+      hora: "Hora",
+      lunes: "Lunes",
+      martes: "Martes",
+      miercoles: "Miércoles",
+      jueves: "Jueves",
+      viernes: "Viernes",
+      asistenteExamen: "Asistente de Examen Virtual",
+      pregunta: "Pregunta",
+      de: "de",
+      examenFinalizado: "¡Examen Finalizado!",
+      resultadoExamen: "Has respondido correctamente {score} de {total} preguntas.",
+      reintentar: "Reintentar",
+      volverAlInicio: "Volver al Inicio",
+      misClases: "Mis Clases",
+      crearClase: "Crear Clase",
+      unirseCodigo: "Unirse con Código",
+      buscarTemas: "Buscar temas o unidades...",
+      sincronizando: "Sincronizando aulas...",
+      noClases: "No tienes clases aún.",
+      clasesArchivadas: "Clases Archivadas",
+      restaurarClase: "¿Restaurar Clase?",
+      mensajeRestaurar: "La clase volverá a estar activa para todos los estudiantes.",
+      guiaVisual: "Guía Visual",
+      deslizaTabla: "Desliza la tabla para ver más",
+      sistemaOffline: "SISTEMA OFFLINE",
+      modoSinConexion: "Modo Sin Conexión",
+      gestionaAulas: "Gestiona tus aulas y alumnos.",
+      participaClases: "Participa en las clases de tus profesores.",
+      sincronizandoAulas: "Sincronizando aulas...",
+      noClasesAun: "No tienes clases aún.",
+      creaAunaClase: "Crea una nueva clase o únete a una existente con un código.",
+      legalTitle: 'Información Legal e Importante (Servidor NewAra Pro)',
+      usoAcademico: 'Uso Académico',
+      usoAcademicoDesc: 'NewAra es una herramienta complementaria de estudio. Los resultados en los simulacros no garantizan notas en exámenes reales.',
+      privacidad: 'Privacidad',
+      privacidadDesc: 'Tus preferencias (como el tema y la vista actual) se guardan únicamente en el almacenamiento local de tu navegador.',
+      cuentasUsuario: 'Cuentas de Usuario',
+      cuentasUsuarioDesc: 'En RELEASE 2.1, el registro es obligatorio para publicar. Tu contraseña se cifra localmente. No compartas tus credenciales.',
+      integridadAcademica: 'Integridad Académica',
+      integridadAcademicaDesc: 'NewAra no es responsable por haciendo trampa en los examenes.',
+      ultimaActualizacion: 'Última actualización: 29 de abril de 2026'
     },
     en: {
       materias: "Subjects",
@@ -263,7 +309,53 @@ export default function App() {
       cancelar: "Cancel",
       bienvenida: "Welcome to NewAra",
       explorar: "Explore and learn",
-      inicio: "Home"
+      inicio: "Home",
+      explorarMaterias: "Explore Subjects",
+      unidadesYTemas: "Units and Topics",
+      informacion: "Information",
+      verProgramas: "View Programs",
+      miHorario: "My School Schedule",
+      hora: "Time",
+      lunes: "Monday",
+      martes: "Tuesday",
+      miercoles: "Wednesday",
+      jueves: "Thursday",
+      viernes: "Friday",
+      asistenteExamen: "Virtual Exam Assistant",
+      pregunta: "Question",
+      de: "of",
+      examenFinalizado: "Exam Finished!",
+      resultadoExamen: "You correctly answered {score} of {total} questions.",
+      reintentar: "Retry",
+      volverAlInicio: "Back to Home",
+      misClases: "My Classes",
+      crearClase: "Create Class",
+      unirseCodigo: "Join with Code",
+      buscarTemas: "Search topics or units...",
+      sincronizando: "Syncing classes...",
+      noClases: "You don't have any classes yet.",
+      clasesArchivadas: "Archived Classes",
+      restaurarClase: "Restore Class?",
+      mensajeRestaurar: "The class will be active again for all students.",
+      guiaVisual: "Visual Guide",
+      deslizaTabla: "Swipe the table to see more",
+      sistemaOffline: "OFFLINE SYSTEM",
+      modoSinConexion: "Offline Mode",
+      gestionaAulas: "Manage your classrooms and students.",
+      participaClases: "Participate in your teachers' classes.",
+      sincronizandoAulas: "Syncing classrooms...",
+      noClasesAun: "No classes yet.",
+      creaAunaClase: "Create a new class or join an existing one with a code.",
+      legalTitle: 'Legal & Important Information (NewAra Pro Server)',
+      usoAcademico: 'Academic Use',
+      usoAcademicoDesc: 'NewAra is a complementary study tool. Simulation results do not guarantee grades on real exams.',
+      privacidad: 'Privacy',
+      privacidadDesc: 'Your preferences (such as theme and current view) are saved only in your browser local storage.',
+      cuentasUsuario: 'User Accounts',
+      cuentasUsuarioDesc: 'In RELEASE 2.1, registration is mandatory for posting. Your password is encrypted locally. Do not share your credentials.',
+      integridadAcademica: 'Academic Integrity',
+      integridadAcademicaDesc: 'NewAra is not responsible for cheating on exams.',
+      ultimaActualizacion: 'Last updated: April 29, 2026'
     },
     ru: {
       materias: "Предметы",
@@ -299,7 +391,53 @@ export default function App() {
       cancelar: "Отмена",
       bienvenida: "Добро пожаловать в NewAra",
       explorar: "Исследуй и учись",
-      inicio: "Главная"
+      inicio: "Главная",
+      explorarMaterias: "Исследовать предметы",
+      unidadesYTemas: "Разделы и темы",
+      informacion: "Информация",
+      verProgramas: "Просмотреть программы",
+      miHorario: "Моё школьное расписание",
+      hora: "Время",
+      lunes: "Понедельник",
+      martes: "Вторник",
+      miercoles: "Среда",
+      jueves: "Четверг",
+      viernes: "Пятница",
+      asistenteExamen: "Виртуальный ассистент экзамена",
+      pregunta: "Вопрос",
+      de: "из",
+      examenFinalizado: "Экзамен завершён!",
+      resultadoExamen: "Вы правильно ответили на {score} из {total} вопросов.",
+      reintentar: "Повторить",
+      volverAlInicio: "Вернуться на главную",
+      misClases: "Мои классы",
+      crearClase: "Создать класс",
+      unirseCodigo: "Присоединиться по коду",
+      buscarTemas: "Искать темы или разделы...",
+      sincronizando: "Синхронизация классов...",
+      noClases: "У вас пока нет классов.",
+      clasesArchivadas: "Архивные классы",
+      restaurarClase: "Восстановить класс?",
+      mensajeRestaurar: "Класс снова станет активным для всех студентов.",
+      guiaVisual: "Визуальное руководство",
+      deslizaTabla: "Прокрутите таблицу, чтобы увидеть больше",
+      sistemaOffline: "СИСТЕМА ОФФЛАЙН",
+      modoSinConexion: "Автономный режим",
+      gestionaAulas: "Управляйте своими классами и учениками.",
+      participaClases: "Участвуйте в занятиях своих преподавателей.",
+      sincronizandoAulas: "Синхронизация классов...",
+      noClasesAun: "Классов пока нет.",
+      creaAunaClase: "Создайте новый класс или присоединитесь к существующему по коду.",
+      legalTitle: 'Юридическая и важная информация (Сервер NewAra Pro)',
+      usoAcademico: 'Академическое использование',
+      usoAcademicoDesc: 'NewAra — это вспомогательный инструмент для учебы. Результаты симуляций не гарантируют оценки на реальных экзаменах.',
+      privacidad: 'Конфиденциальность',
+      privacidadDesc: 'Ваши предпочтения (такие как тема и текущий вид) сохраняются только в локальном хранилище вашего браузера.',
+      cuentasUsuario: 'Учетные записи пользователей',
+      cuentasUsuarioDesc: 'В RELEASE 2.1 регистрация обязательна для публикации. Ваш пароль шифруется локально. Не делитесь своими учетными данными.',
+      integridadAcademica: 'Академическая честность',
+      integridadAcademicaDesc: 'NewAra не несет ответственности за списывание на экзаменах.',
+      ultimaActualizacion: 'Последнее обновление: 29 апреля 2026 г.'
     }
   };
 
@@ -2803,7 +2941,7 @@ export default function App() {
                     <div className="glossy-overlay opacity-30 rounded-3xl" />
                     <div className="flex items-center justify-between mb-6">
                       <p className={`text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                        Explorar Materias
+                        {t('explorarMaterias')}
                       </p>
                       <button 
                         onClick={() => setShowMobileSubjects(false)}
@@ -2840,7 +2978,7 @@ export default function App() {
           </AnimatePresence>
 
           <div className="hidden md:flex flex-col gap-2 w-full pb-8">
-            <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">Materias</p>
+            <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
             {SUBJECTS.map(s => (
               <button 
                 key={s.id}
@@ -2889,7 +3027,7 @@ export default function App() {
               className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
             >
               <WifiOff size={14} className="text-white" />
-              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">SISTEMA OFFLINE</span>
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{t('sistemaOffline')}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -2906,7 +3044,7 @@ export default function App() {
               <div className="absolute inset-0 bg-red-500/10 opacity-50 group-hover:opacity-100 transition-opacity" />
               <WifiOff size={20} className="text-red-400 relative z-10 animate-pulse" />
               <div className="relative z-10">
-                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-none">Modo Sin Conexión</p>
+                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest leading-none">{t('modoSinConexion')}</p>
                 <p className={`text-xs font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>OFFLINE</p>
               </div>
             </motion.div>
@@ -2923,19 +3061,19 @@ export default function App() {
             >
               <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                   <h1 className={`text-4xl font-black tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Mis Clases</h1>
+                   <h1 className={`text-4xl font-black tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('misClases')}</h1>
                    <p className={`font-bold opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                     {userRole === 'Profesor' ? 'Gestiona tus aulas y alumnos.' : 'Participa en las clases de tus profesores.'}
+                     {userRole === 'Profesor' ? t('gestionaAulas') : t('participaClases')}
                    </p>
                 </div>
                 <div className="flex gap-3">
                   {userRole === 'Profesor' && (
                     <GlossyButton onClick={() => setShowCreateClassModal(true)} className="px-6 py-3 bg-sky-500 text-white flex items-center gap-2">
-                       <Plus size={20} /> Crear Clase
+                       <Plus size={20} /> {t('crearClase')}
                     </GlossyButton>
                   )}
                    <GlossyButton onClick={() => setShowJoinClassModal(true)} className="px-6 py-3 bg-zinc-900 text-white flex items-center gap-2 border border-white/10">
-                      <Users size={20} /> Unirse con Código
+                      <Users size={20} /> {t('unirseCodigo')}
                    </GlossyButton>
                 </div>
               </header>
@@ -2943,7 +3081,7 @@ export default function App() {
               {isClassesLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
                   <RefreshCw className="animate-spin" size={48} />
-                  <p className="font-black uppercase tracking-widest text-xs">Sincronizando aulas...</p>
+                  <p className="font-black uppercase tracking-widest text-xs">{t('sincronizandoAulas')}</p>
                 </div>
               ) : userClasses.length === 0 ? (
                 <div className="text-center py-32 space-y-6 opacity-30">
@@ -2951,8 +3089,8 @@ export default function App() {
                      <Users2 size={48} />
                    </div>
                    <div className="space-y-2">
-                     <h3 className="text-xl font-bold italic">No tienes clases aún.</h3>
-                     <p className="text-sm">Crea una nueva clase o únete a una existente con un código.</p>
+                     <h3 className="text-xl font-bold italic">{t('noClasesAun')}</h3>
+                     <p className="text-sm">{t('creaAunaClase')}</p>
                    </div>
                 </div>
               ) : (
@@ -2974,7 +3112,7 @@ export default function App() {
               
               {userClasses.some(c => c.isArchived) && (
                  <div className="pt-12 border-t border-white/5">
-                    <h3 className={`text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-6 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Clases Archivadas</h3>
+                    <h3 className={`text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-6 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('clasesArchivadas')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-40 hover:opacity-100 transition-opacity">
                       {userClasses.filter(c => c.isArchived).map(cls => (
                         <ClassCard 
@@ -2986,8 +3124,8 @@ export default function App() {
                             if (cls.ownerName === userName) {
                                setConfirmModal({
                                  show: true,
-                                 title: '¿Restaurar Clase?',
-                                 message: 'La clase volverá a estar activa para todos los estudiantes.',
+                                 title: t('restaurarClase'),
+                                 message: t('mensajeRestaurar'),
                                  type: 'warning',
                                  onConfirm: () => {
                                    updateDoc(doc(db, 'classes', cls.id), { isArchived: false }).then(() => {
@@ -4163,33 +4301,33 @@ export default function App() {
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-inner'}`}>
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
-                        Información Legal e Importante (Servidor NewAra Pro)
+                        {t('legalTitle')}
                       </p>
                       <ul className={`space-y-3 text-xs md:text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         <li className="flex gap-3">
                           <CheckCircle2 size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                          <span><b>Uso Académico:</b> NewAra es una herramienta complementaria de estudio. Los resultados en los simulacros no garantizan notas en exámenes reales.</span>
+                          <span><b>{t('usoAcademico')}:</b> {t('usoAcademicoDesc')}</span>
                         </li>
                         <li className="flex gap-3">
                           <CheckCircle2 size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                          <span><b>Privacidad:</b> Tus preferencias (como el tema y la vista actual) se guardan únicamente en el almacenamiento local de tu navegador.</span>
+                          <span><b>{t('privacidad')}:</b> {t('privacidadDesc')}</span>
                         </li>
                         <li className="flex gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
                           <User size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
                           <span>
-                            <b>Cuentas de Usuario:</b> En RELEASE 2.1, el registro es obligatorio para publicar. Tu contraseña se cifra localmente. No compartas tus credenciales.
+                            <b>{t('cuentasUsuario')}:</b> {t('cuentasUsuarioDesc')}
                           </span>
                         </li>
                         <li className="flex gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                           <ShieldCheck size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
                           <span>
-                            <b className="text-red-500">Integridad Académica:</b> <span className="italic font-bold text-red-600/80 underline decoration-red-300">NewAra no es responsable por haciendo trampa en los examenes.</span>
+                            <b className="text-red-500">{t('integridadAcademica')}:</b> <span className="italic font-bold text-red-600/80 underline decoration-red-300">{t('integridadAcademicaDesc')}</span>
                           </span>
                         </li>
                       </ul>
                     </div>
                     <p className={`text-[10px] font-black uppercase tracking-widest text-center opacity-30 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                      Última actualización: 29 de abril de 2026
+                      {t('ultimaActualizacion')}
                     </p>
                   </div>
                 </AeroCard>
@@ -4215,7 +4353,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-6">
-                    <AeroCard title="Unidades y Temas" theme={theme}>
+                    <AeroCard title={t('unidadesYTemas')} theme={theme}>
                       <div className="flex flex-col gap-6">
                         {/* Unit Search Bar */}
                         <div className="relative group">
@@ -4224,7 +4362,7 @@ export default function App() {
                             type="text"
                             value={unitSearch}
                             onChange={(e) => setUnitSearch(e.target.value)}
-                            placeholder="Buscar temas o unidades..."
+                            placeholder={t('buscarTemas')}
                             className={`w-full pl-12 pr-4 py-4 rounded-3xl text-sm font-bold transition-all duration-300 outline-none border-2 bg-white/10 ${
                               theme === 'black' 
                                 ? 'border-white/10 focus:border-blue-500/50 text-white placeholder:text-white/20' 
@@ -4264,7 +4402,7 @@ export default function App() {
                   </div>
 
                   <div className="space-y-6">
-                    <AeroCard title="Información" theme={theme}>
+                    <AeroCard title={t('informacion')} theme={theme}>
                       <p className={`font-medium leading-relaxed italic text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         "{selectedSubject.description}"
                       </p>
@@ -4275,7 +4413,7 @@ export default function App() {
                         onClick={() => setShowGeoGuide(true)}
                         className="w-full py-3 text-sm gap-2 border-2 border-white/40"
                        >
-                         <div className="flex items-center gap-2">📖 Guía Visual <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
+                         <div className="flex items-center gap-2">📖 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
                        </GlossyButton>
                     )}
 
@@ -4284,7 +4422,7 @@ export default function App() {
                         onClick={() => setShowMathGuide(true)}
                         className="w-full py-3 text-sm gap-2 border-2 border-white/40"
                        >
-                         <div className="flex items-center gap-2">🔢 Guía Visual <span className="text-[9px] opacity-50 font-black">(PDF)</span></div>
+                         <div className="flex items-center gap-2">🔢 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(PDF)</span></div>
                         </GlossyButton>
                     )}
                     
@@ -4295,7 +4433,7 @@ export default function App() {
                       }}
                       className="w-full py-3 text-sm gap-2 border-2 border-white/40 active:scale-95 transition-all"
                     >
-                      <BookOpen size={16} /> Ver Programas
+                      <BookOpen size={16} /> {t('verProgramas')}
                     </GlossyButton>
                   </div>
                 </div>
@@ -4324,22 +4462,22 @@ export default function App() {
                className="space-y-8"
             >
                <div className="flex flex-col gap-1">
-                 <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Mi Horario Escolar</h1>
+                 <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('miHorario')}</h1>
                  <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Ciclo Lectivo 2026 - 1º 1ª</p>
                </div>
 
                <div className="space-y-4">
-                 <p className={`md:hidden text-[10px] text-center animate-pulse font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/40' : 'text-sky-800/40'}`}>↔ Desliza la tabla para ver más</p>
+                 <p className={`md:hidden text-[10px] text-center animate-pulse font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/40' : 'text-sky-800/40'}`}>↔ {t('deslizaTabla')}</p>
                  <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40" theme={theme}>
                     <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                       <tr className={`backdrop-blur-sm ${theme === 'black' ? 'bg-white/5' : 'bg-white/30'}`}>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 uppercase tracking-tighter w-24 ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Hora</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Lunes</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Martes</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Miércoles</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Jueves</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>Viernes</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 uppercase tracking-tighter w-24 ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('hora')}</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('lunes')}</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('martes')}</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('miercoles')}</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('jueves')}</th>
+                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('viernes')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -4368,7 +4506,7 @@ export default function App() {
                exit={{ opacity: 0, scale: 1.1 }}
                className="max-w-3xl mx-auto space-y-8 py-12"
             >
-               <AeroCard title="Asistente de Examen Virtual" className="border-4 border-blue-400/30" theme={theme}>
+               <AeroCard title={t('asistenteExamen')} className="border-4 border-blue-400/30" theme={theme}>
                   <AnimatePresence mode="wait">
                     {!examState.finished ? (
                       <motion.div 
@@ -4380,7 +4518,7 @@ export default function App() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-black text-blue-500 tracking-widest">Pregunta {examState.currentQuestion + 1} de {questions.length}</span>
+                            <span className="text-[10px] uppercase font-black text-blue-500 tracking-widest">{t('pregunta')} {examState.currentQuestion + 1} {t('de')} {questions.length}</span>
                             <h2 className={`text-2xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{questions[examState.currentQuestion].q}</h2>
                           </div>
                         </div>
@@ -4442,11 +4580,13 @@ export default function App() {
                           {Math.round((examState.score / questions.length) * 100)}%
                         </div>
                         <div className="space-y-2">
-                          <h2 className={`text-3xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Examen Finalizado!</h2>
-                          <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Has respondido correctamente {examState.score} de {questions.length} preguntas.</p>
+                          <h2 className={`text-3xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('examenFinalizado')}</h2>
+                          <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>
+                            {t('resultadoExamen').replace('{score}', examState.score.toString()).replace('{total}', questions.length.toString())}
+                          </p>
                         </div>
                         <div className="flex gap-4">
-                           <GlossyButton onClick={resetExam}>Reintentar</GlossyButton>
+                           <GlossyButton onClick={resetExam}>{t('reintentar')}</GlossyButton>
                            <button 
                              onClick={() => {
                                playExternalBubble();
@@ -4454,7 +4594,7 @@ export default function App() {
                              }} 
                              className={`font-bold hover:underline transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}
                            >
-                             Volver al Inicio
+                             {t('volverAlInicio')}
                            </button>
                         </div>
                       </motion.div>
