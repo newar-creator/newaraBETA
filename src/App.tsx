@@ -2613,15 +2613,13 @@ export default function App() {
                     <X size={16} />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-2">
                   <MobileMenuButton 
-                    id="nav-leaderboard"
-                    active={currentView === 'leaderboard'} 
-                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
-                    icon={<Trophy size={20} />} 
-                    label="Leaderboard" 
+                    active={showMobileSubjects} 
+                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
+                    icon={<Book size={20} />} 
+                    label="Materias" 
                     theme={theme}
-                    badge="TOP"
                   />
                   <MobileMenuButton 
                     id="nav-schedule"
@@ -2638,6 +2636,15 @@ export default function App() {
                     icon={<ClipboardCheck size={20} />} 
                     label="Examen" 
                     theme={theme}
+                  />
+                  <MobileMenuButton 
+                    id="nav-leaderboard"
+                    active={currentView === 'leaderboard'} 
+                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
+                    icon={<Trophy size={20} />} 
+                    label="Leaderboard" 
+                    theme={theme}
+                    badge="TOP"
                   />
                   <MobileMenuButton 
                     id="nav-settings"
@@ -2658,13 +2665,6 @@ export default function App() {
                       badge={reports.length > 0 ? reports.length.toString() : undefined}
                     />
                   )}
-                  <MobileMenuButton 
-                    active={showMobileSubjects} 
-                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
-                    icon={<Book size={20} />} 
-                    label="Materias" 
-                    theme={theme}
-                  />
                 </div>
               </motion.div>
             )}
