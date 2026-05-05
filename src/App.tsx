@@ -2918,27 +2918,50 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-20 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-2xl md:rounded-3xl flex md:flex-col flex-row items-center justify-around md:justify-start py-2 md:py-8 gap-1 md:gap-6 border shadow-2xl z-40 transition-colors duration-500 ${theme === 'black' ? 'bg-black/40 border-white/10' : 'border-white/20'}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 h-32 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-center md:justify-start py-3 md:py-8 gap-2 md:gap-6 border-4 shadow-2xl z-40 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
-        {/* LOGO NewAra - Replaced broken image with CSS component */}
-        <div className="hidden md:flex flex-col items-center gap-2 mb-4 mt-2 px-4">
-          <NewAraLogo size="lg" theme={theme} />
+        {/* LOGO NewAra - Now visible on mobile too */}
+        <div className="flex flex-col items-center gap-1 md:gap-2 mb-1 px-4 scale-90 md:scale-100">
+           <div className="md:hidden">
+             <NewAraLogo size="md" theme={theme} />
+           </div>
+           <div className="hidden md:block">
+             <NewAraLogo size="lg" theme={theme} />
+           </div>
           
-          <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
-          
+          <div className="hidden md:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+        </div>
+
+        {/* PC Offline Status - Positioned between logo and user profile */}
+        <div className="hidden md:block mb-2">
           <AnimatePresence>
             {isOffline && (
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 px-3 py-1 bg-red-500/20 rounded-full border border-red-500/30 mt-2"
+                className="flex items-center gap-2 px-3 py-1 bg-red-500/20 rounded-full border border-red-500/30 mb-2"
               >
                 <WifiOff size={12} className="text-red-500" />
                 <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Desconectado</span>
               </motion.div>
             )}
           </AnimatePresence>
+
+          <button 
+            onClick={() => {
+              playExternalBubble();
+              setShowNotifications(true);
+            }}
+            className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
+              theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
+            }`}
+          >
+            <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : 'text-sky-900 group-hover:text-amber-500'} />
+            {notifications.filter(n => !n.isRead).length > 0 && (
+              <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+            )}
+          </button>
         </div>
 
         <div className="hidden md:flex flex-col items-center gap-2 mb-4">
@@ -3091,7 +3114,7 @@ export default function App() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="flex md:hidden justify-around items-center w-full px-2">
+          <div className="flex md:hidden justify-around items-center w-full px-2 mt-auto">
             <NavButton 
               id="mobile-nav-home"
               active={currentView === 'home'} 
@@ -3297,30 +3320,28 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className={`md:hidden flex flex-col items-center justify-center pt-4 pb-1 z-30 sticky top-0 backdrop-blur-xl transition-all duration-500 ${theme === 'black' ? 'bg-black/10' : 'bg-white/5'}`}>
-        <div className="absolute left-4 top-1/2 -translate-y-1/2">
+      <div className={`md:hidden flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
+        <div className="absolute left-6 top-1/2 -translate-y-1/2">
            <div 
-             className="w-10 h-10 rounded-full p-0.5 bg-white/20 border border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
+             className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
              onClick={() => navigateTo('settings')}
            >
              {userAvatar ? (
-               <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" />
+               <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
              ) : (
                <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
-                 <User size={18} />
+                 <User size={20} />
                </div>
              )}
            </div>
         </div>
-        <NewAraLogo size="md" theme={theme} />
-        
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
            <button 
              onClick={() => {
                playExternalBubble();
                setShowNotifications(true);
              }}
-             className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border hover:scale-105 ${
+             className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border-2 hover:scale-105 ${
                theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
              }`}
            >
@@ -3347,26 +3368,6 @@ export default function App() {
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8 relative">
-        <div className="hidden md:block absolute top-8 right-8 z-40">
-           <button 
-             onClick={() => {
-               playExternalBubble();
-               setShowNotifications(true);
-             }}
-             className={`group relative p-4 rounded-3xl transition-all active:scale-95 border-2 hover:scale-105 ${
-               theme === 'black' ? 'bg-black/40 border-white/10 hover:border-blue-500/50' : 'bg-white/70 border-white hover:border-blue-500 shadow-xl'
-             }`}
-           >
-             <Bell size={24} className={theme === 'black' ? 'text-white/70 group-hover:text-blue-400' : 'text-sky-900 group-hover:text-blue-600'} />
-             {notifications.filter(n => !n.isRead).length > 0 && (
-               <div className="absolute top-3 right-3 flex items-center justify-center">
-                 <span className="absolute w-full h-full bg-pink-500 rounded-full animate-ping opacity-75" />
-                 <div className="relative w-3 h-3 bg-pink-500 rounded-full border-2 border-white" />
-               </div>
-             )}
-           </button>
-        </div>
-
         <AnimatePresence>
           {isOffline && (
             <motion.div 
@@ -5800,7 +5801,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
 
   const defaultClasses = theme === 'black' 
     ? 'text-white/60 border-transparent hover:bg-white/10 hover:text-white' 
-    : 'text-sky-900 border-transparent hover:bg-white/40 hover:border-white/50 hover:shadow-md';
+    : 'text-sky-900/40 bg-slate-100/80 border-transparent hover:bg-slate-200/80 hover:text-sky-900 hover:shadow-md';
 
   return (
     <motion.button 
