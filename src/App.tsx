@@ -328,9 +328,10 @@ export default function App() {
       return;
     }
     if (MODERATORS.includes(loginUserName.trim()) && !isModAuthorized) {
-      const hashedModInput = await hashPassword(moderatorPassword);
+      const trimmedModPass = moderatorPassword.trim();
+      const hashedModInput = await hashPassword(trimmedModPass);
       const MOD_HASH = 'c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990';
-      if (hashedModInput === MOD_HASH || moderatorPassword === 'n3w3naraoz') {
+      if (hashedModInput === MOD_HASH || trimmedModPass === 'n3w3naraoz') {
         setIsModAuthorized(true);
         localStorage.setItem('newara_mod_auth', 'true');
       } else {
@@ -397,9 +398,10 @@ export default function App() {
       return;
     }
     if (MODERATORS.includes(loginUserName.trim()) && !isModAuthorized) {
-      const hashedModInput = await hashPassword(moderatorPassword);
+      const trimmedModPass = moderatorPassword.trim();
+      const hashedModInput = await hashPassword(trimmedModPass);
       const MOD_HASH = 'c0d768997a3a8d116248c8b41982b67f13c675306663f703e3065e8aeda08990';
-      if (hashedModInput === MOD_HASH || moderatorPassword === 'n3w3naraoz') {
+      if (hashedModInput === MOD_HASH || trimmedModPass === 'n3w3naraoz') {
         setIsModAuthorized(true);
         localStorage.setItem('newara_mod_auth', 'true');
       } else {
@@ -503,6 +505,8 @@ export default function App() {
     localStorage.removeItem('newara_user_name');
     localStorage.removeItem('newara_user_password');
     localStorage.removeItem('newara_logged_in');
+    localStorage.removeItem('newara_mod_auth'); // Security: Clear moderator auth on logout
+    setIsModAuthorized(false);
     playExternalBubble();
   };
 
@@ -703,7 +707,8 @@ export default function App() {
   };
   const [activityName, setActivityName] = useState('');
   const [newActivityCode, setNewActivityCode] = useState('');
-  const isModerator = MODERATORS.includes((userName || '').trim()) && isModAuthorized;
+  // Security: Ensure isModerator requires isLoggedIn
+  const isModerator = isLoggedIn && MODERATORS.includes((userName || '').trim()) && isModAuthorized;
   
   // History State
   const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
@@ -3201,7 +3206,7 @@ export default function App() {
                            ]);
                            setCurrentView('home');
                          }}
-                         className="w-full py-4 text-sky-500 bg-white/40"
+                         className="w-full py-4 text-white bg-sky-500 border-2 border-white/20 shadow-xl"
                        >
                          Volver al Inicio
                        </GlossyButton>
@@ -3801,9 +3806,7 @@ export default function App() {
                             type="text" 
                             disabled={true} 
                             value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
-                            onBlur={() => checkUsername(userName)}
-                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all opacity-50 cursor-not-allowed ${
+                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold opacity-50 cursor-not-allowed ${
                               theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
                             }`}
                             placeholder="Tu nombre"
@@ -4963,7 +4966,7 @@ function ExerciseRunner({
                   <GlossyButton 
                     onClick={() => onAnswer(writeInput)}
                     disabled={!writeInput}
-                    className="w-full py-5 text-sky-500 shadow-xl"
+                    className="w-full py-5 text-white shadow-xl"
                   >
                     ENVIAR RESPUESTA
                   </GlossyButton>
@@ -5383,7 +5386,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
                 </div>
                 <GlossyButton 
                   onClick={onStartExercise}
-                  className="w-full bg-white text-sky-900 py-4 font-black shadow-xl"
+                  className="w-full py-4 font-black shadow-xl text-white"
                 >
                   EMPEZAR EJERCICIOS
                 </GlossyButton>
@@ -5395,7 +5398,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
               <p className={`text-[10px] font-black uppercase tracking-[0.2em] text-center ${theme === 'black' ? 'text-white/30' : 'text-sky-900/30'}`}>¿Quieres seguir explorando?</p>
               <GlossyButton 
                 onClick={onNextUnit}
-                className={`w-full py-4 text-lg shadow-[0_10px_20px_rgba(0,0,0,0.1)] border-2 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${theme === 'black' ? 'bg-blue-600/20 border-blue-400/30 text-white' : 'bg-white border-blue-400 text-blue-600'}`}
+                className={`w-full py-4 text-lg shadow-[0_10px_20px_rgba(0,0,0,0.1)] border-2 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${theme === 'black' ? 'bg-blue-600/20 border-blue-400/30 text-white' : 'bg-blue-600 border-blue-400 text-white'}`}
               >
                 Siguiente Unidad <ChevronRight size={20} />
               </GlossyButton>
