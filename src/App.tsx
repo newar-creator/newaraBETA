@@ -58,7 +58,13 @@ import {
   Heart,
   Trophy,
   Award,
-  TrendingDown
+  TrendingDown,
+  Bell,
+  Check,
+  CheckCircle,
+  BellRing,
+  MessageSquare,
+  ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { initializeApp } from 'firebase/app';
@@ -148,6 +154,19 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
 
 type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail';
 
+type NotificationType = 'assignment' | 'announcement' | 'moderation' | 'update';
+
+interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  link?: string;
+  isRead: boolean;
+  createdAt: any;
+}
+
 const MODERATORS = ['AraTester', 'NewAra'];
 
 export default function App() {
@@ -156,6 +175,10 @@ export default function App() {
   });
   const [lastView, setLastView] = useState<View>('home');
   const [showWelcome, setShowWelcome] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
 
   useEffect(() => {
@@ -273,7 +296,17 @@ export default function App() {
       cuentasUsuarioDesc: 'En RELEASE 2.1, el registro es obligatorio para publicar. Tu contraseña se cifra localmente. No compartas tus credenciales.',
       integridadAcademica: 'Integridad Académica',
       integridadAcademicaDesc: 'NewAra no es responsable por haciendo trampa en los examenes.',
-      ultimaActualizacion: 'Última actualización: 29 de abril de 2026'
+      ultimaActualizacion: 'Última actualización: 29 de abril de 2026',
+      usuariosLike: "Usuarios que dieron like",
+      notificaciones: "Notificaciones",
+      noHayNotificaciones: "No tienes notificaciones todavía.",
+      marcarComoLeido: "Marcar como leído",
+      marcarTodoLeido: "Marcar todo como leído",
+      borrarNotificacion: "Borrar notificación",
+      nuevaTarea: "Nueva Tarea",
+      nuevoAnuncio: "Nuevo Anuncio",
+      contenidoEliminado: "Contenido Eliminado",
+      actualizacionSistema: "Actualización del Sistema"
     },
     en: {
       materias: "Subjects",
@@ -355,7 +388,17 @@ export default function App() {
       cuentasUsuarioDesc: 'In RELEASE 2.1, registration is mandatory for posting. Your password is encrypted locally. Do not share your credentials.',
       integridadAcademica: 'Academic Integrity',
       integridadAcademicaDesc: 'NewAra is not responsible for cheating on exams.',
-      ultimaActualizacion: 'Last updated: April 29, 2026'
+      ultimaActualizacion: 'Last updated: April 29, 2026',
+      usuariosLike: "Users who liked",
+      notificaciones: "Notifications",
+      noHayNotificaciones: "You have no notifications yet.",
+      marcarComoLeido: "Mark as read",
+      marcarTodoLeido: "Mark all as read",
+      borrarNotificacion: "Delete notification",
+      nuevaTarea: "New Assignment",
+      nuevoAnuncio: "New Announcement",
+      contenidoEliminado: "Content Removed",
+      actualizacionSistema: "System Update"
     },
     ru: {
       materias: "Предметы",
@@ -437,7 +480,17 @@ export default function App() {
       cuentasUsuarioDesc: 'В RELEASE 2.1 регистрация обязательна для публикации. Ваш пароль шифруется локально. Не делитесь своими учетными данными.',
       integridadAcademica: 'Академическая честность',
       integridadAcademicaDesc: 'NewAra не несет ответственности за списывание на экзаменах.',
-      ultimaActualizacion: 'Последнее обновление: 29 апреля 2026 г.'
+      ultimaActualizacion: 'Последнее обновление: 29 апреля 2026 г.',
+      usuariosLike: "Пользователи, поставившие лайк",
+      notificaciones: "Уведомления",
+      noHayNotificaciones: "У вас пока нет уведомлений.",
+      marcarComoLeido: "Отметить как прочитанное",
+      marcarTodoLeido: "Отметить все как прочитанные",
+      borrarNotificacion: "Удалить уведомление",
+      nuevaTarea: "Новое задание",
+      nuevoAnuncio: "Новое объявление",
+      contenidoEliminado: "Контент удален",
+      actualizacionSistema: "Обновление системы"
     }
   };
 
@@ -500,6 +553,14 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn && userName && userName !== 'Estudiante') {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 120000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn, userName]);
 
   useEffect(() => {
     localStorage.setItem('newara_user_name', userName);
@@ -889,7 +950,7 @@ export default function App() {
   const [gallerySearch, setGallerySearch] = useState('');
   const [unitSearch, setUnitSearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
-  const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity'} | null>(null);
+  const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity', classId?: string, parentId?: string} | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
@@ -1059,35 +1120,6 @@ export default function App() {
     }
   };
 
-  const handleSendReport = async () => {
-    if (!showReportModal || !reportReason.trim()) return;
-    if (!isLoggedIn || userName === 'Estudiante') {
-      alert("Debes iniciar sesión para denunciar.");
-      return;
-    }
-
-    setIsReporting(true);
-    try {
-      await addDoc(collection(db, 'reports'), {
-        activityId: showReportModal.id,
-        activityName: showReportModal.name,
-        creatorName: showReportModal.creatorName || '',
-        reporterName: userName,
-        reason: reportReason,
-        createdAt: serverTimestamp(),
-        status: 'pending'
-      });
-      alert("Denuncia enviada. Gracias por ayudar a mantener NewAra seguro.");
-      setShowReportModal(null);
-      setReportReason('');
-      playSuccessSound();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'reports');
-    } finally {
-      setIsReporting(false);
-    }
-  };
-
   const handleIgnoreReport = async (reportId: string) => {
     if (!isModerator) return;
     
@@ -1194,46 +1226,58 @@ export default function App() {
     }
   };
 
-  const deleteActivityAndReport = async (report: any) => {
+  const handleDeleteTargetAndReport = async (report: any) => {
     if (!isModerator) return;
     
-    // Suport both activityId (old) and contentId (new unified format)
-    const targetId = report.contentId || report.activityId;
-    const contentType = report.contentType || 'activity';
+    const targetId = report.targetId || report.contentId || report.activityId;
+    const targetType = report.targetType || report.contentType || 'activity';
+    const classId = report.classId;
+
+    if (!targetId) {
+      alert("Error: No se encontró el ID del contenido a eliminar.");
+      return;
+    }
+
+    if (targetType === 'announcement' && !classId) {
+      alert("Error: Faltan datos (classId) para eliminar este anuncio.");
+      return;
+    }
 
     setConfirmModal({
       show: true,
       title: '¿ELIMINAR CONTENIDO?',
-      message: `Esta acción es irreversible. Se eliminará el/la ${contentType} y se cerrará el reporte.`,
+      message: `Esta acción es irreversible. Se eliminará el/la ${targetType} de forma permanente.`,
       type: 'danger',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setIsTakingAction(true);
         try {
-          // Eliminar contenido según el tipo
-          if (contentType === 'activity' && targetId) {
+          if (targetType === 'activity') {
             await deleteDoc(doc(db, 'activities', targetId));
-          } else if (contentType === 'announcement' && targetId) {
-             // We need classId for these... if we don't have it, we might need to store it in report
-             // For now let's focus on activities as they are the primary gallery content
-             if (report.classId) {
-               await deleteDoc(doc(db, 'classes', report.classId, 'announcements', targetId));
-             }
+          } else if (targetType === 'announcement') {
+            await deleteDoc(doc(db, 'classes', classId, 'announcements', targetId));
+          } else if (targetType === 'comment') {
+            const parentId = report.parentId;
+            if (parentId) {
+               await deleteDoc(doc(db, 'classes', classId, 'announcements', parentId, 'comments', targetId));
+            } else {
+               throw new Error("Missing parentId for comment deletion");
+            }
           }
           
-          // Eliminar denuncia
+          // Eliminar el reporte solo si la eliminación del contenido funcionó (o no arrojó error)
           await deleteDoc(doc(db, 'reports', report.id));
-          
           setReports(prev => prev.filter(r => r.id !== report.id));
-          if (contentType === 'activity') {
+          
+          if (targetType === 'activity') {
             setGalleryActivities(prev => prev.filter(a => a.id !== targetId));
           }
           
           playSuccessSound();
-          alert("Contenido eliminado con éxito.");
+          alert("Eliminado con éxito.");
         } catch (error) {
-          console.error("Error tomando acción:", error);
-          alert("Hubo un error al eliminar.");
+          console.error("Error deleting target:", error);
+          alert("Hubo un error al eliminar el contenido. Es posible que ya no exista o haya un problema de permisos.");
         } finally {
           setIsTakingAction(false);
         }
@@ -1244,10 +1288,11 @@ export default function App() {
   const deleteUserAndReport = async (report: any) => {
     if (!isModerator) return;
     
-    const targetId = report.contentId || report.activityId;
-    let creatorToDelete = report.authorName || report.creatorName;
+    const targetId = report.targetId || report.contentId || report.activityId;
+    const targetType = report.targetType || report.contentType || 'activity';
+    let creatorToDelete = report.creatorName || report.authorName;
     
-    if (!creatorToDelete && targetId && report.contentType === 'activity') {
+    if (!creatorToDelete && targetId && targetType === 'activity') {
         try {
           const actDoc = await getDoc(doc(db, 'activities', targetId));
           if (actDoc.exists()) {
@@ -1431,6 +1476,10 @@ export default function App() {
         commentsCount: 0
       });
       fetchClassDetails(classId);
+      const cls = userClasses.find(c => c.id === classId);
+      if (cls) {
+        notifyClassMembers(classId, cls.name, t('nuevoAnuncio'), content.substring(0, 60) + (content.length > 60 ? '...' : ''), 'announcement', `/classes/${classId}`);
+      }
       playSuccessSound();
     } catch (error) {
       console.error("Error posting announcement:", error);
@@ -1467,6 +1516,10 @@ export default function App() {
         createdAt: serverTimestamp()
       });
       fetchClassDetails(classId);
+      const cls = userClasses.find(c => c.id === classId);
+      if (cls) {
+        notifyClassMembers(classId, cls.name, t('nuevaTarea'), title, 'assignment', `/classes/${classId}`);
+      }
       playSuccessSound();
       alert("Tarea publicada con éxito.");
     } catch (error) {
@@ -1580,7 +1633,7 @@ export default function App() {
     });
   };
 
-  const reportAbuse = async (type: 'announcement' | 'comment' | 'activity', id: string, content: string, authorName: string) => {
+  const reportAbuse = async (type: 'announcement' | 'comment' | 'activity', id: string, content: string, authorName: string, classId?: string, parentId?: string) => {
     if (!isLoggedIn) {
       setConfirmModal({
         show: true,
@@ -1594,7 +1647,7 @@ export default function App() {
       });
       return;
     }
-    setShowReportModal({ id, name: content, creatorName: authorName, type });
+    setShowReportModal({ id, name: content, creatorName: authorName, type, classId, parentId });
   };
 
   const submitReport = async () => {
@@ -1602,10 +1655,12 @@ export default function App() {
     setIsReporting(true);
     try {
       await addDoc(collection(db, 'reports'), {
-        contentType: showReportModal.type || 'activity',
-        contentId: showReportModal.id,
-        contentPreview: showReportModal.name.substring(0, 500),
-        authorName: showReportModal.creatorName || 'Anónimo',
+        targetType: showReportModal.type || 'activity',
+        targetId: showReportModal.id,
+        targetName: showReportModal.name.substring(0, 500),
+        creatorName: showReportModal.creatorName || 'Anónimo',
+        classId: showReportModal.classId || "",
+        parentId: showReportModal.parentId || "",
         reporterName: userName,
         reason: reportReason.trim(),
         createdAt: serverTimestamp(),
@@ -1615,7 +1670,6 @@ export default function App() {
       setShowReportModal(null);
       setReportReason('');
       playSuccessSound();
-      // Mostramos un confirm decorativo para el éxito
       setConfirmModal({
         show: true,
         title: 'Reporte Enviado',
@@ -1686,6 +1740,87 @@ export default function App() {
     }
   };
 
+  const fetchNotifications = async () => {
+    if (!isLoggedIn || !userName || userName === 'Estudiante') return;
+    try {
+      const q = query(
+        collection(db, 'notifications'), 
+        where('userId', '==', userName), 
+        orderBy('createdAt', 'desc'), 
+        limit(20)
+      );
+      const querySnapshot = await getDocs(q);
+      const notifs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Notification[];
+      setNotifications(notifs);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const markNotificationRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'notifications', id), { isRead: true });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      const batch: any[] = [];
+      notifications.filter(n => !n.isRead).forEach(n => {
+        batch.push(updateDoc(doc(db, 'notifications', n.id), { isRead: true }));
+      });
+      await Promise.all(batch);
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'notifications', id));
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `notifications/${id}`);
+    }
+  };
+
+  const createNotification = async (userId: string, title: string, message: string, type: NotificationType, link?: string) => {
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId,
+        title,
+        message,
+        type,
+        link: link || "",
+        isRead: false,
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error creating notification:", error);
+    }
+  };
+
+  const notifyClassMembers = async (classId: string, className: string, title: string, message: string, type: NotificationType, link: string) => {
+    try {
+      const memSnap = await getDocs(collection(db, 'classes', classId, 'members'));
+      const members = memSnap.docs.map(doc => doc.id);
+      
+      const batch = members.filter(m => m !== userName).map((memberId) => 
+        createNotification(memberId, `${className}: ${title}`, message, type, link)
+      );
+      await Promise.all(batch);
+    } catch (error) {
+      console.error("Error notifying class members:", error);
+    }
+  };
+
   const fetchGallery = async () => {
     setIsGalleryLoading(true);
     try {
@@ -1726,7 +1861,7 @@ export default function App() {
     }
   };
 
-  const handleDeleteActivity = async (id: string, e: React.MouseEvent, creatorName?: string) => {
+  const handleDeleteActivity = async (id: string, e: React.MouseEvent, creatorName?: string, activityTitle?: string) => {
     e.stopPropagation();
     const canDelete = isModerator || (creatorName === userName);
     if (!canDelete) return;
@@ -1740,6 +1875,14 @@ export default function App() {
         setConfirmModal(prev => ({ ...prev, show: false }));
         try {
           await deleteDoc(doc(db, 'activities', id));
+          if (isModerator && creatorName && creatorName !== userName) {
+            createNotification(
+              creatorName, 
+              t('contenidoEliminado'), 
+              `Tu contenido "${activityTitle || id}" ha sido eliminado por moderación.`, 
+              'moderation'
+            );
+          }
           setGalleryActivities(prev => prev.filter(a => a.id !== id));
           playSuccessSound();
         } catch (error) {
@@ -2197,6 +2340,145 @@ export default function App() {
           localStorage.setItem('newara_visited', 'true');
         }} />
       )}
+
+      {/* Notifications Modal */}
+      <AnimatePresence>
+        {showNotifications && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setShowNotifications(false)}
+               className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div
+               initial={{ scale: 0.9, y: 20, opacity: 0 }}
+               animate={{ scale: 1, y: 0, opacity: 1 }}
+               exit={{ scale: 0.9, y: 20, opacity: 0 }}
+               className={`relative w-full max-w-lg rounded-[40px] border-4 shadow-2xl flex flex-col max-h-[80vh] overflow-hidden ${
+                 theme === 'black' ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+               }`}
+            >
+               <div className="p-8 pb-4 flex items-center justify-between border-b border-white/10">
+                 <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-500">
+                      <Bell size={24} />
+                    </div>
+                    <h2 className="text-2xl font-black uppercase tracking-tight">{t('notificaciones')}</h2>
+                 </div>
+                 <div className="flex items-center gap-3">
+                   {notifications.some(n => !n.isRead) && (
+                     <button 
+                       onClick={() => markAllNotificationsRead()}
+                       className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:underline"
+                     >
+                       {t('marcarTodoLeido')}
+                     </button>
+                   )}
+                    <button 
+                      onClick={() => setShowNotifications(false)}
+                      className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
+                    >
+                      <X size={20} />
+                    </button>
+                 </div>
+               </div>
+
+               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                 {notifications.length === 0 ? (
+                   <div className="flex flex-col items-center justify-center py-20 opacity-40 text-center">
+                     <BellRing size={48} className="mb-4 opacity-20" />
+                     <p className="font-bold">{t('noHayNotificaciones')}</p>
+                   </div>
+                 ) : (
+                   notifications.map(n => (
+                     <motion.div 
+                       key={n.id}
+                       initial={{ opacity: 0, x: -10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       className={`p-5 rounded-3xl border-2 transition-all group relative ${
+                         n.isRead 
+                           ? (theme === 'black' ? 'bg-white/5 border-transparent opacity-60' : 'bg-slate-50 border-transparent opacity-70')
+                           : (theme === 'black' ? 'bg-blue-500/10 border-blue-500/20 shadow-lg' : 'bg-blue-50 border-blue-200 shadow-xl shadow-blue-500/5')
+                       }`}
+                     >
+                       <div className="flex gap-4">
+                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                           n.type === 'assignment' ? 'bg-orange-500/20 text-orange-500' :
+                           n.type === 'announcement' ? 'bg-blue-500/20 text-blue-500' :
+                           n.type === 'moderation' ? 'bg-red-500/20 text-red-500' :
+                           'bg-purple-500/20 text-purple-500'
+                         }`}>
+                           {n.type === 'assignment' ? <ClipboardList size={20} /> :
+                            n.type === 'announcement' ? <Users2 size={20} /> :
+                            n.type === 'moderation' ? <ShieldCheck size={20} /> :
+                            <Sparkles size={20} />}
+                         </div>
+                         <div className="flex-1 min-w-0">
+                           <div className="flex items-center justify-between mb-1">
+                             <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                               {n.type === 'assignment' ? t('nuevaTarea') :
+                                n.type === 'announcement' ? t('nuevoAnuncio') :
+                                n.type === 'moderation' ? t('contenidoEliminado') :
+                                t('actualizacionSistema')}
+                             </p>
+                             <span className="text-[10px] font-bold opacity-30">
+                               {n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : 'Reciente'}
+                             </span>
+                           </div>
+                           <h3 className="font-black text-sm mb-1 leading-tight">{n.title}</h3>
+                           <p className="text-xs font-medium opacity-70 leading-relaxed mb-3">{n.message}</p>
+                           
+                           <div className="flex items-center gap-3">
+                             {!n.isRead && (
+                               <button 
+                                 onClick={() => markNotificationRead(n.id)}
+                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                 <Check size={12} /> {t('marcarComoLeido')}
+                               </button>
+                             )}
+                             {n.link && (
+                               <button 
+                                 onClick={() => {
+                                   if (n.link && n.link.startsWith('/classes/')) {
+                                      // Handle class link
+                                      const classId = n.link.split('/')[2];
+                                      const cls = userClasses.find(c => c.id === classId);
+                                      if (cls) {
+                                        setActiveClass(cls);
+                                        navigateTo('class-detail');
+                                        setShowNotifications(false);
+                                      }
+                                   } else {
+                                      setShowNotifications(false);
+                                   }
+                                   if (!n.isRead) markNotificationRead(n.id);
+                                 }}
+                                 className="px-3 py-1.5 rounded-xl border-2 border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                               >
+                                 Ir al contenido
+                               </button>
+                             )}
+                           </div>
+                         </div>
+                         <button 
+                           onClick={() => deleteNotification(n.id)}
+                           className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-pink-500 hover:bg-pink-500/10 rounded-xl transition-all"
+                           title={t('borrarNotificacion')}
+                         >
+                           <Trash2 size={16} />
+                         </button>
+                       </div>
+                     </motion.div>
+                   ))
+                 )}
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <BubbleBackground theme={theme} />
       {/* Create Class Modal */}
       <AnimatePresence>
@@ -2364,7 +2646,7 @@ export default function App() {
                           <Edit3 size={18} />
                         </button>
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName); }}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title); }}
                           className="aero-icon-button bg-red-500/10 text-red-500 shadow-lg shadow-red-500/10"
                           title="Eliminar"
                         >
@@ -2473,6 +2755,21 @@ export default function App() {
                       ¡JUGAR AHORA! <Play size={20} fill="currentColor" />
                     </GlossyButton>
                 </div>
+
+                {selectedActivityDetail && (selectedActivityDetail.creatorName === userName || isModerator) && selectedActivityDetail.likes?.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3 ml-1 flex items-center gap-2">
+                       <Heart size={10} fill="currentColor" className="text-pink-500" /> {t('usuariosLike')}
+                    </p>
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                      {selectedActivityDetail.likes.map((name: string) => (
+                        <span key={name} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-blue-400">
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
@@ -3016,24 +3313,60 @@ export default function App() {
            </div>
         </div>
         <NewAraLogo size="md" theme={theme} />
-
         
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+           <button 
+             onClick={() => {
+               playExternalBubble();
+               setShowNotifications(true);
+             }}
+             className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border hover:scale-105 ${
+               theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
+             }`}
+           >
+             <Bell size={20} className={theme === 'black' ? 'text-white' : 'text-sky-950'} />
+             {notifications.filter(n => !n.isRead).length > 0 && (
+               <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+             )}
+           </button>
+        </div>
+
         <AnimatePresence>
           {isOffline && (
             <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
+               initial={{ opacity: 0, y: -20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
             >
-              <WifiOff size={14} className="text-white" />
-              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{t('sistemaOffline')}</span>
+               <WifiOff size={14} className="text-white" />
+               <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{t('sistemaOffline')}</span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8 relative">
+        <div className="hidden md:block absolute top-8 right-8 z-40">
+           <button 
+             onClick={() => {
+               playExternalBubble();
+               setShowNotifications(true);
+             }}
+             className={`group relative p-4 rounded-3xl transition-all active:scale-95 border-2 hover:scale-105 ${
+               theme === 'black' ? 'bg-black/40 border-white/10 hover:border-blue-500/50' : 'bg-white/70 border-white hover:border-blue-500 shadow-xl'
+             }`}
+           >
+             <Bell size={24} className={theme === 'black' ? 'text-white/70 group-hover:text-blue-400' : 'text-sky-900 group-hover:text-blue-600'} />
+             {notifications.filter(n => !n.isRead).length > 0 && (
+               <div className="absolute top-3 right-3 flex items-center justify-center">
+                 <span className="absolute w-full h-full bg-pink-500 rounded-full animate-ping opacity-75" />
+                 <div className="relative w-3 h-3 bg-pink-500 rounded-full border-2 border-white" />
+               </div>
+             )}
+           </button>
+        </div>
+
         <AnimatePresence>
           {isOffline && (
             <motion.div 
@@ -3177,7 +3510,7 @@ export default function App() {
                   onDeleteAnnouncement={(annId) => deleteAnnouncement(activeClass.id, annId)}
                   onEditComment={(annId, commId, content) => editComment(activeClass.id, annId, commId, content)}
                   onDeleteComment={(annId, commId) => deleteComment(activeClass.id, annId, commId)}
-                  onReportAbuse={(type, id, content, author) => reportAbuse(type, id, content, author)}
+                  onReportAbuse={(type, id, content, author, cId, pId) => reportAbuse(type, id, content, author, cId, pId)}
                   onShareResource={(title, code) => shareResourceCode(activeClass.id, title, code)}
                   onPlayActivity={(code) => {
                     handleLoadActivity(code);
@@ -3804,7 +4137,7 @@ export default function App() {
                                   <Edit3 size={14} />
                                 </button>
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName); }}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title); }}
                                   className="aero-icon-button text-red-500 bg-red-500/10"
                                   title="Eliminar Actividad"
                                 >
@@ -3888,99 +4221,157 @@ export default function App() {
                 </button>
               </header>
 
-              <div className="space-y-4">
-                {isReportsLoading ? (
-                  <div className="flex justify-center py-20">
-                    <RefreshCw className="animate-spin text-blue-500" size={40} />
-                  </div>
-                ) : reports.length > 0 ? (
-                  reports.map((report) => (
-                    <div 
-                      key={report.id}
-                      className={`p-6 rounded-[32px] border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-xl ${
-                        theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/60'
-                      }`}
+              <div className={`p-8 rounded-[40px] border-4 shadow-xl ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white border-blue-50 shadow-blue-500/5'}`}>
+                 <h3 className="text-lg font-black mb-4 uppercase tracking-tighter flex items-center gap-2">
+                   <Sparkles className="text-purple-500" size={20} />
+                   Enviar Actualización del Sistema
+                 </h3>
+                 <div className="flex flex-col md:flex-row gap-4">
+                   <input 
+                     type="text"
+                     placeholder="Mensaje de actualización para todos los usuarios..."
+                     className={`flex-1 p-4 rounded-2xl border font-bold ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}
+                     value={broadcastMessage}
+                     onChange={(e) => setBroadcastMessage(e.target.value)}
+                    />
+                    <GlossyButton 
+                      loading={isBroadcasting}
+                      onClick={async () => {
+                        if (!broadcastMessage.trim()) return;
+                        setIsBroadcasting(true);
+                        try {
+                          const userSnap = await getDocs(collection(db, 'users'));
+                          const userIds = userSnap.docs.map(doc => doc.id);
+                          
+                          const batchSize = 10; // Batching to avoid blocking too much
+                          for (let i = 0; i < userIds.length; i += batchSize) {
+                            const chunk = userIds.slice(i, i + batchSize);
+                            await Promise.all(chunk.map(uid => 
+                              createNotification(uid, t('actualizacionSistema'), broadcastMessage, 'update')
+                            ));
+                          }
+                          
+                          setBroadcastMessage('');
+                          alert(`Actualización enviada a ${userIds.length} usuarios.`);
+                        } catch (error) {
+                          console.error("Broadcast error:", error);
+                        } finally {
+                          setIsBroadcasting(false);
+                        }
+                      }}
+                      className="px-8 whitespace-nowrap"
                     >
-                      <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20">
-                           <AlertTriangle size={24} />
-                         </div>
-                         <div>
-                           <h3 className={`font-black text-lg ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                             {report.reporterName} : <span className="text-red-500">{report.reason}</span>
-                           </h3>
-                           <div className="flex items-center gap-3 mt-1 opacity-50 text-[10px] font-black uppercase tracking-widest">
-                             <span>Actividad: {report.activityName}</span>
-                             <span>ID: {report.activityId}</span>
-                           </div>
-                         </div>
-                      </div>
+                      Mandar a todos
+                    </GlossyButton>
+                  </div>
+               </div>
 
-                      <div className="flex flex-wrap gap-2">
-                        <GlossyButton 
-                          variant="gray"
-                          loading={loadingActivityDetail === report.activityId}
-                          onClick={async () => {
-                             // Intenta encontrar la actividad en la galería local primero
-                             const localActivity = galleryActivities.find(a => a.id === report.activityId);
-                             if (localActivity) {
-                               setSelectedActivityDetail(localActivity);
-                               return;
-                             }
-                             
-                             // Si no está local, la busca en la base de datos
-                             setLoadingActivityDetail(report.activityId);
-                             try {
-                               const docRef = doc(db, 'activities', report.activityId);
-                               const docSnap = await getDoc(docRef);
-                               if (docSnap.exists()) {
-                                 setSelectedActivityDetail({ id: docSnap.id, ...docSnap.data() });
-                               } else {
-                                 alert("La actividad ya no existe en la base de datos.");
-                               }
-                             } catch (error) {
-                               console.error("Error fetching activity detail:", error);
-                               alert("Error al intentar cargar los detalles de la actividad.");
-                             } finally {
-                               setLoadingActivityDetail(null);
-                             }
-                          }}
-                          className="px-4 py-2 text-[10px]"
-                        >
-                          Ver más
-                        </GlossyButton>
-                        <GlossyButton 
-                           onClick={() => handleLoadActivity(report.activityId)}
-                           loading={isLoadingActivity}
-                           className="px-4 py-2 text-[10px]"
-                        >
-                          Cargar Contenido
-                        </GlossyButton>
-                        <button 
-                          onClick={() => handleIgnoreReport(report.id)}
-                          className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                            theme === 'black' ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+               <div className="space-y-4">
+                 {isReportsLoading ? (
+                   <div className="flex justify-center py-20">
+                     <RefreshCw className="animate-spin text-blue-500" size={40} />
+                   </div>
+                 ) : reports.length > 0 ? (
+                   reports.map((report) => {
+                      const targetId = report.targetId || report.contentId || report.activityId;
+                      const targetType = report.targetType || report.contentType || 'activity';
+                      const targetName = report.targetName || report.contentPreview || report.activityName;
+                      
+                      return (
+                        <div 
+                          key={report.id}
+                          className={`p-6 rounded-[32px] border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-xl ${
+                            theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/60'
                           }`}
                         >
-                          Ignorar
-                        </button>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => deleteActivityAndReport(report)}
-                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
-                          >
-                            Borrar Actividad
-                          </button>
-                          <button 
-                            onClick={() => deleteUserAndReport(report)}
-                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-zinc-950 text-red-500 hover:bg-red-600 hover:text-white transition-all animate-pulse whitespace-nowrap"
-                          >
-                            Banear Usuario
-                          </button>
+                          <div className="flex items-center gap-4 flex-1">
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
+                               targetType === 'activity' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                             }`}>
+                               {targetType === 'activity' ? <AlertTriangle size={24} /> : <MessageSquare size={24} />}
+                             </div>
+                             <div className="min-w-0 flex-1">
+                               <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">
+                                 {targetType === 'activity' ? 'Actividad' : 'Anuncio de Clase'} • Por {report.creatorName || report.authorName}
+                               </p>
+                               <h3 className={`font-black text-lg leading-tight truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                                 {report.reporterName} : <span className="text-red-500">{report.reason}</span>
+                               </h3>
+                               <div className={`mt-2 p-3 rounded-xl text-xs font-bold ${theme === 'black' ? 'bg-white/5' : 'bg-slate-50'}`}>
+                                 "{targetName}"
+                               </div>
+                             </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            {targetType === 'activity' && (
+                              <>
+                                <GlossyButton 
+                                  variant="gray"
+                                  loading={loadingActivityDetail === targetId}
+                                  onClick={async () => {
+                                     const localActivity = galleryActivities.find(a => a.id === targetId);
+                                     if (localActivity) {
+                                       setSelectedActivityDetail(localActivity);
+                                       return;
+                                     }
+                                     
+                                     setLoadingActivityDetail(targetId);
+                                     try {
+                                       const docRef = doc(db, 'activities', targetId);
+                                       const docSnap = await getDoc(docRef);
+                                       if (docSnap.exists()) {
+                                         setSelectedActivityDetail({ id: docSnap.id, ...docSnap.data() });
+                                       } else {
+                                         alert("La actividad ya no existe.");
+                                       }
+                                     } catch (error) {
+                                       console.error("Error fetching activity detail:", error);
+                                     } finally {
+                                       setLoadingActivityDetail(null);
+                                     }
+                                  }}
+                                  className="px-4 py-2 text-[10px]"
+                                >
+                                  Ver más
+                                </GlossyButton>
+                                <GlossyButton 
+                                   onClick={() => handleLoadActivity(targetId)}
+                                   loading={isLoadingActivity}
+                                   className="px-4 py-2 text-[10px]"
+                                >
+                                  Cargar
+                                </GlossyButton>
+                              </>
+                            )}
+                            
+                            <button 
+                              onClick={() => handleIgnoreReport(report.id)}
+                              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                                theme === 'black' ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                              }`}
+                            >
+                              Ignorar
+                            </button>
+
+                            <button 
+                              onClick={() => handleDeleteTargetAndReport(report)}
+                              className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
+                            >
+                              Borrar {targetType === 'activity' ? 'Actividad' : 'Anuncio'}
+                            </button>
+
+                            <button 
+                              onClick={() => deleteUserAndReport(report)}
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-950 text-red-500 hover:bg-red-600 hover:text-white transition-all"
+                              title="Banear Usuario"
+                            >
+                              <ShieldAlert size={18} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))
+                      );
+                    })
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center">
                     <ShieldCheck size={64} />

@@ -86,6 +86,11 @@ service cloud.firestore {
       allow read, delete: if true;
     }
 
+    // --- Notifications ---
+    match /notifications/{notificationId} {
+      allow read, create, update, delete: if true;
+    }
+
     // Default deny at the end
     match /{document=**} {
       allow read, write: if false;

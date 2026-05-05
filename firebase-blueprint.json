@@ -61,17 +61,20 @@
     },
     "Report": {
       "title": "Report",
-      "description": "A user report against an activity.",
+      "description": "User reports for moderation",
       "type": "object",
       "properties": {
-        "activityId": { "type": "string" },
-        "activityName": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetName": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["activity", "announcement"] },
         "reporterName": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "classId": { "type": "string" },
         "reason": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "status": { "type": "string" }
       },
-      "required": ["activityId", "activityName", "reporterName", "reason", "createdAt", "status"]
+      "required": ["targetId", "targetName", "targetType", "reporterName", "reason", "createdAt", "status"]
     },
     "Class": {
       "title": "Classroom",
@@ -174,9 +177,28 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["classId", "title", "code", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System or user notifications",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["assignment", "announcement", "moderation", "update"] },
+        "link": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "type", "isRead", "createdAt"]
     }
   },
   "firestore": {
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
+    },
     "/activities/{activityId}": {
       "schema": "SharedActivity",
       "description": "Store for shared activities"

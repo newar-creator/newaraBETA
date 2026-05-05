@@ -182,7 +182,7 @@ interface ClassDetailProps {
   onDeleteAnnouncement: (announcementId: string) => void;
   onEditComment: (announcementId: string, commentId: string, content: string) => void;
   onDeleteComment: (announcementId: string, commentId: string) => void;
-  onReportAbuse: (type: 'announcement' | 'comment' | 'activity', id: string, content: string, author: string) => void;
+  onReportAbuse: (type: 'announcement' | 'comment' | 'activity', id: string, content: string, author: string, classId?: string, parentId?: string) => void;
   onShareResource: (title: string, code: string) => void;
   onPlayActivity: (code: string) => void;
   onCreateAssignment: (title: string, description: string, dueDate: string, attachment?: any) => void;
@@ -556,7 +556,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
 
                         <div className="flex gap-1">
                           <button 
-                            onClick={() => onReportAbuse('announcement', ann.id, ann.content, ann.authorName)}
+                            onClick={() => onReportAbuse('announcement', ann.id, ann.content, ann.authorName, cls.id)}
                             className="p-1.5 md:p-2 hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 rounded-xl transition-all"
                             title="Reportar"
                           >
@@ -643,7 +643,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                    <p className="font-black opacity-80 mb-0.5">{comm.authorName}</p>
                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                      <button 
-                                       onClick={() => onReportAbuse('comment', comm.id, comm.content, comm.authorName)}
+                                       onClick={() => onReportAbuse('comment', comm.id, comm.content, comm.authorName, cls.id, ann.id)}
                                        className="text-amber-500/40 hover:text-amber-500 transition-all"
                                        title="Reportar"
                                      >
