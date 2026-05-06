@@ -206,6 +206,13 @@ export default function App() {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
 
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('newara_visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
+    }
+  }, []);
+
   // NEW: Sync URL to State
   useEffect(() => {
     const segments = location.pathname.split('/').filter(Boolean);
