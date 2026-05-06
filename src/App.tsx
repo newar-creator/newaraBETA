@@ -276,13 +276,17 @@ export default function App() {
     }
   }, [location.pathname, userClasses]);
 
-  const navigateTo = (view: View) => {
+  const navigateTo = (view: View, params?: { subjectId?: string, unitIndex?: number, classId?: string }) => {
     setLastView(currentView);
     setUnitSearch('');
     setCurrentView(view);
     
     // NEW: Sync State to URL
     let path = '/inicio';
+    const sId = params?.subjectId || selectedSubject?.id;
+    const uIdx = params?.unitIndex !== undefined ? params.unitIndex : selectedUnitIndex;
+    const cId = params?.classId || activeClass?.id;
+
     switch(view) {
       case 'home': path = '/inicio'; break;
       case 'materias': path = '/materias'; break;
@@ -293,15 +297,19 @@ export default function App() {
       case 'classes': path = '/clases'; break;
       case 'settings': path = '/ajustes'; break;
       case 'reports': path = '/reports'; break;
+      case 'create-activity': path = '/create-activity'; break;
+      case 'play-activity': path = '/play-activity'; break;
       case 'subject': 
-        if (selectedSubject) path = `/materia/${selectedSubject.id}`;
+        if (sId) path = `/materia/${sId}`;
         break;
       case 'unit-study':
-        if (selectedSubject && selectedUnitIndex !== null) 
-          path = `/materia/${selectedSubject.id}/unidad/${selectedUnitIndex}`;
+        if (sId && uIdx !== null) 
+          path = `/materia/${sId}/unidad/${uIdx}`;
+        else if (sId)
+          path = `/materia/${sId}`;
         break;
       case 'class-detail':
-        if (activeClass) path = `/clase/${activeClass.id}`;
+        if (cId) path = `/clase/${cId}`;
         else path = '/clases';
         break;
     }
@@ -2147,7 +2155,7 @@ export default function App() {
       playExternalBubble();
       setSelectedUnitIndex(nextIndex);
       setActiveExercise(null);
-      navigateTo('unit-study');
+      navigateTo('unit-study', { subjectId: selectedSubject.id, unitIndex: nextIndex });
     }
   };
 
@@ -2155,7 +2163,7 @@ export default function App() {
     playExternalBubble();
     setSelectedSubject(subject);
     setSelectedUnitIndex(null);
-    navigateTo('subject');
+    navigateTo('subject', { subjectId: subject.id });
   };
 
   const resetExam = () => {
@@ -3467,7 +3475,7 @@ export default function App() {
                           onClick={() => {
                             playExternalBubble();
                             setSelectedSubject(s);
-                            navigateTo('subject');
+                            navigateTo('subject', { subjectId: s.id });
                             setShowMobileSubjects(false);
                           }}
                           className={`flex flex-row items-center gap-4 p-4 rounded-3xl transition-all active:scale-95 border-2 ${
@@ -3498,7 +3506,7 @@ export default function App() {
                 onClick={() => {
                   playExternalBubble();
                   setSelectedSubject(s);
-                  navigateTo('subject');
+                  navigateTo('subject', { subjectId: s.id });
                 }}
                 className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
               >
@@ -4983,7 +4991,7 @@ export default function App() {
                           onUnitClick={(index) => {
                              playExternalBubble();
                              setSelectedUnitIndex(index);
-                             navigateTo('unit-study');
+                             navigateTo('unit-study', { subjectId: selectedSubject.id, unitIndex: index });
                           }}
                           theme={theme}
                         />
