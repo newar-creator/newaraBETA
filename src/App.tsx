@@ -68,7 +68,6 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
-import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -172,31 +171,9 @@ interface Notification {
 const MODERATORS = ['AraTester', 'NewAra'];
 
 export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
-  const [activeClass, setActiveClass] = useState<any | null>(null);
-  const [userClasses, setUserClasses] = useState<any[]>([]);
-  const [unitSearch, setUnitSearch] = useState('');
-
   const [currentView, setCurrentView] = useState<View>(() => {
-    const path = window.location.pathname.split('/').filter(Boolean)[0];
-    if (path === 'materias') return 'materias';
-    if (path === 'horario') return 'schedule';
-    if (path === 'examen') return 'exam';
-    if (path === 'leaderboard') return 'leaderboard';
-    if (path === 'gallery') return 'gallery';
-    if (path === 'clases') return 'classes';
-    if (path === 'ajustes') return 'settings';
-    if (path === 'reports') return 'reports';
-    if (path === 'materia') return 'subject';
-    if (path === 'clase') return 'class-detail';
-    if (path === 'inicio') return 'home';
     return (localStorage.getItem('newara_view') as View) || 'home';
   });
-
   const [lastView, setLastView] = useState<View>('home');
   const [showWelcome, setShowWelcome] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -206,109 +183,17 @@ export default function App() {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
 
-  // NEW: Sync URL to State
   useEffect(() => {
-    const segments = location.pathname.split('/').filter(Boolean);
-    
-    if (segments.length === 0 || segments[0] === 'inicio') {
-      if (currentView !== 'home') setCurrentView('home');
-      return;
+    const hasVisited = localStorage.getItem('newara_visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
     }
-
-    const firstSegment = segments[0];
-    const viewMap: Record<string, View> = {
-      'materias': 'materias',
-      'horario': 'schedule',
-      'examen': 'exam',
-      'leaderboard': 'leaderboard',
-      'gallery': 'gallery',
-      'clases': 'classes',
-      'ajustes': 'settings',
-      'reports': 'reports',
-      'create-activity': 'create-activity',
-      'play-activity': 'play-activity'
-    };
-
-    if (viewMap[firstSegment]) {
-      if (currentView !== viewMap[firstSegment]) setCurrentView(viewMap[firstSegment]);
-      return;
-    }
-
-    if (firstSegment === 'materia' && segments[1]) {
-      const subjectId = segments[1];
-      const subject = SUBJECTS.find(s => s.id === subjectId);
-      if (subject) {
-        setSelectedSubject(subject);
-        if (segments[2] === 'unidad' && segments[3]) {
-          const uIdx = parseInt(segments[3]);
-          if (!isNaN(uIdx) && subject.units[uIdx]) {
-            setSelectedUnitIndex(uIdx);
-            if (currentView !== 'unit-study') setCurrentView('unit-study');
-          } else {
-            // Invalid unit, go to subject
-            navigate(`/materia/${subject.id}`, { replace: true });
-          }
-        } else {
-          if (currentView !== 'subject') setCurrentView('subject');
-        }
-      } else {
-        // Invalid subject
-        navigate('/materias', { replace: true });
-      }
-    } else if (firstSegment === 'clase' && segments[1]) {
-      if (currentView !== 'class-detail') setCurrentView('class-detail');
-    } else {
-      // Catch-all: if we have a path that doesn't match, go to inicio
-      if (location.pathname !== '/inicio' && location.pathname !== '/') {
-         navigate('/inicio', { replace: true });
-      }
-    }
-  }, [location.pathname]);
-
-  // Sync activeClass from URL once userClasses is loaded
-  useEffect(() => {
-    const segments = location.pathname.split('/').filter(Boolean);
-    if (segments[0] === 'clase' && segments[1] && userClasses.length > 0) {
-      const cls = userClasses.find(c => c.id === segments[1]);
-      if (cls && (!activeClass || activeClass.id !== cls.id)) {
-        setActiveClass(cls);
-      }
-    }
-  }, [location.pathname, userClasses]);
+  }, []);
 
   const navigateTo = (view: View) => {
     setLastView(currentView);
     setUnitSearch('');
     setCurrentView(view);
-    
-    // NEW: Sync State to URL
-    let path = '/inicio';
-    switch(view) {
-      case 'home': path = '/inicio'; break;
-      case 'materias': path = '/materias'; break;
-      case 'schedule': path = '/horario'; break;
-      case 'exam': path = '/examen'; break;
-      case 'leaderboard': path = '/leaderboard'; break;
-      case 'gallery': path = '/gallery'; break;
-      case 'classes': path = '/clases'; break;
-      case 'settings': path = '/ajustes'; break;
-      case 'reports': path = '/reports'; break;
-      case 'subject': 
-        if (selectedSubject) path = `/materia/${selectedSubject.id}`;
-        break;
-      case 'unit-study':
-        if (selectedSubject && selectedUnitIndex !== null) 
-          path = `/materia/${selectedSubject.id}/unidad/${selectedUnitIndex}`;
-        break;
-      case 'class-detail':
-        if (activeClass) path = `/clase/${activeClass.id}`;
-        else path = '/clases';
-        break;
-    }
-    
-    if (location.pathname !== path) {
-      navigate(path);
-    }
   };
 
   const [theme, setTheme] = useState<'white' | 'black'>(() => {
@@ -614,6 +499,8 @@ export default function App() {
   const t = (key: string) => translations[language][key] || key;
 
   // Classroom States
+  const [userClasses, setUserClasses] = useState<any[]>([]);
+  const [activeClass, setActiveClass] = useState<any | null>(null);
   const [classAnnouncements, setClassAnnouncements] = useState<any[]>([]);
   const [classMembers, setClassMembers] = useState<any[]>([]);
   const [classResources, setClassResources] = useState<any[]>([]);
@@ -1040,6 +927,8 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('newara_disable_animations', disableAnimations.toString());
   }, [disableAnimations]);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number, activityCode?: string} | null>(null);
   const [exerciseState, setExerciseState] = useState({ 
@@ -1067,6 +956,7 @@ export default function App() {
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
   const [gallerySearch, setGallerySearch] = useState('');
+  const [unitSearch, setUnitSearch] = useState('');
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity', classId?: string, parentId?: string} | null>(null);
   const [reportReason, setReportReason] = useState('');
