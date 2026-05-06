@@ -3121,10 +3121,10 @@ export default function App() {
         {/* LOGO NewAra - Now visible on mobile too */}
         <div className="flex flex-col items-center gap-1 md:gap-2 mb-1 px-4 scale-90 md:scale-100">
            <div className="md:hidden">
-             <NewAraLogo size="md" theme={theme} />
+             <NewAraLogo size="md" theme={theme} onClick={() => playExternalBubble()} />
            </div>
            <div className="hidden md:block">
-             <NewAraLogo size="lg" theme={theme} />
+             <NewAraLogo size="lg" theme={theme} onClick={() => playExternalBubble()} />
            </div>
           
           <div className="hidden md:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />

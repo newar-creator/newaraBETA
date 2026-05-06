@@ -5,9 +5,10 @@ interface NewAraLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   theme?: 'white' | 'black';
+  onClick?: () => void;
 }
 
-export const NewAraLogo: React.FC<NewAraLogoProps> = ({ className = '', size = 'md', theme = 'white' }) => {
+export const NewAraLogo: React.FC<NewAraLogoProps> = ({ className = '', size = 'md', theme = 'white', onClick }) => {
   const sizeClasses = {
     sm: 'text-xl',
     md: 'text-3xl',
@@ -16,8 +17,16 @@ export const NewAraLogo: React.FC<NewAraLogoProps> = ({ className = '', size = '
 
   return (
     <motion.div 
-      className={`font-logo font-bold tracking-tighter flex items-baseline select-none ${sizeClasses[size]} ${className}`}
-      whileHover={{ scale: 1.05 }}
+      className={`font-logo font-bold tracking-tighter flex items-baseline select-none cursor-pointer ${sizeClasses[size]} ${className}`}
+      whileHover={{ 
+        scale: 1.05,
+        filter: 'brightness(1.1)'
+      }}
+      whileTap={{ 
+        scale: 0.9,
+        transition: { type: 'spring', stiffness: 400, damping: 10 }
+      }}
+      onClick={onClick}
     >
       <span className={`${theme === 'black' ? 'text-white' : 'text-[#1a2b4b]'} transition-colors duration-500`}>
         New
