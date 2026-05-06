@@ -62,6 +62,7 @@ import {
   Bell,
   Check,
   CheckCircle,
+  CheckCheck,
   BellRing,
   MessageSquare,
   ShieldAlert
@@ -177,6 +178,7 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [expandedNotificationId, setExpandedNotificationId] = useState<string | null>(null);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
@@ -557,7 +559,13 @@ export default function App() {
   useEffect(() => {
     if (isLoggedIn && userName && userName !== 'Estudiante') {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 120000);
+      const interval = setInterval(fetchNotifications, 60000); // More frequent updates for real-time feel
+
+      // Request native notification permission
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
       return () => clearInterval(interval);
     }
   }, [isLoggedIn, userName]);
@@ -1754,6 +1762,21 @@ export default function App() {
         id: doc.id,
         ...doc.data()
       })) as Notification[];
+      
+      // Check for new unread notifications to trigger native alert
+      const unreadCount = notifs.filter(n => !n.isRead).length;
+      const prevUnreadCount = notifications.filter(n => !n.isRead).length;
+      
+      if (unreadCount > prevUnreadCount && "Notification" in window && Notification.permission === "granted") {
+        const newNotif = notifs.find(n => !n.isRead && !notifications.some(on => on.id === n.id));
+        if (newNotif) {
+          new Notification(newNotif.title, {
+            body: newNotif.message,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+
       setNotifications(notifs);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -2356,123 +2379,170 @@ export default function App() {
                initial={{ scale: 0.9, y: 20, opacity: 0 }}
                animate={{ scale: 1, y: 0, opacity: 1 }}
                exit={{ scale: 0.9, y: 20, opacity: 0 }}
-               className={`relative w-full max-w-lg rounded-[40px] border-4 shadow-2xl flex flex-col max-h-[80vh] overflow-hidden ${
+               className={`relative w-full max-w-lg md:rounded-[40px] rounded-t-[40px] md:border-4 border-x-0 border-b-0 md:border-b-4 shadow-2xl flex flex-col h-full md:h-auto max-h-[92vh] md:max-h-[80vh] overflow-hidden self-end md:self-center ${
                  theme === 'black' ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-white text-sky-950'
                }`}
             >
-               <div className="p-8 pb-4 flex items-center justify-between border-b border-white/10">
-                 <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-500">
-                      <Bell size={24} />
-                    </div>
-                    <h2 className="text-2xl font-black uppercase tracking-tight">{t('notificaciones')}</h2>
+               {/* Mobile Drag Handle */}
+               <div className="md:hidden w-full flex justify-center pt-3 pb-1">
+                 <div className={`w-12 h-1.5 rounded-full ${theme === 'black' ? 'bg-white/10' : 'bg-slate-200'}`} />
+               </div>
+
+               <div className="p-8 pb-4 flex flex-col border-b border-white/10">
+                 <div className="flex items-center justify-between mb-4">
+                   <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-500">
+                        <Bell size={24} />
+                      </div>
+                      <h2 className="text-2xl font-black uppercase tracking-tight">{t('notificaciones')}</h2>
+                   </div>
+                   <button 
+                     onClick={() => setShowNotifications(false)}
+                     className={`p-2 rounded-xl transition-all ${theme === 'black' ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-100 hover:bg-slate-200'}`}
+                   >
+                     <X size={20} />
+                   </button>
                  </div>
-                 <div className="flex items-center gap-3">
+                 
+                 <div className="flex gap-2">
                    {notifications.some(n => !n.isRead) && (
                      <button 
                        onClick={() => markAllNotificationsRead()}
-                       className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:underline"
+                       className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:scale-[1.02] active:scale-95 transition-all"
                      >
+                       <CheckCheck size={14} />
                        {t('marcarTodoLeido')}
                      </button>
                    )}
-                    <button 
-                      onClick={() => setShowNotifications(false)}
-                      className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
-                    >
-                      <X size={20} />
-                    </button>
+                   <button 
+                     onClick={async () => {
+                       if (window.confirm('¿Deseas borrar todo el historial de notificaciones?')) {
+                         for (const n of notifications) {
+                           await deleteNotification(n.id);
+                         }
+                       }
+                     }}
+                     className="px-4 py-2 rounded-xl border-2 border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                   >
+                     Reiniciar
+                   </button>
                  </div>
                </div>
 
                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                  {notifications.length === 0 ? (
                    <div className="flex flex-col items-center justify-center py-20 opacity-40 text-center">
-                     <BellRing size={48} className="mb-4 opacity-20" />
-                     <p className="font-bold">{t('noHayNotificaciones')}</p>
+                      <BellRing size={48} className="mb-4 opacity-20" />
+                      <p className="font-bold">{t('noHayNotificaciones')}</p>
                    </div>
                  ) : (
-                   notifications.map(n => (
-                     <motion.div 
-                       key={n.id}
-                       initial={{ opacity: 0, x: -10 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       className={`p-5 rounded-3xl border-2 transition-all group relative ${
-                         n.isRead 
-                           ? (theme === 'black' ? 'bg-white/5 border-transparent opacity-60' : 'bg-slate-50 border-transparent opacity-70')
-                           : (theme === 'black' ? 'bg-blue-500/10 border-blue-500/20 shadow-lg' : 'bg-blue-50 border-blue-200 shadow-xl shadow-blue-500/5')
-                       }`}
-                     >
-                       <div className="flex gap-4">
-                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                           n.type === 'assignment' ? 'bg-orange-500/20 text-orange-500' :
-                           n.type === 'announcement' ? 'bg-blue-500/20 text-blue-500' :
-                           n.type === 'moderation' ? 'bg-red-500/20 text-red-500' :
-                           'bg-purple-500/20 text-purple-500'
-                         }`}>
-                           {n.type === 'assignment' ? <ClipboardList size={20} /> :
-                            n.type === 'announcement' ? <Users2 size={20} /> :
-                            n.type === 'moderation' ? <ShieldCheck size={20} /> :
-                            <Sparkles size={20} />}
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <div className="flex items-center justify-between mb-1">
-                             <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
-                               {n.type === 'assignment' ? t('nuevaTarea') :
-                                n.type === 'announcement' ? t('nuevoAnuncio') :
-                                n.type === 'moderation' ? t('contenidoEliminado') :
-                                t('actualizacionSistema')}
+                   notifications.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()).map(n => {
+                     const isExpanded = n.id === expandedNotificationId;
+                     const hasMore = n.message.length > 120;
+                     const displayText = isExpanded ? n.message : (hasMore ? n.message.substring(0, 120) + '...' : n.message);
+
+                     return (
+                       <motion.div 
+                         key={n.id}
+                         initial={{ opacity: 0, x: -10 }}
+                         animate={{ opacity: 1, x: 0 }}
+                         className={`p-5 rounded-3xl border-2 transition-all group relative ${
+                           n.isRead 
+                             ? (theme === 'black' ? 'bg-white/5 border-transparent opacity-60' : 'bg-slate-50 border-transparent opacity-70')
+                             : (theme === 'black' ? 'bg-blue-500/10 border-blue-500/20 shadow-lg' : 'bg-blue-50 border-blue-200 shadow-xl shadow-blue-500/5')
+                         }`}
+                         onClick={() => {
+                           if (!n.isRead) markNotificationRead(n.id);
+                         }}
+                       >
+                         <div className="flex gap-4">
+                           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                             n.type === 'assignment' ? 'bg-orange-500/20 text-orange-500' :
+                             n.type === 'announcement' ? 'bg-blue-500/20 text-blue-500' :
+                             n.type === 'moderation' ? 'bg-red-500/20 text-red-500' :
+                             'bg-purple-500/20 text-purple-500'
+                           }`}>
+                             {n.type === 'assignment' ? <ClipboardList size={20} /> :
+                              n.type === 'announcement' ? <Users2 size={20} /> :
+                              n.type === 'moderation' ? <ShieldCheck size={20} /> :
+                              <Sparkles size={20} />}
+                           </div>
+                           <div className="flex-1 min-w-0">
+                             <div className="flex items-center justify-between mb-1">
+                               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                 {n.type === 'assignment' ? t('nuevaTarea') :
+                                  n.type === 'announcement' ? t('nuevoAnuncio') :
+                                  n.type === 'moderation' ? t('contenidoEliminado') :
+                                  t('actualizacionSistema')}
+                               </p>
+                               <span className="text-[10px] font-bold opacity-30">
+                                 {n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : 'Reciente'}
+                               </span>
+                             </div>
+                             <h3 className="font-black text-sm mb-1 leading-tight">{n.title}</h3>
+                             <p className="text-xs font-medium opacity-70 leading-relaxed mb-1 italic">
+                               {displayText}
                              </p>
-                             <span className="text-[10px] font-bold opacity-30">
-                               {n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : 'Reciente'}
-                             </span>
-                           </div>
-                           <h3 className="font-black text-sm mb-1 leading-tight">{n.title}</h3>
-                           <p className="text-xs font-medium opacity-70 leading-relaxed mb-3">{n.message}</p>
-                           
-                           <div className="flex items-center gap-3">
-                             {!n.isRead && (
+                             
+                             {hasMore && (
                                <button 
-                                 onClick={() => markNotificationRead(n.id)}
-                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all"
-                                >
-                                 <Check size={12} /> {t('marcarComoLeido')}
-                               </button>
-                             )}
-                             {n.link && (
-                               <button 
-                                 onClick={() => {
-                                   if (n.link && n.link.startsWith('/classes/')) {
-                                      // Handle class link
-                                      const classId = n.link.split('/')[2];
-                                      const cls = userClasses.find(c => c.id === classId);
-                                      if (cls) {
-                                        setActiveClass(cls);
-                                        navigateTo('class-detail');
-                                        setShowNotifications(false);
-                                      }
-                                   } else {
-                                      setShowNotifications(false);
-                                   }
-                                   if (!n.isRead) markNotificationRead(n.id);
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setExpandedNotificationId(isExpanded ? null : n.id);
                                  }}
-                                 className="px-3 py-1.5 rounded-xl border-2 border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                                 className="text-[10px] font-black text-blue-500 hover:underline mb-3"
                                >
-                                 Ir al contenido
+                                 {isExpanded ? 'Ver menos' : 'Ver más'}
                                </button>
                              )}
+                             
+                             <div className="flex items-center gap-3">
+                               {!n.isRead && !isExpanded && (
+                                 <button 
+                                   onClick={() => markNotificationRead(n.id)}
+                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all"
+                                  >
+                                   <Check size={12} /> {t('marcarComoLeido')}
+                                 </button>
+                               )}
+                               {n.link && (
+                                 <button 
+                                   onClick={() => {
+                                     if (n.link && n.link.startsWith('/classes/')) {
+                                        // Handle class link
+                                        const classId = n.link.split('/')[2];
+                                        const cls = userClasses.find(c => c.id === classId);
+                                        if (cls) {
+                                          setActiveClass(cls);
+                                          navigateTo('class-detail');
+                                          setShowNotifications(false);
+                                        }
+                                     } else {
+                                        setShowNotifications(false);
+                                     }
+                                     if (!n.isRead) markNotificationRead(n.id);
+                                   }}
+                                   className="px-3 py-1.5 rounded-xl border-2 border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                                 >
+                                   Ir al contenido
+                                 </button>
+                               )}
+                             </div>
                            </div>
+                           <button 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               deleteNotification(n.id);
+                             }}
+                             className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-pink-500 hover:bg-pink-500/10 rounded-xl transition-all"
+                             title={t('borrarNotificacion')}
+                           >
+                             <Trash2 size={16} />
+                           </button>
                          </div>
-                         <button 
-                           onClick={() => deleteNotification(n.id)}
-                           className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-pink-500 hover:bg-pink-500/10 rounded-xl transition-all"
-                           title={t('borrarNotificacion')}
-                         >
-                           <Trash2 size={16} />
-                         </button>
-                       </div>
-                     </motion.div>
-                   ))
+                       </motion.div>
+                     );
+                   })
                  )}
                </div>
             </motion.div>
@@ -3221,6 +3291,14 @@ export default function App() {
                     label={t('leaderboard')} 
                     theme={theme}
                     badge="TOP"
+                  />
+                  <MobileMenuButton 
+                    active={showNotifications} 
+                    onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
+                    icon={<Bell size={20} />} 
+                    label={t('notificaciones')} 
+                    theme={theme}
+                    badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
                   />
                   <MobileMenuButton 
                     id="nav-settings"
