@@ -3330,14 +3330,14 @@ export default function App() {
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 100 }}
-                    className={`fixed bottom-24 left-4 right-4 p-6 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden ${
+                    className={`fixed bottom-24 left-4 right-4 p-5 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden flex flex-col max-h-[70vh] ${
                       theme === 'black' 
                         ? 'bg-black/90 border-white/10' 
                         : 'bg-white/95 border-white/60'
                     }`}
                   >
                     <div className="glossy-overlay opacity-30 rounded-3xl" />
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-4 flex-shrink-0">
                       <p className={`text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                         {t('explorarMaterias')}
                       </p>
@@ -3348,7 +3348,7 @@ export default function App() {
                         <ArrowLeft size={14} className="rotate-[-90deg]" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-2 overflow-y-auto pr-1 custom-scrollbar">
                       {SUBJECTS.map(s => (
                         <button 
                           key={s.id}
@@ -3358,16 +3358,19 @@ export default function App() {
                             navigateTo('subject');
                             setShowMobileSubjects(false);
                           }}
-                          className={`flex flex-col items-start gap-3 p-4 rounded-3xl transition-all active:scale-95 border-2 ${
+                          className={`flex flex-row items-center gap-4 p-4 rounded-3xl transition-all active:scale-95 border-2 ${
                             theme === 'black' 
                               ? 'bg-white/5 border-white/10 hover:bg-white/10' 
                               : 'bg-slate-50 border-transparent hover:border-blue-200 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.1)]'
                           }`}
                         >
-                          <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-b ${getColorClasses(s.color)}`}>
-                            {getIcon(s.icon, 20)}
+                          <div className={`p-2.5 rounded-2xl text-white shadow-lg bg-gradient-to-b ${getColorClasses(s.color)} flex-shrink-0`}>
+                            {getIcon(s.icon, 18)}
                           </div>
-                          <span className={`text-xs font-black transition-colors duration-500 uppercase tracking-tighter text-left ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{s.name}</span>
+                          <div className="flex flex-col items-start overflow-hidden">
+                            <span className={`text-sm font-black transition-colors duration-500 uppercase tracking-tighter truncate w-full ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{s.name}</span>
+                            <span className={`text-[10px] font-medium opacity-60 truncate w-full ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>{s.description}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -3760,19 +3763,24 @@ export default function App() {
                 </AeroCard>
 
                 <AeroCard title={t('materias')} theme={theme}>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                     {SUBJECTS.map(s => (
                       <button 
                         key={s.id} 
                         onClick={() => handleSubjectClick(s)}
-                        className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-2 group shadow-sm hover:shadow-lg active:scale-95 ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                        className={`p-3 md:p-4 rounded-3xl border transition-all flex flex-row items-center gap-4 group shadow-sm hover:shadow-lg active:scale-95 text-left ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                       >
-                        <div className="p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br from-blue-400/80 to-blue-600 group-hover:scale-110 transition-transform">
-                          {getIcon(s.icon, 24)}
+                        <div className={`p-2.5 md:p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br ${getColorClasses(s.color)} group-hover:scale-110 transition-transform flex-shrink-0`}>
+                          {getIcon(s.icon, 20)}
                         </div>
-                        <span className={`text-xs font-black uppercase tracking-wider ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>
-                          {s.name}
-                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className={`text-sm md:text-base font-black uppercase tracking-tight truncate ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
+                            {s.name}
+                          </span>
+                          <span className={`text-[10px] md:text-xs font-medium opacity-60 truncate ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>
+                            {s.description}
+                          </span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -5956,7 +5964,7 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
   );
 }
 
-function UnitButton({ number, title, color, onClick, theme = 'white', isCompleted = false }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black', isCompleted?: boolean }) {
+function UnitButton({ number, title, color, onClick, theme = 'white', isCompleted = false, difficulty }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black', isCompleted?: boolean, difficulty?: string }) {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
@@ -5965,7 +5973,17 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
       case 'indigo': return 'from-indigo-400 to-indigo-600 shadow-indigo-500/50';
       case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';
       case 'violet': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
+      case 'sky': return 'from-sky-400 to-sky-600 shadow-sky-500/50';
       default: return 'from-sky-400 to-sky-600 shadow-sky-500/50';
+    }
+  };
+
+  const getDifficultyColor = (diff?: string) => {
+    switch(diff) {
+      case 'Baja': return 'text-green-500';
+      case 'Media': return 'text-amber-500';
+      case 'Alta': return 'text-red-500';
+      default: return 'text-sky-500';
     }
   };
 
@@ -5988,7 +6006,10 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
 
         {/* Floating Tooltip */}
         <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl shadow-xl border opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0 ${theme === 'black' ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'}`}>
-          <span className="text-xs font-bold uppercase tracking-tighter">{isCompleted ? '¡Completado!' : title}</span>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-bold uppercase tracking-tighter">{isCompleted ? '¡Completado!' : title}</span>
+            {difficulty && <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${getDifficultyColor(difficulty)}`}>{difficulty}</span>}
+          </div>
           <div className={`absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${theme === 'black' ? 'border-t-slate-900' : 'border-t-white'}`} />
         </div>
       </div>
@@ -6029,6 +6050,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
               isCompleted={isCompleted}
               onClick={() => onUnitClick(displayIndex)} 
               theme={theme}
+              difficulty={unit.difficulty}
             />
             
             {/* Connector dots */}
@@ -6080,33 +6102,44 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className={`text-2xl md:text-4xl font-black tracking-tighter leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className={`text-2xl md:text-4xl font-black tracking-tighter leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
+            {unit.difficulty && (
+              <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
+                unit.difficulty === 'Baja' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
+                unit.difficulty === 'Media' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                'bg-red-500/10 border-red-500/20 text-red-500'
+              }`}>
+                {unit.difficulty}
+              </span>
+            )}
+          </div>
           <p className={`font-bold uppercase text-[10px] md:text-xs tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>{unit.description}</p>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+        <div className="md:col-span-2 space-y-4 md:space-y-8">
           <AeroCard title="Explicación" theme={theme}>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="p-3 rounded-2xl bg-amber-100 text-amber-600 w-fit h-fit">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <div className="p-2 md:p-3 rounded-2xl bg-amber-100 text-amber-600 w-fit h-fit shrink-0">
                 <Lightbulb size={24} />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <p className={`text-base md:text-lg font-medium leading-relaxed transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
                   {unit.explanation}
                 </p>
                 <div className={`p-4 md:p-6 rounded-3xl border transition-colors duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50/50 border-sky-100'}`}>
-                  <h4 className={`text-sm font-black mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                  <h4 className={`text-sm font-black mb-3 md:mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
                     <Book className="text-sky-500" size={16} /> Conceptos Clave
                   </h4>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-3 md:gap-4">
                     {unit.meanings.map((m: any, i: number) => (
                       <div key={i} className="flex gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-2 shrink-0" />
                         <div>
-                          <strong className={`block transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.term}</strong>
-                          <span className={`text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>{m.definition}</span>
+                          <strong className={`block text-sm md:text-base transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.term}</strong>
+                          <span className={`text-[13px] md:text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>{m.definition}</span>
                         </div>
                       </div>
                     ))}

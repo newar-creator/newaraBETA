@@ -12,6 +12,7 @@ export interface Unit {
   title: string;
   description: string;
   explanation: string;
+  difficulty?: 'Baja' | 'Media' | 'Alta';
   meanings: { term: string, definition: string }[];
   exercises: Exercise[];
 }
@@ -536,6 +537,68 @@ export const SUBJECTS: Subject[] = [
           { question: 'Resuelve: 2 + 3 · 4', options: ['20', '14', '12', '9'], correct: 1 },
           { question: '¿Cuánto es 5³?', options: ['15', '25', '125', '50'], correct: 2 },
           { question: 'Al dividir potencias de igual base, los exponentes se:', options: ['Suman', 'Multiplican', 'Restan', 'Dividen'], correct: 2 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'frances',
+    name: 'Francés',
+    icon: 'Flag',
+    color: 'sky',
+    description: 'Exploración de la lengua francesa, desde las bases hasta la fluidez comunicativa.',
+    units: [
+      {
+        title: 'Les Bases : Salutations et Nombres',
+        description: 'Primeros pasos en francés: cómo saludar, presentarse y contar del 1 al 20.',
+        difficulty: 'Baja',
+        explanation: 'En francés, los saludos varían según la hora del día y la formalidad. "Bonjour" se usa durante el día, mientras que "Bonsoir" es para la tarde-noche. Los números son fundamentales para compras y edades.',
+        meanings: [
+          { term: 'Bonjour', definition: 'Hola / Buenos días.' },
+          { term: 'Comment ça va ?', definition: '¿Cómo estás? (Informal).' },
+          { term: 'Merci', definition: 'Gracias.' },
+          { term: 'S’il vous plaît', definition: 'Por favor (Formal).' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo se dice "Buenas noches" al llegar?', options: ['Bonsoir', 'Bonne nuit', 'Bonjour', 'Salut'], correct: 0 },
+          { type: 'multiple-choice', question: '¿Cuál es el número 15 en francés?', options: ['Cinq', 'Quatorze', 'Quinze', 'Treize'], correct: 2 },
+          { type: 'multiple-choice', question: '¿Qué significa "Enchanté"?', options: ['Encantado', 'Triste', 'Cansado', 'Enojado'], correct: 0 },
+          { type: 'multiple-choice', question: '¿Cómo se responde a "Merci"?', options: ['S’il vous plaît', 'De rien', 'Bonjour', 'Salut'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Ma Famille et mon Environnement',
+        description: 'Vocabulario familiar, descripción de personas y la casa.',
+        difficulty: 'Media',
+        explanation: 'La descripción de la familia requiere conocer los géneros en francés. Casi todos los sustantivos tienen un género marcado (masculino/femenino) que afecta a los adjetivos.',
+        meanings: [
+          { term: 'La mère', definition: 'La madre.' },
+          { term: 'Le frère', definition: 'El hermano.' },
+          { term: 'La maison', definition: 'La casa.' },
+          { term: 'Beau/Belle', definition: 'Hermoso/Hermosa.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo se dice "Padre"?', options: ['Le père', 'La mère', 'La sœur', 'Le fils'], correct: 0 },
+          { type: 'multiple-choice', question: 'Femenino de "Grand"', options: ['Grand', 'Grande', 'Grands', 'Grandes'], correct: 1 },
+          { type: 'multiple-choice', question: '¿Qué significa "Le chien"?', options: ['Gato', 'Pájaro', 'Perro', 'Pez'], correct: 2 },
+          { type: 'multiple-choice', question: '¿Cómo se dice "Vivir"?', options: ['Manger', 'Boire', 'Habiter', 'Courir'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Le Passé Composé : Parler d\'Événements Passés',
+        description: 'Uso de auxiliares "avoir" y "être" para narrar el pasado.',
+        difficulty: 'Alta',
+        explanation: 'El Passé Composé es el tiempo más común para hablar del pasado. Se forma con un auxiliar en presente y el participio del verbo. La elección del auxiliar depende del tipo de verbo.',
+        meanings: [
+          { term: 'J\'ai mangé', definition: 'He comido / Comí.' },
+          { term: 'Je suis allé', definition: 'He ido / Fui (con auxiliar être).' },
+          { term: 'Participe passé', definition: 'Forma verbal para el tiempo compuesto.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Qué auxiliar usa el verbo "aller"?', options: ['Avoir', 'Être', 'Faire', 'Aller'], correct: 1 },
+          { type: 'multiple-choice', question: 'Completa: "J\'___ (regarder) un film."', options: ['suis', 'ai', 'es', 'as'], correct: 1 },
+          { type: 'multiple-choice', question: 'Participio de "Finir"', options: ['Finissons', 'Fini', 'Finis', 'Finissant'], correct: 1 },
+          { type: 'multiple-choice', question: '¿Cómo se dice "Ayer"?', options: ['Demain', 'Aujourd\'hui', 'Hier', 'Maintenant'], correct: 2 }
         ]
       }
     ]
