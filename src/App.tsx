@@ -2070,10 +2070,12 @@ export default function App() {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
+      case 'sky': return 'from-sky-400 to-sky-600';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
-      case 'violet': return 'from-violet-400 to-violet-600';
+      case 'violet':
+      case 'purple': return 'from-violet-400 to-violet-600';
       default: return 'from-sky-400 to-sky-600';
     }
   };
@@ -5639,10 +5641,12 @@ function ExerciseRunner({
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
+      case 'sky': return 'from-sky-400 to-sky-600';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
-      case 'purple': return 'from-purple-400 to-purple-600';
+      case 'violet':
+      case 'purple': return 'from-violet-400 to-violet-600';
       default: return 'from-sky-400 to-sky-600';
     }
   };
@@ -5936,9 +5940,12 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
     switch (color) {
       case 'green': return 'from-green-400/80 to-green-600/80 text-white';
       case 'blue': return 'from-blue-400/80 to-blue-600/80 text-white';
+      case 'sky': return 'from-sky-400/80 to-sky-600/80 text-white';
       case 'amber': return 'from-amber-400/80 to-amber-600/80 text-white';
       case 'red': return 'from-red-400/80 to-red-600/80 text-white';
       case 'indigo': return 'from-indigo-400/80 to-indigo-600/80 text-white';
+      case 'violet':
+      case 'purple': return 'from-violet-400/80 to-violet-600/80 text-white';
       case 'slate': return 'from-slate-400/80 to-slate-600/80 text-white';
       default: return theme === 'black' ? 'bg-white/5 text-white/20' : 'bg-white/20 text-sky-900/40';
     }
@@ -5969,11 +5976,12 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
     switch (color) {
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
       case 'blue': return 'from-blue-400 to-blue-600 shadow-blue-500/50';
+      case 'sky': return 'from-sky-400 to-sky-600 shadow-sky-500/50';
       case 'amber': return 'from-amber-400 to-amber-600 shadow-amber-500/50';
       case 'indigo': return 'from-indigo-400 to-indigo-600 shadow-indigo-500/50';
       case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';
-      case 'violet': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
-      case 'sky': return 'from-sky-400 to-sky-600 shadow-sky-500/50';
+      case 'violet':
+      case 'purple': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
       default: return 'from-sky-400 to-sky-600 shadow-sky-500/50';
     }
   };
