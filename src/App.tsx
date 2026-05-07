@@ -224,6 +224,15 @@ export default function App() {
     }
 
     const firstSegment = segments[0];
+
+    // Deep link for minigames
+    if (firstSegment === 'minijuegos' && segments[1] === 'servidor' && segments[2] === 'codigo' && segments[3]) {
+      const codeFromUrl = segments[3].toUpperCase();
+      if (isLoggedIn && !minigameSessionId) {
+        joinMinigameSession(codeFromUrl);
+      }
+    }
+
     const viewMap: Record<string, View> = {
       'materias': 'materias',
       'horario': 'schedule',
@@ -285,7 +294,7 @@ export default function App() {
     }
   }, [location.pathname, userClasses]);
 
-  const navigateTo = (view: View, params?: { subjectId?: string, unitIndex?: number, classId?: string }) => {
+  const navigateTo = (view: View, params?: { subjectId?: string, unitIndex?: number, classId?: string, gameCode?: string }) => {
     setLastView(currentView);
     setUnitSearch('');
     setCurrentView(view);
@@ -295,6 +304,7 @@ export default function App() {
     const sId = params?.subjectId || selectedSubject?.id;
     const uIdx = params?.unitIndex !== undefined ? params.unitIndex : selectedUnitIndex;
     const cId = params?.classId || activeClass?.id;
+    const gCode = params?.gameCode || minigameSession?.code;
 
     switch(view) {
       case 'home': path = '/inicio'; break;
@@ -320,6 +330,13 @@ export default function App() {
       case 'class-detail':
         if (cId) path = `/clase/${cId}`;
         else path = '/clases';
+        break;
+      case 'minigames':
+        if (gCode) {
+          path = `/minijuegos/servidor/codigo/${gCode}`;
+        } else {
+          path = '/minijuegos';
+        }
         break;
     }
     
@@ -1130,7 +1147,7 @@ export default function App() {
       const docRef = await addDoc(collection(db, 'gameSessions'), sessionData);
       setMinigameSessionId(docRef.id);
       setIsMinigameHost(true);
-      navigateTo('minigames');
+      navigateTo('minigames', { gameCode: code });
       setSelectedActivityDetail(null);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'gameSessions');
@@ -1179,7 +1196,7 @@ export default function App() {
 
       setMinigameSessionId(sessionId);
       setIsMinigameHost(false);
-      navigateTo('minigames');
+      navigateTo('minigames', { gameCode: sessionData.code });
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, 'gameSessions');
       alert("Error al unirse.");
@@ -3606,59 +3623,61 @@ export default function App() {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="flex md:hidden justify-around items-center w-full px-2 mt-auto">
-            <NavButton 
-              id="mobile-nav-home"
-              active={currentView === 'home'} 
-              onClick={() => {
-                navigateTo('home');
-                setShowMoreMobileMenu(false);
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Home size={22} />} 
-              label={t('inicio')} 
-              theme={theme}
-            />
-            <NavButton 
-              id="mobile-nav-gallery"
-              active={currentView === 'gallery'} 
-              onClick={() => {
-                navigateTo('gallery');
-                setShowMoreMobileMenu(false);
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Globe size={22} />} 
-              label="Galería" 
-              theme={theme}
-            />
-            <NavButton 
-              id="mobile-nav-classes"
-              active={currentView === 'classes' || currentView === 'class-detail'} 
-              onClick={() => {
-                navigateTo('classes');
-                setShowMoreMobileMenu(false);
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Users size={22} />} 
-              label="Clases" 
-              theme={theme}
-            />
-            <NavButton 
-              id="mobile-nav-more"
-              active={showMoreMobileMenu} 
-              onClick={() => {
-                setShowMoreMobileMenu(!showMoreMobileMenu);
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Menu size={22} />} 
-              label={t('mas')} 
-              theme={theme}
-            />
-          </div>
+          {!minigameSessionId && (
+            <div className="flex md:hidden justify-around items-center w-full px-2 mt-auto">
+              <NavButton 
+                id="mobile-nav-home"
+                active={currentView === 'home'} 
+                onClick={() => {
+                  navigateTo('home');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Home size={22} />} 
+                label={t('inicio')} 
+                theme={theme}
+              />
+              <NavButton 
+                id="mobile-nav-gallery"
+                active={currentView === 'gallery'} 
+                onClick={() => {
+                  navigateTo('gallery');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Globe size={22} />} 
+                label="Galería" 
+                theme={theme}
+              />
+              <NavButton 
+                id="mobile-nav-classes"
+                active={currentView === 'classes' || currentView === 'class-detail'} 
+                onClick={() => {
+                  navigateTo('classes');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Users size={22} />} 
+                label="Clases" 
+                theme={theme}
+              />
+              <NavButton 
+                id="mobile-nav-more"
+                active={showMoreMobileMenu} 
+                onClick={() => {
+                  setShowMoreMobileMenu(!showMoreMobileMenu);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Menu size={22} />} 
+                label={t('mas')} 
+                theme={theme}
+              />
+            </div>
+          )}
 
           {/* Mobile Menu Overlay */}
           <AnimatePresence>
-            {showMoreMobileMenu && (
+            {showMoreMobileMenu && !minigameSessionId && (
               <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
