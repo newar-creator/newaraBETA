@@ -22,20 +22,16 @@ export const playWaterDrop = () => {
 };
 
 export const playExternalBubble = () => {
-  // We use the same base64 logic to avoid external dependencies
-  const audio = new Audio();
-  // Using a synthetic bubble if base64 is too long, but here we'll use the synthesis as a fallback
-  // or a very short reliable one.
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.05);
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
     
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
     
     osc.connect(gain);
@@ -52,8 +48,7 @@ export const playSuccessSound = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     
-    // Play two notes (C5 then E5)
-    const playNote = (freq: number, start: number, duration: number) => {
+    const playNote = (freq: number, start: number, duration: number, volume = 0.1) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
@@ -61,8 +56,8 @@ export const playSuccessSound = () => {
       osc.frequency.setValueAtTime(freq, start);
       
       gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.1, start + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+      gain.gain.linearRampToValueAtTime(volume, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
       
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -71,8 +66,9 @@ export const playSuccessSound = () => {
       osc.stop(start + duration);
     };
 
-    playNote(523.25, ctx.currentTime, 0.3); // C5
-    playNote(659.25, ctx.currentTime + 0.1, 0.4); // E5
+    playNote(523.25, ctx.currentTime, 0.4, 0.15); // C5
+    playNote(659.25, ctx.currentTime + 0.08, 0.4, 0.15); // E5
+    playNote(783.99, ctx.currentTime + 0.16, 0.6, 0.2); // G5
   } catch (e) {
     console.error("Audio error", e);
   }
@@ -84,18 +80,18 @@ export const playErrorSound = () => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
     
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
     
     osc.connect(gain);
     gain.connect(ctx.destination);
     
     osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+    osc.stop(ctx.currentTime + 0.3);
   } catch (e) {
     console.error("Audio error", e);
   }
@@ -106,34 +102,94 @@ export const playGong = () => {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
     
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.5);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2000, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 2);
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(100, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 2);
     
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
     
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
     
     osc.start();
-    osc.stop(ctx.currentTime + 1.5);
+    osc.stop(ctx.currentTime + 2);
   } catch (e) {
     console.error("Audio error", e);
   }
 };
 
+export const playTick = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1000, ctx.currentTime);
+    
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.05);
+  } catch (e) {}
+}
+
+export const playWhoosh = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const noise = ctx.createBufferSource();
+    const bufferSize = ctx.sampleRate * 0.5;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.4);
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+  } catch (e) {}
+}
+
+export const playCheer = () => {
+  playSuccessSound();
+  setTimeout(playSuccessSound, 100);
+  setTimeout(playSuccessSound, 200);
+}
+
 let musicAudio: HTMLAudioElement | null = null;
 
 export const playMinigameMusic = () => {
   if (musicAudio) return;
+  // Try to use external music if available, otherwise just silent for now 
+  // (In real apps we'd use a robust synthetic loop)
   musicAudio = new Audio('/MUSICA.mp3');
   musicAudio.loop = true;
-  musicAudio.volume = 0.2;
+  musicAudio.volume = 0.15;
   musicAudio.play().catch(e => {
-    console.warn("Could not play MUSICA.mp3, using synthetic fallback", e);
-    // Synthetic music fallback could be complex, maybe just skip or use a simple loop
+    console.warn("Could not play MUSICA.mp3", e);
   });
 };
 
@@ -144,3 +200,4 @@ export const stopMinigameMusic = () => {
     musicAudio = null;
   }
 };
+

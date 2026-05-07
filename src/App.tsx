@@ -1236,11 +1236,13 @@ export default function App() {
     
     try {
       if (isLast) {
+        playCheer();
         await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
           status: 'ended',
           lastActivityAt: serverTimestamp()
         });
       } else {
+        playWhoosh();
         await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
           status: 'playing',
           currentQuestionIndex: nextIndex,
@@ -1268,6 +1270,12 @@ export default function App() {
     } else {
       isCorrect = answer === currentQ.correctAnswer;
     }
+
+    if (isCorrect) {
+      playSuccessSound();
+    } else {
+      playErrorSound();
+    }
     
     const points = isCorrect ? 450 : 0;
     
@@ -1293,6 +1301,7 @@ export default function App() {
 
   const showMinigameResults = async () => {
     if (!isMinigameHost || !minigameSessionId) return;
+    playGong();
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
         status: 'reveal',
@@ -1305,6 +1314,7 @@ export default function App() {
 
   const showMinigameLeaderboard = async () => {
     if (!isMinigameHost || !minigameSessionId) return;
+    playWhoosh();
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
         status: 'results',
@@ -1721,6 +1731,9 @@ export default function App() {
         
         // Timer local sync
         if (data.status === 'playing') {
+          if (data.timer !== minigameTimer && data.timer <= 5 && data.timer > 0) {
+            playTick();
+          }
           setMinigameTimer(data.timer);
         }
       } else {
