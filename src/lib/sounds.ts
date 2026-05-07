@@ -3,27 +3,31 @@ export const playWaterDrop = () => {
   try {
     const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
     if (!AudioContextClass) return;
-    const audioContext = new AudioContextClass();
-    if (audioContext.state === 'suspended') audioContext.resume();
+    const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') ctx.resume();
     
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-    oscillator.type = 'sine';
-    // Faster frequency sweep for a more natural "plop" sound
-    oscillator.frequency.setValueAtTime(450, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1400, audioContext.currentTime + 0.03);
-    oscillator.frequency.exponentialRampToValueAtTime(500, audioContext.currentTime + 0.08);
+    osc.type = 'sine';
+    // Frequency sweep for a nice "plop" sound
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.2);
 
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
 
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.12);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+
+    setTimeout(() => {
+      if (ctx.state !== 'closed') ctx.close();
+    }, 300);
   } catch (e) {}
 };
 

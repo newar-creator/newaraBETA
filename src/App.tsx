@@ -6966,7 +6966,7 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', b
 
 function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
   const handleClick = () => {
-    try { playWaterDrop(); } catch(e) {}
+    playExternalBubble();
     onClick();
   };
 
