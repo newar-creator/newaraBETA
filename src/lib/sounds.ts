@@ -111,31 +111,36 @@ export const playErrorSound = () => {
 
 export const playGong = () => {
   try {
-    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(2000, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 2);
+    const audio = new Audio('/kahoot-gong.mp3');
+    audio.volume = 0.2;
+    audio.play().catch(e => {
+      // Fallback to synthetic gong if file not found or blocked
+      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2000, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 2);
 
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(80, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 2);
-    
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
-    
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    osc.stop(ctx.currentTime + 2);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(80, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 2);
+      
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 2);
+    });
   } catch (e) {}
 };
 
