@@ -820,6 +820,8 @@ export default function App() {
           setUserPassword(loginPassword);
           setIsLoggedIn(true);
           setIsRegistering(false);
+          setShowWelcome(false);
+          localStorage.setItem('newara_visited', 'true');
           // Persist profile
           setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
           setUserRole(userData.role || 'Estudiante');
@@ -889,6 +891,8 @@ export default function App() {
         setUserPassword(loginPassword);
         setIsLoggedIn(true);
         setIsRegistering(false);
+        setShowWelcome(false);
+        localStorage.setItem('newara_visited', 'true');
         localStorage.setItem('newara_user_name', loginUserName.trim());
         localStorage.setItem('newara_user_password', loginPassword);
         localStorage.setItem('newara_logged_in', 'true');
@@ -2485,10 +2489,16 @@ export default function App() {
     <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
 
       {showWelcome && (
-        <WelcomeTutorial onComplete={() => {
-          setShowWelcome(false);
-          localStorage.setItem('newara_visited', 'true');
-        }} />
+        <WelcomeTutorial 
+          onComplete={() => {
+            setShowWelcome(false);
+            localStorage.setItem('newara_visited', 'true');
+          }} 
+          onLogin={() => {
+            setAuthMode('login');
+            setIsRegistering(true);
+          }}
+        />
       )}
 
       {/* Notifications Modal */}

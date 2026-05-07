@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { NewAraLogo } from './NewAraLogo';
 import { ChevronRight } from 'lucide-react';
 
-export const WelcomeTutorial: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+export const WelcomeTutorial: React.FC<{ onComplete: () => void, onLogin: () => void }> = ({ onComplete, onLogin }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
       <AnimatePresence>
@@ -88,12 +88,13 @@ export const WelcomeTutorial: React.FC<{ onComplete: () => void }> = ({ onComple
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
+              className="flex flex-col items-center gap-6"
             >
               <button
-                onClick={onComplete}
-                className="group relative flex items-center gap-3 px-8 py-4 bg-white text-slate-950 rounded-full font-black uppercase tracking-widest text-sm hover:bg-blue-50 transition-all shadow-2xl active:scale-95"
+                onClick={onLogin}
+                className="group relative flex items-center gap-3 px-10 py-5 bg-white text-slate-950 rounded-full font-black uppercase tracking-widest text-sm hover:bg-blue-50 hover:scale-105 transition-all shadow-2xl active:scale-95"
               >
-                Comenzar ahora
+                Iniciar Sesión
                 <motion.div
                   animate={{ x: [0, 5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
@@ -104,8 +105,16 @@ export const WelcomeTutorial: React.FC<{ onComplete: () => void }> = ({ onComple
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 rounded-full bg-white blur-md opacity-0 group-hover:opacity-30 transition-opacity" />
               </button>
+
+              <button
+                onClick={onComplete}
+                className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors py-2 px-4 hover:bg-white/5 rounded-full"
+              >
+                Comenzar igual
+              </button>
             </motion.div>
           </div>
+
 
           {/* Bottom decorative accents */}
           <div className="absolute bottom-12 left-0 right-0 flex justify-center px-6">
