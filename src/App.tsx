@@ -1703,6 +1703,12 @@ export default function App() {
 
   // Handle music and sounds
   useEffect(() => {
+    if (minigameSession?.currentQuestionIndex !== undefined) {
+      setHasAnsweredCurrentQuestion(false);
+    }
+  }, [minigameSession?.currentQuestionIndex]);
+
+  useEffect(() => {
     if (minigameSession?.status === 'playing') {
       playMinigameMusic();
       setMinigameMusicPlaying(true);
