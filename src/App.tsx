@@ -65,7 +65,9 @@ import {
   CheckCheck,
   BellRing,
   MessageSquare,
-  ShieldAlert
+  ShieldAlert,
+  Send,
+  XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -1263,7 +1265,7 @@ export default function App() {
     const currentQ = minigameSession.activity.questions[minigameSession.currentQuestionIndex];
     let isCorrect = false;
 
-    if (currentQ.type === 'written') {
+    if (currentQ.type === 'writing' || currentQ.type === 'written') {
       const cleanAnswer = answer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const cleanCorrect = currentQ.correctAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       isCorrect = cleanAnswer === cleanCorrect;
@@ -2598,8 +2600,8 @@ export default function App() {
     // Improved validation
     const isValid = activityQuestions.every((q, idx) => {
       if (!q.question.trim()) return false;
-      if (q.type === 'writing') return q.correct !== '';
-      if (q.type === 'true-false') return q.options.length === 2 && q.correct !== undefined;
+      if (q.type === 'writing' || q.type === 'written') return String(q.correct).trim() !== '';
+      if (q.type === 'true-false' || q.type === 'boolean') return q.options.length === 2 && q.correct !== undefined;
       // Multiple choice needs at least 2 non-empty options
       const nonEmptyOptions = q.options.filter(o => o.trim() !== '');
       return nonEmptyOptions.length >= 2 && q.correct !== undefined && q.correct !== null;
@@ -2623,7 +2625,7 @@ export default function App() {
 
       const processedQuestions = activityQuestions.map(q => {
         let finalCorrectAnswer = '';
-        if (q.type === 'writing') {
+        if (q.type === 'writing' || q.type === 'written') {
           finalCorrectAnswer = String(q.correct).trim();
         } else {
           const idx = Number(q.correct);
@@ -2631,7 +2633,7 @@ export default function App() {
         }
 
         return {
-          type: q.type || 'multiple-choice',
+          type: q.type === 'written' ? 'writing' : (q.type === 'boolean' ? 'true-false' : (q.type === 'multiple' ? 'multiple-choice' : (q.type || 'multiple-choice'))),
           question: q.question.trim(),
           options: q.options.filter(o => o.trim() !== ''),
           correctAnswer: finalCorrectAnswer
@@ -4479,16 +4481,16 @@ export default function App() {
                         >
                           <div className="space-y-4">
                             <div className="flex flex-wrap gap-2 mb-2">
-                               {['multiple', 'boolean', 'written'].map((type: any) => (
+                               {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
                                   <button 
                                      key={type}
                                      onClick={() => {
                                         const newQs = [...activityQuestions];
                                         (newQs[qIdx] as any).type = type;
-                                        if (type === 'boolean') {
+                                        if (type === 'true-false' || type === 'boolean') {
                                            newQs[qIdx].options = ['Verdadero', 'Falso'];
                                            newQs[qIdx].correct = 0;
-                                        } else if (type === 'written') {
+                                        } else if (type === 'writing' || type === 'written') {
                                            newQs[qIdx].options = [];
                                            newQs[qIdx].correct = '';
                                         } else {
@@ -4504,7 +4506,7 @@ export default function App() {
                                         : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/40' : 'bg-white/60 border-white/40 text-sky-900/40')
                                      }`}
                                   >
-                                     {type === 'multiple' ? 'Quiz' : type === 'boolean' ? 'V/F' : 'Escribir'}
+                                     {type === 'multiple-choice' ? 'Quiz' : type === 'true-false' ? 'V/F' : 'Escribir'}
                                   </button>
                                ))}
                             </div>
@@ -4520,10 +4522,10 @@ export default function App() {
                               className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-blue-400 outline-none ${
                                 theme === 'black' ? 'bg-white/10 border-white/5 text-white' : 'bg-white/40 border-white/20 text-sky-950'
                               }`}
-                              placeholder={q.type === 'written' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
+                              placeholder={q.type === 'writing' || q.type === 'written' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
                             />
                             
-                            {q.type === 'written' ? (
+                            {(q.type === 'writing' || q.type === 'written') ? (
                               <div className="space-y-2">
                                 <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Respuesta Correcta</label>
                                 <input 
@@ -4547,7 +4549,7 @@ export default function App() {
                                     <input 
                                       type="text" 
                                       value={opt}
-                                      readOnly={q.type === 'boolean'}
+                                      readOnly={q.type === 'true-false' || q.type === 'boolean'}
                                       onChange={(e) => {
                                         const newQs = [...activityQuestions];
                                         newQs[qIdx].options[optIdx] = e.target.value;
@@ -4559,7 +4561,7 @@ export default function App() {
                                       placeholder={`Opción ${optIdx + 1}`}
                                     />
                                     
-                                    {q.type === 'multiple' && q.options.length > 2 && (
+                                    {(q.type === 'multiple-choice' || q.type === 'multiple') && q.options.length > 2 && (
                                       <button 
                                         onClick={() => removeOption(qIdx, optIdx)}
                                         className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center opacity-0 group-hover/opt:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white"
@@ -4587,7 +4589,7 @@ export default function App() {
                                   </div>
                                 ))}
 
-                                {q.type === 'multiple' && q.options.length < 6 && (
+                                {(q.type === 'multiple-choice' || q.type === 'multiple') && q.options.length < 6 && (
                                   <button 
                                     onClick={() => addOption(qIdx)}
                                     className={`mt-1 py-2 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95 ${
@@ -4786,8 +4788,8 @@ export default function App() {
                       <div className="glossy-overlay opacity-20" />
                       <div className="flex justify-center gap-2">
                         <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest">
-                          {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? 'Escrito' : 
-                           minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? 'Verdadero o Falso' : 'Opción Múltiple'}
+                          {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? 'Escrito' : 
+                           (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean') ? 'Verdadero o Falso' : 'Opción Múltiple'}
                         </span>
                         <span className="px-3 py-1 rounded-full bg-white/10 text-[9px] font-black uppercase tracking-widest">
                           Pregunta {minigameSession.currentQuestionIndex + 1} de {minigameSession.activity.questions.length}
@@ -4801,7 +4803,7 @@ export default function App() {
                    {/* Student Input Section */}
                    {!isMinigameHost ? (
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
                           <div className="col-span-full space-y-6">
                             <div className="relative group">
                               <input 
@@ -4835,7 +4837,7 @@ export default function App() {
                             )}
                             <p className="text-center text-[10px] font-black uppercase tracking-widest opacity-40">La ortografía y los acentos se validan automáticamente</p>
                           </div>
-                        ) : minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (
+                        ) : (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean') ? (
                           <>
                             <button
                               disabled={hasAnsweredCurrentQuestion}
@@ -4944,7 +4946,7 @@ export default function App() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                       {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
                           <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
                              {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
                                <motion.div 
@@ -4964,11 +4966,11 @@ export default function App() {
                              ))}
                           </div>
                        ) : (
-                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
+                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
                             const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
                             const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
                             const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
-                            const color = minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
+                            const color = (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean') ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
                             const isCorrect = opt === minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer;
 
                             return (

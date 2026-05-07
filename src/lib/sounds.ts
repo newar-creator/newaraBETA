@@ -1,35 +1,39 @@
 
-// Base64 of a short, high-quality bubble/pop sound for Frutiger Aero feel
-const BUBBLE_SOUND_BASE64 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//MUZAsAAAGkAAAAAAAAA0gAAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//MUZBYAAAGkAAAAAAAAA0gAAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
-
 export const playWaterDrop = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
 
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.05);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.15);
 
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
 
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
 
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + 0.2);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.2);
+  } catch (e) {}
 };
 
 export const playExternalBubble = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(400, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.08);
     
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.02);
@@ -48,6 +52,7 @@ export const playExternalBubble = () => {
 export const playSuccessSound = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     
     const playNote = (freq: number, start: number, duration: number, volume = 0.1) => {
       const osc = ctx.createOscillator();
@@ -67,9 +72,11 @@ export const playSuccessSound = () => {
       osc.stop(start + duration);
     };
 
-    playNote(523.25, ctx.currentTime, 0.4, 0.15); // C5
-    playNote(659.25, ctx.currentTime + 0.08, 0.4, 0.15); // E5
-    playNote(783.99, ctx.currentTime + 0.16, 0.6, 0.2); // G5
+    const now = ctx.currentTime;
+    playNote(523.25, now, 0.4, 0.1); // C5
+    playNote(659.25, now + 0.1, 0.4, 0.1); // E5
+    playNote(783.99, now + 0.2, 0.6, 0.15); // G5
+    playNote(1046.50, now + 0.3, 0.8, 0.1); // C6
   } catch (e) {
     console.error("Audio error", e);
   }
@@ -78,21 +85,22 @@ export const playSuccessSound = () => {
 export const playErrorSound = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.4);
     
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
     
     osc.connect(gain);
     gain.connect(ctx.destination);
     
     osc.start();
-    osc.stop(ctx.currentTime + 0.3);
+    osc.stop(ctx.currentTime + 0.4);
   } catch (e) {
     console.error("Audio error", e);
   }
@@ -101,6 +109,7 @@ export const playErrorSound = () => {
 export const playGong = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
@@ -110,10 +119,10 @@ export const playGong = () => {
     filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 2);
 
     osc.type = 'square';
-    osc.frequency.setValueAtTime(100, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 2);
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 2);
     
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
     
     osc.connect(filter);
@@ -130,13 +139,14 @@ export const playGong = () => {
 export const playTick = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1000, ctx.currentTime);
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
     
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.setValueAtTime(0.03, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
     
     osc.connect(gain);
@@ -150,6 +160,7 @@ export const playTick = () => {
 export const playWhoosh = () => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
     const noise = ctx.createBufferSource();
     const bufferSize = ctx.sampleRate * 0.5;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -160,11 +171,11 @@ export const playWhoosh = () => {
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
     filter.frequency.setValueAtTime(400, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.4);
+    filter.frequency.exponentialRampToValueAtTime(3500, ctx.currentTime + 0.4);
     
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.1);
     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
     
     noise.connect(filter);
@@ -176,43 +187,47 @@ export const playWhoosh = () => {
 
 export const playCheer = () => {
   playSuccessSound();
-  setTimeout(playSuccessSound, 100);
-  setTimeout(playSuccessSound, 200);
 }
 
 let musicAudio: HTMLAudioElement | null = null;
-
 let syntheticMusicInterval: any = null;
+let syntheticContext: AudioContext | null = null;
 
 export const playMinigameMusic = () => {
   if (musicAudio || syntheticMusicInterval) return;
   
-  musicAudio = new Audio('/MUSICA.mp3');
+  musicAudio = new Audio();
+  musicAudio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; 
   musicAudio.loop = true;
-  musicAudio.volume = 0.15;
+  musicAudio.volume = 0.1;
+  
   musicAudio.play().catch(e => {
-    console.warn("Could not play MUSICA.mp3, using synthetic fallback", e);
-    // Synthetic Arpeggio Loop
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+    console.warn("Using synthetic aero music loop", e);
+    syntheticContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (syntheticContext.state === 'suspended') syntheticContext.resume();
+    
+    const notes = [329.63, 392.00, 440.00, 523.25, 587.33]; // E4, G4, A4, C5, D5
     let index = 0;
     
     syntheticMusicInterval = setInterval(() => {
+      if (!syntheticContext) return;
       try {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(notes[index % notes.length], ctx.currentTime);
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        const osc = syntheticContext.createOscillator();
+        const gain = syntheticContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(notes[index % notes.length], syntheticContext.currentTime);
+        
+        gain.gain.setValueAtTime(0, syntheticContext.currentTime);
+        gain.gain.linearRampToValueAtTime(0.04, syntheticContext.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, syntheticContext.currentTime + 0.8);
+        
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(syntheticContext.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.5);
+        osc.stop(syntheticContext.currentTime + 1);
         index++;
       } catch (e) {}
-    }, 300);
+    }, 400);
   });
 };
 
@@ -226,5 +241,8 @@ export const stopMinigameMusic = () => {
     clearInterval(syntheticMusicInterval);
     syntheticMusicInterval = null;
   }
+  if (syntheticContext) {
+    syntheticContext.close();
+    syntheticContext = null;
+  }
 };
-
