@@ -1259,7 +1259,16 @@ export default function App() {
     if (hasAnsweredCurrentQuestion || !minigameSessionId || !minigameSession) return;
     
     const currentQ = minigameSession.activity.questions[minigameSession.currentQuestionIndex];
-    const isCorrect = answer === currentQ.correctAnswer;
+    let isCorrect = false;
+
+    if (currentQ.type === 'written') {
+      const cleanAnswer = answer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanCorrect = currentQ.correctAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      isCorrect = cleanAnswer === cleanCorrect;
+    } else {
+      isCorrect = answer === currentQ.correctAnswer;
+    }
+    
     const points = isCorrect ? 450 : 0;
     
     setHasAnsweredCurrentQuestion(true);
@@ -1268,7 +1277,12 @@ export default function App() {
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId, 'players', userName), {
         score: increment(points),
-        lastResponse: { answer, isCorrect, points },
+        lastResponse: { 
+          answer, 
+          isCorrect, 
+          points, 
+          questionIndex: minigameSession.currentQuestionIndex 
+        },
         isCorrect: isCorrect,
         pointsLastRound: points
       });
@@ -4745,34 +4759,142 @@ export default function App() {
                      theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white border-white'
                    }`}>
                       <div className="glossy-overlay opacity-20" />
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Pregunta {minigameSession.currentQuestionIndex + 1} de {minigameSession.activity.questions.length}</p>
+                      <div className="flex justify-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest">
+                          {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? 'Escrito' : 
+                           minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? 'Verdadero o Falso' : 'Opción Múltiple'}
+                        </span>
+                        <span className="px-3 py-1 rounded-full bg-white/10 text-[9px] font-black uppercase tracking-widest">
+                          Pregunta {minigameSession.currentQuestionIndex + 1} de {minigameSession.activity.questions.length}
+                        </span>
+                      </div>
                       <h2 className="text-xl md:text-5xl font-black tracking-tight leading-tight">
                         {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
                       </h2>
                    </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {minigameSession.activity.questions[minigameSession.currentQuestionIndex].options.map((option: string, idx: number) => {
-                         const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
-                         const isAnswered = hasAnsweredCurrentQuestion;
-                         return (
-                           <button
-                             key={idx}
-                             disabled={isAnswered || isMinigameHost}
-                             onClick={() => submitMinigameAnswer(option)}
-                             className={`relative p-6 rounded-[32px] border-4 text-left transition-all overflow-hidden flex items-center gap-4 group ${
-                               isAnswered ? 'opacity-50 cursor-not-allowed border-blue-500/50' : 'active:scale-95'
-                             } ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/60'}`}
-                           >
-                              <div className={`w-12 h-12 rounded-2xl ${colors[idx]} flex items-center justify-center text-white font-black text-xl shadow-lg group-hover:scale-110 transition-transform`}>
-                                 {['▲', '◆', '●', '■'][idx]}
+                   {/* Student Input Section */}
+                   {!isMinigameHost ? (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                          <div className="col-span-full space-y-4">
+                            <input 
+                              type="text"
+                              disabled={hasAnsweredCurrentQuestion}
+                              placeholder="Escribe tu respuesta aquí..."
+                              className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl outline-none transition-all ${
+                                hasAnsweredCurrentQuestion ? 'opacity-50 border-blue-500/50 bg-white/5' : 'bg-white/10 border-white/20 focus:border-blue-400'
+                              }`}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !hasAnsweredCurrentQuestion) {
+                                  submitMinigameAnswer((e.target as HTMLInputElement).value);
+                                }
+                              }}
+                            />
+                            <p className="text-center text-[10px] font-black uppercase tracking-widest opacity-40">Presiona ENTER para enviar</p>
+                          </div>
+                        ) : minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (
+                          <>
+                            <button
+                              disabled={hasAnsweredCurrentQuestion}
+                              onClick={() => submitMinigameAnswer('Verdadero')}
+                              className={`relative p-12 rounded-[32px] border-4 transition-all overflow-hidden flex flex-col items-center justify-center gap-4 bg-blue-500 text-white ${
+                                hasAnsweredCurrentQuestion ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+                              }`}
+                            >
+                               <CheckCircle size={48} />
+                               <span className="text-2xl font-black uppercase tracking-widest">Verdadero</span>
+                               <div className="glossy-overlay opacity-20" />
+                            </button>
+                            <button
+                              disabled={hasAnsweredCurrentQuestion}
+                              onClick={() => submitMinigameAnswer('Falso')}
+                              className={`relative p-12 rounded-[32px] border-4 transition-all overflow-hidden flex flex-col items-center justify-center gap-4 bg-red-500 text-white ${
+                                hasAnsweredCurrentQuestion ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+                              }`}
+                            >
+                               <XCircle size={48} />
+                               <span className="text-2xl font-black uppercase tracking-widest">Falso</span>
+                               <div className="glossy-overlay opacity-20" />
+                            </button>
+                          </>
+                        ) : (
+                          minigameSession.activity.questions[minigameSession.currentQuestionIndex].options.map((option: string, idx: number) => {
+                            const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
+                            const isAnswered = hasAnsweredCurrentQuestion;
+                            return (
+                              <button
+                                key={idx}
+                                disabled={isAnswered}
+                                onClick={() => submitMinigameAnswer(option)}
+                                className={`relative p-6 rounded-[32px] border-4 text-left transition-all overflow-hidden flex items-center gap-4 group ${
+                                  isAnswered ? 'opacity-50 cursor-not-allowed border-blue-500/50' : 'active:scale-95'
+                                } ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/80 border-white/60'}`}
+                              >
+                                 <div className={`w-12 h-12 rounded-2xl ${colors[idx]} flex items-center justify-center text-white font-black text-xl shadow-lg group-hover:scale-110 transition-transform`}>
+                                    {['▲', '◆', '●', '■'][idx]}
+                                 </div>
+                                 <span className="text-lg font-black">{option}</span>
+                                 <div className="glossy-overlay opacity-10" />
+                              </button>
+                            );
+                          })
+                        )}
+                     </div>
+                   ) : (
+                     // Teacher Stats Dashboard
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="col-span-full flex items-center justify-between mb-4">
+                           <h3 className="text-xl font-black uppercase tracking-widest opacity-40">Estadísticas en Tiempo Real</h3>
+                           <div className="px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-black text-xs">
+                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length} de {minigamePlayers.length} respuestas
+                           </div>
+                        </div>
+
+                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                          <div className="col-span-full space-y-3">
+                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
+                               <motion.div 
+                                 key={i} 
+                                 initial={{ opacity: 0, x: -10 }} 
+                                 animate={{ opacity: 1, x: 0 }}
+                                 className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4"
+                               >
+                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
+                                  <span className="font-bold flex-1">{p.lastResponse.answer}</span>
+                                  {p.isCorrect ? <CheckCircle className="text-green-500" size={16} /> : <XCircle className="text-red-500/40" size={16} />}
+                               </motion.div>
+                             ))}
+                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length === 0 && (
+                               <div className="p-12 text-center opacity-40 italic font-medium">Esperando respuestas...</div>
+                             )}
+                          </div>
+                        ) : (
+                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
+                            const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
+                            const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
+                            const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
+                            const color = minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
+                            
+                            return (
+                              <div key={opt} className="space-y-2">
+                                 <div className="flex justify-between font-black text-xs">
+                                   <span>{opt}</span>
+                                   <span>{count}</span>
+                                 </div>
+                                 <div className="h-6 bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
+                                    <motion.div 
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${percentage}%` }}
+                                      className={`h-full rounded-full ${color} shadow-lg`}
+                                    />
+                                 </div>
                               </div>
-                              <span className="text-lg font-black">{option}</span>
-                              <div className="glossy-overlay opacity-10" />
-                           </button>
-                         );
-                      })}
-                   </div>
+                            );
+                          })
+                        )}
+                     </div>
+                   )}
 
                    {isMinigameHost && (
                      <div className="mt-auto p-6 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-between">
