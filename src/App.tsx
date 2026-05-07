@@ -4900,11 +4900,39 @@ export default function App() {
                            </div>
                         </div>
                         <div className="text-center space-y-2">
-                           <h3 className="text-3xl font-black uppercase tracking-tighter">Esperando respuestas</h3>
-                           <p className="text-sm font-black uppercase tracking-[0.3em] opacity-40">
+                           <h3 className="text-2xl font-black uppercase tracking-tighter">Esperando respuestas</h3>
+                           <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
                              {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length} de {minigamePlayers.length} han respondido
                            </p>
                         </div>
+                        
+                        {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || 
+                          minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <AnimatePresence>
+                              {minigamePlayers
+                                .filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex)
+                                .map((p, i) => (
+                                  <motion.div
+                                    key={p.id || i}
+                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    className={`p-4 rounded-3xl border-2 backdrop-blur-xl flex items-center gap-3 ${
+                                      theme === 'black' ? 'bg-white/10 border-white/10' : 'bg-white/80 border-white/60 shadow-lg'
+                                    }`}
+                                  >
+                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-black">
+                                      {p.name.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                      <p className="text-[9px] font-black uppercase opacity-40 truncate">{p.name}</p>
+                                      <p className="font-black text-sm truncate">{p.lastResponse.answer}</p>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                            </AnimatePresence>
+                          </div>
+                        )}
                         
                         <div className="flex gap-2 w-full max-w-md">
                            {minigamePlayers.map((p, i) => (
@@ -6670,7 +6698,7 @@ function ExerciseRunner({
 
   const currentSubject = SUBJECTS.find(s => s.id === subjectId) || { color: 'blue', icon: 'Book' };
   const currentQ = shuffled[currentQuestion];
-  const qType = currentQ?.type || 'multiple-choice';
+  const qType = (currentQ?.type === 'written' ? 'writing' : currentQ?.type) || 'multiple-choice';
 
   return (
     <div className="space-y-6 relative z-10 pb-4">
