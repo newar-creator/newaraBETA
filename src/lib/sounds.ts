@@ -10,20 +10,20 @@ export const playWaterDrop = () => {
     const gainNode = audioContext.createGain();
 
     oscillator.type = 'sine';
-    // Frequency sweep for a nice "plop" sound
-    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.05);
-    oscillator.frequency.exponentialRampToValueAtTime(10, audioContext.currentTime + 0.2);
+    // Faster frequency sweep for a more natural "plop" sound
+    oscillator.frequency.setValueAtTime(450, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1400, audioContext.currentTime + 0.03);
+    oscillator.frequency.exponentialRampToValueAtTime(500, audioContext.currentTime + 0.08);
 
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
     oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.2);
+    oscillator.stop(audioContext.currentTime + 0.12);
   } catch (e) {}
 };
 
