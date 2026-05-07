@@ -28,11 +28,12 @@ export const playExternalBubble = () => {
     const gain = ctx.createGain();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.1);
     
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
     
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -181,15 +182,37 @@ export const playCheer = () => {
 
 let musicAudio: HTMLAudioElement | null = null;
 
+let syntheticMusicInterval: any = null;
+
 export const playMinigameMusic = () => {
-  if (musicAudio) return;
-  // Try to use external music if available, otherwise just silent for now 
-  // (In real apps we'd use a robust synthetic loop)
+  if (musicAudio || syntheticMusicInterval) return;
+  
   musicAudio = new Audio('/MUSICA.mp3');
   musicAudio.loop = true;
   musicAudio.volume = 0.15;
   musicAudio.play().catch(e => {
-    console.warn("Could not play MUSICA.mp3", e);
+    console.warn("Could not play MUSICA.mp3, using synthetic fallback", e);
+    // Synthetic Arpeggio Loop
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+    let index = 0;
+    
+    syntheticMusicInterval = setInterval(() => {
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(notes[index % notes.length], ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+        index++;
+      } catch (e) {}
+    }, 300);
   });
 };
 
@@ -198,6 +221,10 @@ export const stopMinigameMusic = () => {
     musicAudio.pause();
     musicAudio.currentTime = 0;
     musicAudio = null;
+  }
+  if (syntheticMusicInterval) {
+    clearInterval(syntheticMusicInterval);
+    syntheticMusicInterval = null;
   }
 };
 

@@ -1280,7 +1280,7 @@ export default function App() {
     const points = isCorrect ? 450 : 0;
     
     setHasAnsweredCurrentQuestion(true);
-    if (isCorrect) playSuccessSound(); else playErrorSound();
+    playExternalBubble();
 
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId, 'players', userName), {
@@ -4587,7 +4587,7 @@ export default function App() {
                                   </div>
                                 ))}
 
-                                {q.type === 'multiple-choice' && q.options.length < 6 && (
+                                {q.type === 'multiple' && q.options.length < 6 && (
                                   <button 
                                     onClick={() => addOption(qIdx)}
                                     className={`mt-1 py-2 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95 ${
