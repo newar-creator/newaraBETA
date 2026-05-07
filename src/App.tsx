@@ -1295,6 +1295,18 @@ export default function App() {
     if (!isMinigameHost || !minigameSessionId) return;
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
+        status: 'reveal',
+        lastActivityAt: serverTimestamp()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `gameSessions/${minigameSessionId}`);
+    }
+  };
+
+  const showMinigameLeaderboard = async () => {
+    if (!isMinigameHost || !minigameSessionId) return;
+    try {
+      await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
         status: 'results',
         lastActivityAt: serverTimestamp()
       });
@@ -1743,10 +1755,10 @@ export default function App() {
     if (minigameSession?.status === 'playing') {
       playMinigameMusic();
       setMinigameMusicPlaying(true);
-    } else if (minigameSession?.status === 'results' || minigameSession?.status === 'ended') {
+    } else if (minigameSession?.status === 'results' || minigameSession?.status === 'reveal' || minigameSession?.status === 'ended') {
       stopMinigameMusic();
       setMinigameMusicPlaying(false);
-      if (minigameSession?.status === 'results') {
+      if (minigameSession?.status === 'results' || minigameSession?.status === 'reveal') {
         playGong();
       }
     } else {
@@ -4454,16 +4466,16 @@ export default function App() {
                         >
                           <div className="space-y-4">
                             <div className="flex flex-wrap gap-2 mb-2">
-                               {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
+                               {['multiple', 'boolean', 'written'].map((type: any) => (
                                   <button 
                                      key={type}
                                      onClick={() => {
                                         const newQs = [...activityQuestions];
                                         (newQs[qIdx] as any).type = type;
-                                        if (type === 'true-false') {
+                                        if (type === 'boolean') {
                                            newQs[qIdx].options = ['Verdadero', 'Falso'];
                                            newQs[qIdx].correct = 0;
-                                        } else if (type === 'writing') {
+                                        } else if (type === 'written') {
                                            newQs[qIdx].options = [];
                                            newQs[qIdx].correct = '';
                                         } else {
@@ -4479,7 +4491,7 @@ export default function App() {
                                         : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/40' : 'bg-white/60 border-white/40 text-sky-900/40')
                                      }`}
                                   >
-                                     {type === 'multiple-choice' ? 'Quiz' : type === 'true-false' ? 'V/F' : 'Escribir'}
+                                     {type === 'multiple' ? 'Quiz' : type === 'boolean' ? 'V/F' : 'Escribir'}
                                   </button>
                                ))}
                             </div>
@@ -4495,10 +4507,10 @@ export default function App() {
                               className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-blue-400 outline-none ${
                                 theme === 'black' ? 'bg-white/10 border-white/5 text-white' : 'bg-white/40 border-white/20 text-sky-950'
                               }`}
-                              placeholder={q.type === 'writing' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
+                              placeholder={q.type === 'written' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
                             />
                             
-                            {q.type === 'writing' ? (
+                            {q.type === 'written' ? (
                               <div className="space-y-2">
                                 <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Respuesta Correcta</label>
                                 <input 
@@ -4522,7 +4534,7 @@ export default function App() {
                                     <input 
                                       type="text" 
                                       value={opt}
-                                      readOnly={q.type === 'true-false'}
+                                      readOnly={q.type === 'boolean'}
                                       onChange={(e) => {
                                         const newQs = [...activityQuestions];
                                         newQs[qIdx].options[optIdx] = e.target.value;
@@ -4534,7 +4546,7 @@ export default function App() {
                                       placeholder={`Opción ${optIdx + 1}`}
                                     />
                                     
-                                    {q.type === 'multiple-choice' && q.options.length > 2 && (
+                                    {q.type === 'multiple' && q.options.length > 2 && (
                                       <button 
                                         onClick={() => removeOption(qIdx, optIdx)}
                                         className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center opacity-0 group-hover/opt:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white"
@@ -4777,21 +4789,38 @@ export default function App() {
                    {!isMinigameHost ? (
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
-                          <div className="col-span-full space-y-4">
-                            <input 
-                              type="text"
-                              disabled={hasAnsweredCurrentQuestion}
-                              placeholder="Escribe tu respuesta aquí..."
-                              className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl outline-none transition-all ${
-                                hasAnsweredCurrentQuestion ? 'opacity-50 border-blue-500/50 bg-white/5' : 'bg-white/10 border-white/20 focus:border-blue-400'
-                              }`}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !hasAnsweredCurrentQuestion) {
-                                  submitMinigameAnswer((e.target as HTMLInputElement).value);
-                                }
-                              }}
-                            />
-                            <p className="text-center text-[10px] font-black uppercase tracking-widest opacity-40">Presiona ENTER para enviar</p>
+                          <div className="col-span-full space-y-6">
+                            <div className="relative group">
+                              <input 
+                                type="text"
+                                disabled={hasAnsweredCurrentQuestion}
+                                placeholder="ESCRIBE TU RESPUESTA..."
+                                className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl md:text-4xl outline-none transition-all uppercase tracking-tighter ${
+                                  hasAnsweredCurrentQuestion ? 'opacity-50 border-blue-500/50 bg-white/5' : 'bg-white/10 border-white/20 focus:border-blue-400 group-hover:border-white/40'
+                                } ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
+                                id="minigame-written-input"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !hasAnsweredCurrentQuestion) {
+                                    submitMinigameAnswer((e.target as HTMLInputElement).value);
+                                  }
+                                }}
+                              />
+                            </div>
+                            
+                            {!hasAnsweredCurrentQuestion && (
+                              <GlossyButton 
+                                onClick={() => {
+                                  const input = document.getElementById('minigame-written-input') as HTMLInputElement;
+                                  if (input && input.value.trim()) {
+                                    submitMinigameAnswer(input.value);
+                                  }
+                                }}
+                                className="w-full py-8 text-2xl bg-gradient-to-br from-blue-400 to-indigo-600 border-none shadow-blue-500/40"
+                              >
+                                ENVIAR RESPUESTA <Send size={28} />
+                              </GlossyButton>
+                            )}
+                            <p className="text-center text-[10px] font-black uppercase tracking-widest opacity-40">La ortografía y los acentos se validan automáticamente</p>
                           </div>
                         ) : minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (
                           <>
@@ -4842,57 +4871,33 @@ export default function App() {
                         )}
                      </div>
                    ) : (
-                     // Teacher Stats Dashboard
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="col-span-full flex items-center justify-between mb-4">
-                           <h3 className="text-xl font-black uppercase tracking-widest opacity-40">Estadísticas en Tiempo Real</h3>
-                           <div className="px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 font-black text-xs">
-                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length} de {minigamePlayers.length} respuestas
+                     // Teacher Answering View
+                     <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-[40px] bg-white/5 border-2 border-white/10 gap-8">
+                        <div className="relative">
+                           <RefreshCw className="text-blue-500 animate-spin" size={64} />
+                           <div className="absolute inset-0 flex items-center justify-center">
+                              <Users className="text-blue-200" size={24} />
                            </div>
                         </div>
-
-                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
-                          <div className="col-span-full space-y-3">
-                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
-                               <motion.div 
-                                 key={i} 
-                                 initial={{ opacity: 0, x: -10 }} 
-                                 animate={{ opacity: 1, x: 0 }}
-                                 className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4"
-                               >
-                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
-                                  <span className="font-bold flex-1">{p.lastResponse.answer}</span>
-                                  {p.isCorrect ? <CheckCircle className="text-green-500" size={16} /> : <XCircle className="text-red-500/40" size={16} />}
-                               </motion.div>
-                             ))}
-                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length === 0 && (
-                               <div className="p-12 text-center opacity-40 italic font-medium">Esperando respuestas...</div>
-                             )}
-                          </div>
-                        ) : (
-                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
-                            const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
-                            const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
-                            const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
-                            const color = minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
-                            
-                            return (
-                              <div key={opt} className="space-y-2">
-                                 <div className="flex justify-between font-black text-xs">
-                                   <span>{opt}</span>
-                                   <span>{count}</span>
-                                 </div>
-                                 <div className="h-6 bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
-                                    <motion.div 
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${percentage}%` }}
-                                      className={`h-full rounded-full ${color} shadow-lg`}
-                                    />
-                                 </div>
-                              </div>
-                            );
-                          })
-                        )}
+                        <div className="text-center space-y-2">
+                           <h3 className="text-3xl font-black uppercase tracking-tighter">Esperando respuestas</h3>
+                           <p className="text-sm font-black uppercase tracking-[0.3em] opacity-40">
+                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length} de {minigamePlayers.length} han respondido
+                           </p>
+                        </div>
+                        
+                        <div className="flex gap-2 w-full max-w-md">
+                           {minigamePlayers.map((p, i) => (
+                             <div 
+                               key={i} 
+                               className={`h-2 flex-1 rounded-full transition-all duration-500 ${
+                                 p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex 
+                                 ? 'bg-blue-500 shadow-lg shadow-blue-500/40' 
+                                 : 'bg-white/10'
+                               }`} 
+                             />
+                           ))}
+                        </div>
                      </div>
                    )}
 
@@ -4916,7 +4921,77 @@ export default function App() {
                 </div>
               )}
 
-              {minigameSession.status === 'results' && (
+               {minigameSession.status === 'reveal' && (
+                 <div className="flex-1 flex flex-col gap-10">
+                    <div className="text-center space-y-4">
+                       <h2 className="text-4xl font-black uppercase tracking-tight">Resultados de la Ronda</h2>
+                       <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-black text-sm">
+                          <CheckCircle size={16} /> Respuesta Correcta: {minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
+                               <motion.div 
+                                 key={i} 
+                                 initial={{ opacity: 0, scale: 0.9 }} 
+                                 animate={{ opacity: 1, scale: 1 }}
+                                 className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 ${
+                                   p.isCorrect ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
+                                 }`}
+                               >
+                                  <div className="flex items-center gap-4">
+                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
+                                     <span className="font-bold text-lg">{p.lastResponse.answer}</span>
+                                  </div>
+                                  {p.isCorrect ? <CheckCircle className="text-green-500" size={24} /> : <XCircle className="text-red-500" size={24} />}
+                               </motion.div>
+                             ))}
+                          </div>
+                       ) : (
+                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
+                            const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
+                            const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
+                            const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
+                            const color = minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
+                            const isCorrect = opt === minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer;
+
+                            return (
+                              <div key={opt} className={`p-6 rounded-[32px] border-2 space-y-4 ${isCorrect ? 'border-green-500 bg-green-500/5' : 'border-white/10 bg-white/5'}`}>
+                                 <div className="flex justify-between items-center font-black">
+                                   <div className="flex items-center gap-2">
+                                      <div className={`w-3 h-3 rounded-full ${color}`} />
+                                      <span className="text-sm uppercase tracking-widest">{opt}</span>
+                                      {isCorrect && <CheckCircle size={16} className="text-green-500" />}
+                                   </div>
+                                   <span className="text-2xl tracking-tighter">{count}</span>
+                                 </div>
+                                 <div className="h-4 bg-white/5 rounded-full overflow-hidden p-0.5">
+                                    <motion.div 
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${percentage}%` }}
+                                      className={`h-full rounded-full ${color} shadow-lg`}
+                                    />
+                                 </div>
+                              </div>
+                            );
+                          })
+                       )}
+                    </div>
+
+                    {isMinigameHost && (
+                      <div className="mt-auto flex justify-center">
+                         <GlossyButton onClick={showMinigameLeaderboard} className="px-16 py-6 text-xl bg-orange-500">
+                           VER TABLA DE POSICIONES <Trophy size={24} />
+                         </GlossyButton>
+                      </div>
+                    )}
+                 </div>
+               )}
+
+               {minigameSession.status === 'results' && (
                 <div className="flex-1 flex flex-col gap-12 items-center justify-center">
                    <div className="text-center space-y-4">
                       <h2 className="text-3xl md:text-5xl font-black tracking-tight flex items-center justify-center gap-4">
