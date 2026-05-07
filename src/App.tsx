@@ -80,7 +80,7 @@ import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { WelcomeTutorial } from './components/WelcomeTutorial';
-import { playExternalBubble, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong } from './lib/sounds';
+import { playExternalBubble, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong, playWhoosh, playTick, playCheer } from './lib/sounds';
 import { ClassCard, ClassDetail } from './components/ClassroomUI';
 
 // Initialize Firebase
