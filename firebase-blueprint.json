@@ -192,9 +192,49 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "message", "type", "isRead", "createdAt"]
+    },
+    "GameSession": {
+      "title": "Game Session",
+      "description": "A multiplayer game server session",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "hostName": { "type": "string" },
+        "activityId": { "type": "string" },
+        "activity": { "type": "object" },
+        "status": { "type": "string", "enum": ["waiting", "playing", "results", "ended"] },
+        "currentQuestionIndex": { "type": "number" },
+        "timer": { "type": "number" },
+        "questionStartTime": { "type": "string", "format": "date-time" },
+        "lastActivityAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "hostName", "status", "lastActivityAt", "createdAt"]
+    },
+    "GamePlayer": {
+      "title": "Game Player",
+      "description": "A player in a game session",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "score": { "type": "number" },
+        "lastResponse": { "type": "object" },
+        "isCorrect": { "type": "boolean" },
+        "pointsLastRound": { "type": "number" },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "score", "joinedAt"]
     }
   },
   "firestore": {
+    "/gameSessions/{sessionId}": {
+      "schema": "GameSession",
+      "description": "Live game servers"
+    },
+    "/gameSessions/{sessionId}/players/{playerName}": {
+      "schema": "GamePlayer",
+      "description": "Players in a game"
+    },
     "/notifications/{notificationId}": {
       "schema": "Notification",
       "description": "User notifications"

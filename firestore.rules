@@ -91,6 +91,15 @@ service cloud.firestore {
       allow read, create, update, delete: if true;
     }
 
+    match /gameSessions/{sessionId} {
+      allow read, create, update: if true;
+      allow delete: if true;
+
+      match /players/{playerName} {
+        allow read, write: if true;
+      }
+    }
+
     // Default deny at the end
     match /{document=**} {
       allow read, write: if false;

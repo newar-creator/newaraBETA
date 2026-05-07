@@ -100,3 +100,47 @@ export const playErrorSound = () => {
     console.error("Audio error", e);
   }
 };
+
+export const playGong = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.5);
+    
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 1.5);
+  } catch (e) {
+    console.error("Audio error", e);
+  }
+};
+
+let musicAudio: HTMLAudioElement | null = null;
+
+export const playMinigameMusic = () => {
+  if (musicAudio) return;
+  musicAudio = new Audio('/MUSICA.mp3');
+  musicAudio.loop = true;
+  musicAudio.volume = 0.2;
+  musicAudio.play().catch(e => {
+    console.warn("Could not play MUSICA.mp3, using synthetic fallback", e);
+    // Synthetic music fallback could be complex, maybe just skip or use a simple loop
+  });
+};
+
+export const stopMinigameMusic = () => {
+  if (musicAudio) {
+    musicAudio.pause();
+    musicAudio.currentTime = 0;
+    musicAudio = null;
+  }
+};
