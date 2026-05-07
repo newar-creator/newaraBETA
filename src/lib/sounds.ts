@@ -1,19 +1,22 @@
 
 export const playWaterDrop = () => {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const audioContext = new AudioContextClass();
     if (audioContext.state === 'suspended') audioContext.resume();
     
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    // Frequency sweep for a nice "plop" sound
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
     oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.05);
-    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.15);
+    oscillator.frequency.exponentialRampToValueAtTime(10, audioContext.currentTime + 0.2);
 
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
 
     oscillator.connect(gainNode);
@@ -26,7 +29,9 @@ export const playWaterDrop = () => {
 
 export const playExternalBubble = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -44,14 +49,14 @@ export const playExternalBubble = () => {
     
     osc.start();
     osc.stop(ctx.currentTime + 0.1);
-  } catch (e) {
-    console.error("Audio error", e);
-  }
+  } catch (e) {}
 };
 
 export const playSuccessSound = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     
     const playNote = (freq: number, start: number, duration: number, volume = 0.1) => {
@@ -77,14 +82,14 @@ export const playSuccessSound = () => {
     playNote(659.25, now + 0.1, 0.4, 0.1); // E5
     playNote(783.99, now + 0.2, 0.6, 0.15); // G5
     playNote(1046.50, now + 0.3, 0.8, 0.1); // C6
-  } catch (e) {
-    console.error("Audio error", e);
-  }
+  } catch (e) {}
 };
 
 export const playErrorSound = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -101,14 +106,14 @@ export const playErrorSound = () => {
     
     osc.start();
     osc.stop(ctx.currentTime + 0.4);
-  } catch (e) {
-    console.error("Audio error", e);
-  }
+  } catch (e) {}
 };
 
 export const playGong = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -131,14 +136,14 @@ export const playGong = () => {
     
     osc.start();
     osc.stop(ctx.currentTime + 2);
-  } catch (e) {
-    console.error("Audio error", e);
-  }
+  } catch (e) {}
 };
 
 export const playTick = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -159,7 +164,9 @@ export const playTick = () => {
 
 export const playWhoosh = () => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
     if (ctx.state === 'suspended') ctx.resume();
     const noise = ctx.createBufferSource();
     const bufferSize = ctx.sampleRate * 0.5;
@@ -191,19 +198,21 @@ export const playCheer = () => {
 
 let musicAudio: HTMLAudioElement | null = null;
 let syntheticMusicInterval: any = null;
-let syntheticContext: AudioContext | null = null;
+let syntheticContext: any = null;
 
 export const playMinigameMusic = () => {
   if (musicAudio || syntheticMusicInterval) return;
   
   musicAudio = new Audio();
-  musicAudio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; 
+  // Using a more reliable royalty free loop if possible, but synthetic is safer
+  musicAudio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'; 
   musicAudio.loop = true;
-  musicAudio.volume = 0.1;
+  musicAudio.volume = 0.08;
   
   musicAudio.play().catch(e => {
-    console.warn("Using synthetic aero music loop", e);
-    syntheticContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioContextClass) return;
+    syntheticContext = new AudioContextClass();
     if (syntheticContext.state === 'suspended') syntheticContext.resume();
     
     const notes = [329.63, 392.00, 440.00, 523.25, 587.33]; // E4, G4, A4, C5, D5

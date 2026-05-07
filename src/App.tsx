@@ -82,7 +82,7 @@ import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { WelcomeTutorial } from './components/WelcomeTutorial';
-import { playExternalBubble, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong, playWhoosh, playTick, playCheer } from './lib/sounds';
+import { playExternalBubble, playWaterDrop, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong, playWhoosh, playTick, playCheer } from './lib/sounds';
 import { ClassCard, ClassDetail } from './components/ClassroomUI';
 
 // Initialize Firebase
@@ -1244,7 +1244,7 @@ export default function App() {
           lastActivityAt: serverTimestamp()
         });
       } else {
-        playWhoosh();
+        try { playWhoosh(); } catch(e) {}
         await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
           status: 'playing',
           currentQuestionIndex: nextIndex,
@@ -1265,12 +1265,14 @@ export default function App() {
     const currentQ = minigameSession.activity.questions[minigameSession.currentQuestionIndex];
     let isCorrect = false;
 
+    const actualCorrectAnswer = String(currentQ.correctAnswer || currentQ.correct || '');
+
     if (currentQ.type === 'writing' || currentQ.type === 'written') {
-      const cleanAnswer = answer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const cleanCorrect = currentQ.correctAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanAnswer = String(answer || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanCorrect = actualCorrectAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       isCorrect = cleanAnswer === cleanCorrect;
     } else {
-      isCorrect = answer === currentQ.correctAnswer;
+      isCorrect = String(answer) === actualCorrectAnswer;
     }
 
     if (isCorrect) {
@@ -1316,7 +1318,7 @@ export default function App() {
 
   const showMinigameLeaderboard = async () => {
     if (!isMinigameHost || !minigameSessionId) return;
-    playWhoosh();
+    try { playWhoosh(); } catch(e) {}
     try {
       await updateDoc(doc(db, 'gameSessions', minigameSessionId), {
         status: 'results',
@@ -1332,6 +1334,7 @@ export default function App() {
   const [minigameSession, setMinigameSession] = useState<any | null>(null);
   const [minigamePlayers, setMinigamePlayers] = useState<any[]>([]);
   const [minigameJoinCode, setMinigameJoinCode] = useState('');
+  const [minigameWrittenInput, setMinigameWrittenInput] = useState('');
   const [isMinigameHost, setIsMinigameHost] = useState(false);
   const [hasAnsweredCurrentQuestion, setHasAnsweredCurrentQuestion] = useState(false);
   const [minigameTimer, setMinigameTimer] = useState(15);
@@ -1763,6 +1766,7 @@ export default function App() {
   useEffect(() => {
     if (minigameSession?.currentQuestionIndex !== undefined) {
       setHasAnsweredCurrentQuestion(false);
+      setMinigameWrittenInput('');
     }
   }, [minigameSession?.currentQuestionIndex]);
 
@@ -2626,7 +2630,7 @@ export default function App() {
       const processedQuestions = activityQuestions.map(q => {
         let finalCorrectAnswer = '';
         if (q.type === 'writing' || q.type === 'written') {
-          finalCorrectAnswer = String(q.correct).trim();
+          finalCorrectAnswer = String(q.correct || '').trim();
         } else {
           const idx = Number(q.correct);
           finalCorrectAnswer = q.options[idx] || q.options[0] || '';
@@ -2636,7 +2640,8 @@ export default function App() {
           type: q.type === 'written' ? 'writing' : (q.type === 'boolean' ? 'true-false' : (q.type === 'multiple' ? 'multiple-choice' : (q.type || 'multiple-choice'))),
           question: q.question.trim(),
           options: q.options.filter(o => o.trim() !== ''),
-          correctAnswer: finalCorrectAnswer
+          correctAnswer: finalCorrectAnswer,
+          correct: q.correct // Keep for backwards compatibility and MC index
         };
       });
 
@@ -4810,13 +4815,14 @@ export default function App() {
                                 type="text"
                                 disabled={hasAnsweredCurrentQuestion}
                                 placeholder="ESCRIBE TU RESPUESTA..."
+                                value={minigameWrittenInput}
+                                onChange={(e) => setMinigameWrittenInput(e.target.value)}
                                 className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl md:text-4xl outline-none transition-all uppercase tracking-tighter ${
                                   hasAnsweredCurrentQuestion ? 'opacity-50 border-blue-500/50 bg-white/5' : 'bg-white/10 border-white/20 focus:border-blue-400 group-hover:border-white/40'
                                 } ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
-                                id="minigame-written-input"
                                 onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !hasAnsweredCurrentQuestion) {
-                                    submitMinigameAnswer((e.target as HTMLInputElement).value);
+                                  if (e.key === 'Enter' && !hasAnsweredCurrentQuestion && minigameWrittenInput.trim()) {
+                                    submitMinigameAnswer(minigameWrittenInput);
                                   }
                                 }}
                               />
@@ -4825,9 +4831,8 @@ export default function App() {
                             {!hasAnsweredCurrentQuestion && (
                               <GlossyButton 
                                 onClick={() => {
-                                  const input = document.getElementById('minigame-written-input') as HTMLInputElement;
-                                  if (input && input.value.trim()) {
-                                    submitMinigameAnswer(input.value);
+                                  if (minigameWrittenInput.trim()) {
+                                    submitMinigameAnswer(minigameWrittenInput);
                                   }
                                 }}
                                 className="w-full py-8 text-2xl bg-gradient-to-br from-blue-400 to-indigo-600 border-none shadow-blue-500/40"
@@ -6753,19 +6758,19 @@ function ExerciseRunner({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`p-5 rounded-3xl border-2 text-center shadow-lg ${
-                    String(writeInput).toLowerCase().trim() === String(currentQ.correct).toLowerCase().trim()
+                    String(writeInput).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === String(currentQ.correctAnswer || currentQ.correct).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                       ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 text-green-700'
                       : 'bg-gradient-to-b from-red-50 to-red-100 border-red-500 text-red-700'
                   }`}>
                     <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">Respuesta Correcta:</p>
-                    <p className="text-xl font-black">{currentQ.correct}</p>
+                    <p className="text-xl font-black">{currentQ.correctAnswer || currentQ.correct}</p>
                   </motion.div>
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
                 {currentQ.options.map((opt: string, i: number) => {
-                  const isCorrect = i === currentQ.correct;
+                  const isCorrect = i === currentQ.correct || opt === currentQ.correctAnswer;
                   const isSelected = i === selectedAnswer;
                   
                   let buttonStyle = theme === 'black' 
@@ -6893,7 +6898,7 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', b
 
 function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
   const handleClick = () => {
-    playExternalBubble();
+    try { playWaterDrop(); } catch(e) {}
     onClick();
   };
 
