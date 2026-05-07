@@ -90,6 +90,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
 const auth = getAuth(app);
 
+const APP_VERSION = "1.2.0-STABLE";
+const APP_LAST_BUILD = "2026-05-07 21:12 UTC";
+
 const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -5817,9 +5820,46 @@ export default function App() {
                     </div>
                     <div className="p-4 rounded-2xl bg-white/20 border border-white/30">
                       <p className={`text-xs font-black uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'} mb-2`}>{t('version')}</p>
-                      <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>RELEASE 2 - Frutiger Edition</p>
+                      <div className="flex justify-between items-center">
+                        <p className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{APP_VERSION}</p>
+                        <p className="text-[10px] font-black opacity-40">{APP_LAST_BUILD}</p>
+                      </div>
                     </div>
                   </div>
+                </AeroCard>
+
+                <AeroCard title="Mantenimiento" theme={theme}>
+                   <div className="space-y-3">
+                     <button 
+                       onClick={() => {
+                         playExternalBubble();
+                         if (confirm('¿Deseas recargar la aplicación? Esto limpiará la memoria temporal.')) {
+                           window.location.reload();
+                         }
+                       }}
+                       className="w-full py-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center gap-3 hover:bg-blue-500/20 transition-all font-black uppercase tracking-tighter text-blue-600"
+                     >
+                       <RefreshCw size={20} /> Forzar Recarga
+                     </button>
+                     <button 
+                       onClick={async () => {
+                         playExternalBubble();
+                         if (confirm('Esto eliminará los archivos cacheados (Service Workers). ¿Continuar?')) {
+                           if ('serviceWorker' in navigator) {
+                             const regs = await navigator.serviceWorker.getRegistrations();
+                             for(let r of regs) r.unregister();
+                             alert('Caché limpiado. Reiniciando...');
+                             window.location.reload();
+                           } else {
+                             alert('No se encontraron Service Workers.');
+                           }
+                         }
+                       }}
+                       className="w-full py-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all font-black uppercase tracking-tighter text-red-600"
+                     >
+                       <WifiOff size={20} /> Limpiar Caché Fuertemente
+                     </button>
+                   </div>
                 </AeroCard>
 
                 <AeroCard title={t('terminos')} theme={theme} className="md:col-span-2">
