@@ -7191,6 +7191,8 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
       case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';
       case 'violet':
       case 'purple': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
+      case 'pink':
+      case 'rose': return 'from-pink-400 to-pink-600 shadow-pink-500/50';
       default: return 'from-sky-400 to-sky-600 shadow-sky-500/50';
     }
   };
@@ -7299,6 +7301,8 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
       case 'violet': return 'from-violet-400 to-violet-600';
+      case 'pink':
+      case 'rose': return 'from-pink-400 to-pink-600';
       default: return 'from-sky-400 to-sky-600';
     }
   };
