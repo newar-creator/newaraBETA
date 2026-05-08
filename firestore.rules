@@ -1,100 +1,69 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper Primitives
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+  
+    // Helpers
+    function isSignedIn() {
+      return request.auth != null;
     }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    // Note: This app uses a custom login system stored in the 'users' collection.
-    // request.auth is not currently used by the client app for identity verification.
-    // We validate based on the data fields provided until standard auth is implemented.
 
     // --- Users ---
-    function isValidUsername(id) {
-      return id is string && id.size() >= 2 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     match /users/{userId} {
       allow read, write: if true;
     }
 
     // --- Activities ---
-    function isValidActivity(data) {
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 20
-          && (data.createdAt == request.time || ('createdAt' in data && data.createdAt == resource.data.createdAt) || !('createdAt' in data))
-          && data.creatorName is string && data.creatorName.size() <= 64;
-    }
-
     match /activities/{activityId} {
-      allow create: if isValidId(activityId) && isValidActivity(incoming());
-      allow get, list: if true;
-      allow update: if isValidId(activityId) && isValidActivity(incoming()) 
-                     && incoming().creatorName == existing().creatorName;
-      allow delete: if true; // Moderator deletion handled via UI logic validation
+      allow read, write: if true;
     }
 
-    // --- Classroom ---
+    // --- Classrooms ---
     match /classes/{classId} {
-      allow read: if true;
-      allow create: if true; // Temporarily permissive for debugging
-      allow update: if true; 
+      allow read, write: if true;
+
+      // SPECIFICALLY ALLOW MESSAGES
+      match /messages/{messageId} {
+        allow get, list, create, update, delete: if true;
+      }
 
       match /announcements/{annId} {
-        allow read, create, update, delete: if true;
-        
+        allow read, write: if true;
         match /comments/{commentId} {
-          allow read, create, update, delete: if true;
+          allow read, write: if true;
         }
       }
 
       match /members/{memberId} {
-        allow read: if true;
-        allow create, update, delete: if true;
+        allow read, write: if true;
       }
 
       match /resources/{resId} {
-        allow read: if true;
-        allow create: if true;
+        allow read, write: if true;
       }
 
       match /assignments/{assId} {
-        allow read, create, update, delete: if true;
-
+        allow read, write: if true;
         match /submissions/{subId} {
-          allow read, create, update, delete: if true;
+          allow read, write: if true;
         }
       }
     }
 
-    // --- Reports & Admins ---
+    // --- Other ---
     match /admins/{adminId} {
-      allow read: if true;
+      allow read, write: if true;
     }
 
     match /reports/{reportId} {
-      allow create: if true;
-      allow read, delete: if true;
+      allow read, write: if true;
     }
 
-    // --- Notifications ---
     match /notifications/{notificationId} {
-      allow read, create, update, delete: if true;
+      allow read, write: if true;
     }
 
     match /gameSessions/{sessionId} {
-      allow read, create, update: if true;
-      allow delete: if true;
-
+      allow read, write: if true;
       match /players/{playerName} {
         allow read, write: if true;
       }

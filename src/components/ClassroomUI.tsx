@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
+  Bell, 
+  Check, 
+  CheckCircle, 
+  CheckCheck, 
+  BellRing, 
+  MessageSquare, 
+  ShieldAlert, 
+  Send,
+  Hash,
+  XCircle,
   Users, 
   Users2, 
   Plus, 
@@ -9,7 +19,6 @@ import {
   ClipboardList, 
   Share, 
   ChevronRight,
-  MessageSquare,
   ArrowLeft,
   Copy,
   Calendar,
@@ -174,6 +183,7 @@ interface ClassDetailProps {
   resources: any[];
   assignments: any[];
   submissions: any[];
+  messages: any[];
   theme: 'black' | 'light';
   isOwner: boolean;
   onPostAnnouncement: (content: string, attachment?: any) => void;
@@ -183,6 +193,7 @@ interface ClassDetailProps {
   onEditComment: (announcementId: string, commentId: string, content: string) => void;
   onDeleteComment: (announcementId: string, commentId: string) => void;
   onReportAbuse: (type: 'announcement' | 'comment' | 'activity', id: string, content: string, author: string, classId?: string, parentId?: string) => void;
+  onPostMessage: (content: string) => void;
   onShareResource: (title: string, code: string) => void;
   onPlayActivity: (code: string) => void;
   onCreateAssignment: (title: string, description: string, dueDate: string, attachment?: any) => void;
@@ -339,16 +350,30 @@ const AssignmentItem: React.FC<{
 };
 
 export const ClassDetail: React.FC<ClassDetailProps> = ({ 
-  cls, announcements, comments, members, resources, assignments, submissions, theme, isOwner, 
+  cls, announcements, comments, members, resources, assignments, submissions, messages, theme, isOwner, 
   onPostAnnouncement, onPostComment, onEditAnnouncement, onDeleteAnnouncement, 
-  onEditComment, onDeleteComment, onReportAbuse,
+  onEditComment, onDeleteComment, onReportAbuse, onPostMessage,
   onShareResource, onPlayActivity, onCreateAssignment, onSubmitTask, onBack, onArchive, onLeave, userName 
 }) => {
-  const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas'>('anuncios');
+  const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas' | 'chat'>('anuncios');
   const [taskFilter, setTaskFilter] = useState<'todas' | 'pendientes' | 'entregadas' | 'atrasadas'>('todas');
   const [newAnnouncement, setNewAnnouncement] = useState('');
   const [annAttachment, setAnnAttachment] = useState<any>(null);
   const [newComments, setNewComments] = useState<Record<string, string>>({});
+  const [chatMessage, setChatMessage] = useState('');
+  const chatEndRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (activeTab === 'chat') {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, activeTab]);
+
+  const handleSendMessage = () => {
+    if (!chatMessage.trim()) return;
+    onPostMessage(chatMessage);
+    setChatMessage('');
+  };
   
   const [showResourceForm, setShowResourceForm] = useState(false);
   const [resTitle, setResTitle] = useState('');
@@ -486,6 +511,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
               {[
                 { id: 'anuncios', label: 'Novedades', icon: MessageSquare },
                 { id: 'tareas', label: 'Tareas', icon: ClipboardList },
+                { id: 'chat', label: 'Chat Grupal', icon: Send },
                 { id: 'personas', label: 'Personas', icon: Users2 }
               ].map(tab => (
                 <button
@@ -987,6 +1013,59 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                    })()}
                  </div>
                )}
+            </div>
+          ) : activeTab === 'chat' ? (
+            <div className="flex flex-col h-[500px] md:h-[600px]">
+              <AeroCard theme={theme} className="flex-1 flex flex-col overflow-hidden border-none shadow-none bg-transparent">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide md:scrollbar-default">
+                  {messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full opacity-20 text-center space-y-2">
+                       <MessageSquare size={48} className="mx-auto" />
+                       <p className="font-black uppercase tracking-widest text-xs">No hay mensajes todavía</p>
+                       <p className="text-[10px]">¡Sé el primero en saludar!</p>
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isMe = msg.authorName === userName;
+                      return (
+                        <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                          <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 ${
+                            isMe 
+                              ? 'bg-sky-500 text-white rounded-tr-none' 
+                              : theme === 'black' ? 'bg-white/10 text-white rounded-tl-none' : 'bg-white border border-sky-100 text-sky-950 rounded-tl-none shadow-sm'
+                          }`}>
+                            {!isMe && <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">{msg.authorName}</p>}
+                            <p className="text-xs font-bold leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                          </div>
+                          <p className="text-[8px] font-bold opacity-30 mt-1 uppercase tracking-tighter">
+                            {msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Enviando...'}
+                          </p>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+                
+                <div className={`p-4 bg-transparent border-t flex gap-2 ${theme === 'black' ? 'border-white/5' : 'border-sky-100'}`}>
+                   <input 
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Escribe un mensaje..."
+                    className={`flex-1 px-4 py-3 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all ${
+                      theme === 'black' ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-white border-sky-100 text-sky-950 placeholder:text-sky-900/30 shadow-sm'
+                    }`}
+                   />
+                   <GlossyButton 
+                    onClick={handleSendMessage}
+                    className="p-3 bg-sky-500 text-white rounded-xl shadow-lg shadow-sky-500/20 active:scale-95 transition-all w-12 h-10 flex items-center justify-center p-0"
+                   >
+                     <Send size={18} />
+                   </GlossyButton>
+                </div>
+              </AeroCard>
             </div>
           ) : (
             <div className="space-y-8">

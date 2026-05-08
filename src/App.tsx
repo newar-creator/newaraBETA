@@ -654,6 +654,7 @@ export default function App() {
 
   // Classroom States
   const [classAnnouncements, setClassAnnouncements] = useState<any[]>([]);
+  const [classMessages, setClassMessages] = useState<any[]>([]);
   const [classMembers, setClassMembers] = useState<any[]>([]);
   const [classResources, setClassResources] = useState<any[]>([]);
   const [isClassesLoading, setIsClassesLoading] = useState(false);
@@ -1056,6 +1057,24 @@ export default function App() {
       fetchClassDetails(activeClass.id);
     }
   }, [activeClass]);
+
+  useEffect(() => {
+    if (activeClass && currentView === 'class-detail') {
+      const msgQ = query(
+        collection(db, 'classes', activeClass.id, 'messages'), 
+        orderBy('createdAt', 'asc'), 
+        limit(150)
+      );
+      const unsubscribe = onSnapshot(msgQ, (snap) => {
+        setClassMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, `classes/${activeClass.id}/messages`);
+      });
+      return () => unsubscribe();
+    } else {
+      setClassMessages([]);
+    }
+  }, [activeClass, currentView]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -1949,6 +1968,21 @@ export default function App() {
       playSuccessSound();
     } catch (error) {
       console.error("Error posting announcement:", error);
+    }
+  };
+
+  const postMessage = async (classId: string, content: string) => {
+    if (!content.trim()) return;
+    const path = `classes/${classId}/messages`;
+    try {
+      await addDoc(collection(db, path), {
+        authorName: userName,
+        content: content.trim(),
+        createdAt: serverTimestamp()
+      });
+      playWaterDrop();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
     }
   };
 
@@ -4084,6 +4118,7 @@ export default function App() {
                   resources={classResources}
                   assignments={classAssignments}
                   submissions={classSubmissions}
+                  messages={classMessages}
                   userName={userName}
                   onPostAnnouncement={(content, att) => postAnnouncement(activeClass.id, content, att)}
                   onPostComment={(annId, content) => postComment(activeClass.id, annId, content)}
@@ -4092,6 +4127,7 @@ export default function App() {
                   onEditComment={(annId, commId, content) => editComment(activeClass.id, annId, commId, content)}
                   onDeleteComment={(annId, commId) => deleteComment(activeClass.id, annId, commId)}
                   onReportAbuse={(type, id, content, author, cId, pId) => reportAbuse(type, id, content, author, cId, pId)}
+                  onPostMessage={(content) => postMessage(activeClass.id, content)}
                   onShareResource={(title, code) => shareResourceCode(activeClass.id, title, code)}
                   onPlayActivity={(code) => {
                     handleLoadActivity(code);

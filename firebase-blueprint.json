@@ -193,6 +193,17 @@
       },
       "required": ["userId", "title", "message", "type", "isRead", "createdAt"]
     },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A message in the class chat",
+      "type": "object",
+      "properties": {
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["authorName", "content", "createdAt"]
+    },
     "GameSession": {
       "title": "Game Session",
       "description": "A multiplayer game server session",
@@ -254,6 +265,10 @@
     "/classes/{classId}": {
       "schema": "Class",
       "description": "Classrooms"
+    },
+    "/classes/{classId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Group chat messages for the class"
     },
     "/classes/{classId}/announcements/{announcementId}": {
       "schema": "Announcement",
