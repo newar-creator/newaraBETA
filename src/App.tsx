@@ -58,6 +58,7 @@ import {
   Heart,
   Trophy,
   Award,
+  Gamepad2,
   TrendingDown,
   Bell,
   Check,
@@ -2629,6 +2630,7 @@ export default function App() {
       case 'ShieldCheck': return <ShieldCheck size={size} />;
       case 'Languages': return <Languages size={size} />;
       case 'Calculator': return <Calculator size={size} />;
+      case 'BookOpen': return <BookOpen size={size} />;
       default: return <BookOpen size={size} />;
     }
   };
@@ -2643,6 +2645,8 @@ export default function App() {
       case 'red': return 'from-red-400 to-red-600';
       case 'violet':
       case 'purple': return 'from-violet-400 to-violet-600';
+      case 'pink':
+      case 'rose': return 'from-pink-400 to-pink-600 shadow-pink-500/20';
       default: return 'from-sky-400 to-sky-600';
     }
   };
@@ -3406,7 +3410,7 @@ export default function App() {
                         onClick={() => createMinigameSession(selectedActivityDetail)}
                         className="flex-1 py-4 text-[10px] md:text-sm font-black tracking-[0.2em] gap-3 bg-gradient-to-br from-amber-400 to-orange-500"
                       >
-                        MINIJUEGO <Globe size={20} />
+                        MINIJUEGO <Gamepad2 size={20} />
                       </GlossyButton>
                     )}
                 </div>
@@ -3714,7 +3718,7 @@ export default function App() {
                 navigateTo('minigames');
                 setShowMobileSubjects(false);
               }} 
-              icon={<Globe size={22} />} 
+              icon={<Gamepad2 size={22} />} 
               label="Minijuegos" 
               theme={theme}
               badge="BETA"
@@ -3895,7 +3899,7 @@ export default function App() {
                     id="nav-minigames"
                     active={currentView === 'minigames'} 
                     onClick={() => { navigateTo('minigames'); setShowMoreMobileMenu(false); }} 
-                    icon={<Globe size={20} />} 
+                    icon={<Gamepad2 size={20} />} 
                     label="Minijuegos" 
                     theme={theme}
                     badge="BETA"
@@ -4828,7 +4832,7 @@ export default function App() {
                   <div>
                     <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
                     <p className={`font-bold opacity-60 flex items-center gap-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                      <Globe size={16} /> {minigameSession.activity.name}
+                      <Gamepad2 size={16} /> {minigameSession.activity.name}
                     </p>
                   </div>
                 </div>

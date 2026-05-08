@@ -602,5 +602,66 @@ export const SUBJECTS: Subject[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'lengua',
+    name: 'Lengua',
+    icon: 'BookOpen',
+    color: 'pink',
+    description: 'Estudio de la voz narrativa, la estructura de los textos y el análisis literario para mejorar la comprensión lectora.',
+    units: [
+      {
+        title: 'Narradores en 1ª y 2ª Persona',
+        description: 'El narrador participa en los hechos o se dirige directamente al lector.',
+        explanation: 'El narrador es la voz que cuenta la historia. En 1ª persona, el narrador participa de los acontecimientos: puede ser el Protagonista (cuenta su propia historia) o un Testigo (relata lo que observa). El monólogo interior es cuando el personaje reflexiona para sí mismo. El narrador en 2ª persona se dirige directamente al lector, creando intimidad.',
+        meanings: [
+          { term: 'Protagonista', definition: 'Personaje principal que narra su propia historia.' },
+          { term: 'Testigo', definition: 'Personaje secundario que relata lo que observa.' },
+          { term: 'Monólogo interior', definition: 'El personaje narra para sí mismo reflexionando.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Qué narrador relata dirigiéndose directamente al lector?', options: ['Protagonista', 'Testigo', 'Segunda persona', 'Omnisciente'], correct: 2 },
+          { type: 'writing', question: 'El personaje principal que narra su propia historia es el narrador...', options: [], correct: 'protagonista', placeholder: 'Respuesta...' },
+          { type: 'true-false', question: 'El narrador testigo es el protagonista de los hechos.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'En "Caminas por la calle y sentís que alguien te sigue...", el narrador es:', options: ['Primera persona', 'Segunda persona', 'Tercera persona', 'Deficiente'], correct: 1 },
+          { type: 'writing', question: '¿En qué persona se dirige el narrador directamente al lector?', options: [], correct: 'segunda', placeholder: 'Respuesta...' }
+        ]
+      },
+      {
+        title: 'El Narrador en 3ª Persona',
+        description: 'Narradores que no participan de los acontecimientos: Omnisciente, Equisciente y Deficiente.',
+        explanation: 'Los narradores en 3ª persona están fuera de la historia. El Omnisciente lo sabe todo (pensamientos, futuro, hechos). El Equisciente sabe lo mismo que el protagonista. El Deficiente tiene menos información que los personajes y relata de forma limitada.',
+        meanings: [
+          { term: 'Omnisciente', definition: 'Conoce todo: pensamientos, emociones y hechos.' },
+          { term: 'Equisciente', definition: 'Conocimiento equivalente al de un personaje.' },
+          { term: 'Deficiente', definition: 'Tiene menos información que los personajes.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cuál narrador conoce los pensamientos y sentimientos de todos?', options: ['Omnisciente', 'Equisciente', 'Deficiente', 'Testigo'], correct: 0 },
+          { type: 'multiple-choice', question: '¿Qué narrador tiene el mismo nivel de conocimiento que el protagonista?', options: ['Omnisciente', 'Equisciente', 'Deficiente', 'Testigo'], correct: 1 },
+          { type: 'true-false', question: 'El narrador deficiente sabe más que los personajes sobre los hechos.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'writing', question: 'El narrador que tiene menos información que los propios personajes es el...', options: [], correct: 'deficiente', placeholder: 'Respuesta...' },
+          { type: 'multiple-choice', question: 'Un narrador que conoce todo sobre la historia es:', options: ['Protagonista', 'Omnisciente', 'Testigo', 'Equisciente'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Práctica Integrada de Narración',
+        description: 'Repaso general de todos los tipos de narradores y sus características.',
+        explanation: 'Para identificar el narrador debemos preguntarnos: ¿Participa en la historia? ¿Qué sabe? ¿A quién se dirige? Distinguir entre 1ª, 2ª y 3ª persona es clave para entender la perspectiva literaria.',
+        meanings: [
+          { term: 'Narrador', definition: 'Voz que cuenta la historia (no es el autor).' },
+          { term: '1ª Persona', definition: 'Participa de los acontecimientos.' },
+          { term: '3ª Persona', definition: 'No participa de los acontecimientos.' }
+        ],
+        exercises: [
+          { type: 'true-false', question: 'El monólogo interior pertenece a la narración en primera persona.', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'multiple-choice', question: '¿Cuál oración corresponde a un narrador testigo?', options: ['"Entré llorando porque me dieron una mala noticia."', '"María entró al salón. Sentía angustia."', '"Vi cómo María entró llorando, pero no supe qué le había pasado."', '"Entrás al salón y todos te miran."'], correct: 2 },
+          { type: 'writing', question: '¿Cómo se llama el narrador que conoce el pasado, presente y futuro de todos?', options: [], correct: 'omnisciente', placeholder: 'Respuesta...' },
+          { type: 'true-false', question: 'El narrador en segunda persona participa activamente de los hechos.', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'El narrador testigo es siempre un personaje...', options: ['Principal', 'Secundario', 'Inexistente', 'Antagonista'], correct: 1 },
+          { type: 'writing', question: 'Completar: "El monólogo interior es un tipo de narrador en _______ persona."', options: [], correct: 'primera', placeholder: 'Respuesta...' }
+        ]
+      }
+    ]
   }
 ];
