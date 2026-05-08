@@ -218,6 +218,22 @@ const AssignmentItem: React.FC<{
   const userSubmission = submissions.find(s => s.assignmentId === ass.id && s.studentName === userName);
   const submissionCount = submissions.filter(s => s.assignmentId === ass.id).length;
 
+  const getStatus = () => {
+    if (isOwner) return null;
+    if (userSubmission) return { label: 'Entregado', color: 'text-emerald-500 bg-emerald-500/10', icon: CheckCircle2 };
+    
+    const dueDate = ass.dueDate ? new Date(ass.dueDate) : null;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
+    if (dueDate && dueDate < now) {
+      return { label: 'Atrasada', color: 'text-rose-500 bg-rose-500/10', icon: AlertTriangle };
+    }
+    return { label: 'Pendiente', color: 'text-amber-500 bg-amber-500/10', icon: Clock };
+  };
+
+  const status = getStatus();
+
   return (
     <AeroCard 
       theme={theme} 
@@ -236,9 +252,17 @@ const AssignmentItem: React.FC<{
             <ClipboardList size={22} className="md:w-6 md:h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-black text-sm md:text-lg truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-              {ass.title}
-            </h4>
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className={`font-black text-sm md:text-lg truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                {ass.title}
+              </h4>
+              {status && (
+                <div className={`hidden xs:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${status.color}`}>
+                   <status.icon size={10} />
+                   {status.label}
+                </div>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-40">
               <span className="flex items-center gap-1"><Calendar size={10} /> {ass.createdAt?.toDate().toLocaleDateString()}</span>
               {ass.dueDate && (
@@ -246,15 +270,17 @@ const AssignmentItem: React.FC<{
                   <Clock size={10} /> {ass.dueDate}
                 </span>
               )}
-              {isOwner ? (
+              {isOwner && (
                 <span className="text-sky-500 flex items-center gap-1">
                   <Users size={10} /> {submissionCount} <span className="hidden xs:inline">Entregas</span>
                 </span>
-              ) : userSubmission ? (
-                <span className="text-emerald-500 flex items-center gap-1">
-                  <CheckCircle2 size={10} /> <span className="hidden xs:inline">Entregado</span>
-                </span>
-              ) : null}
+              )}
+              {!isOwner && status && (
+                <div className={`xs:hidden flex items-center gap-1 ${status.color.split(' ')[0]}`}>
+                   <status.icon size={10} />
+                   {status.label}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -319,6 +345,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
   onShareResource, onPlayActivity, onCreateAssignment, onSubmitTask, onBack, onArchive, onLeave, userName 
 }) => {
   const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas'>('anuncios');
+  const [taskFilter, setTaskFilter] = useState<'todas' | 'pendientes' | 'entregadas' | 'atrasadas'>('todas');
   const [newAnnouncement, setNewAnnouncement] = useState('');
   const [annAttachment, setAnnAttachment] = useState<any>(null);
   const [newComments, setNewComments] = useState<Record<string, string>>({});
@@ -721,14 +748,37 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
             </>
           ) : activeTab === 'tareas' ? (
             <div className="space-y-6">
-               {isOwner && !viewingAssignment && (
-                 <GlossyButton 
-                   onClick={() => setShowTaskForm(true)}
-                   className="w-full py-4 bg-sky-500 text-white flex items-center justify-center gap-2"
-                 >
-                   <Plus size={20} /> Crear Tarea
-                 </GlossyButton>
-               )}
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {[
+                      { id: 'todas', label: 'Todas' },
+                      { id: 'pendientes', label: 'Pendientes' },
+                      { id: 'entregadas', label: 'Entregadas' },
+                      { id: 'atrasadas', label: 'Atrasadas' }
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => setTaskFilter(f.id as any)}
+                        className={`flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          taskFilter === f.id 
+                            ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' 
+                            : theme === 'black' ? 'bg-white/5 text-white/40 hover:bg-white/10' : 'bg-sky-50 text-sky-950/40 hover:bg-sky-100'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                 </div>
+
+                 {isOwner && !viewingAssignment && (
+                   <GlossyButton 
+                     onClick={() => setShowTaskForm(true)}
+                     className="py-3 px-6 bg-sky-500 text-white flex items-center justify-center gap-2 text-xs"
+                   >
+                     <Plus size={16} /> Crear Tarea
+                   </GlossyButton>
+                 )}
+               </div>
 
                <AnimatePresence>
                  {showTaskForm && (
@@ -898,24 +948,43 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                  </div>
                ) : (
                  <div className="space-y-4">
-                   {assignments.length === 0 ? (
-                     <div className="text-center py-20 opacity-30">
-                       <ClipboardList size={48} className="mx-auto mb-4" />
-                       <p className="font-bold italic">No hay tareas asignadas aún.</p>
-                     </div>
-                   ) : (
-                     assignments.map(ass => (
-                       <AssignmentItem 
-                         key={ass.id}
-                         ass={ass}
-                         theme={theme}
-                         isOwner={isOwner}
-                         onView={setViewingAssignment}
-                         submissions={submissions}
-                         userName={userName}
-                       />
-                     ))
-                   )}
+                   {(() => {
+                     const filteredAssignments = assignments.filter(ass => {
+                       if (taskFilter === 'todas') return true;
+                       
+                       const userSubmission = submissions.find(s => s.assignmentId === ass.id && s.studentName === userName);
+                       const dueDate = ass.dueDate ? new Date(ass.dueDate) : null;
+                       const now = new Date();
+                       now.setHours(0, 0, 0, 0);
+                       const isOverdue = dueDate && dueDate < now && !userSubmission;
+
+                       if (taskFilter === 'entregadas') return !!userSubmission;
+                       if (taskFilter === 'atrasadas') return isOverdue;
+                       if (taskFilter === 'pendientes') return !userSubmission && !isOverdue;
+                       return true;
+                     });
+
+                     if (filteredAssignments.length === 0) {
+                       return (
+                        <div className="text-center py-20 opacity-30">
+                          <ClipboardList size={48} className="mx-auto mb-4" />
+                          <p className="font-bold italic">No se encontraron tareas en esta categoría.</p>
+                        </div>
+                       );
+                     }
+
+                     return filteredAssignments.map(ass => (
+                        <AssignmentItem 
+                          key={ass.id}
+                          ass={ass}
+                          theme={theme}
+                          isOwner={isOwner}
+                          onView={setViewingAssignment}
+                          submissions={submissions}
+                          userName={userName}
+                        />
+                      ));
+                   })()}
                  </div>
                )}
             </div>
