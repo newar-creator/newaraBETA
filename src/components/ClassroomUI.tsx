@@ -1015,9 +1015,15 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                )}
             </div>
           ) : activeTab === 'chat' ? (
-            <div className="flex flex-col h-[500px] md:h-[600px]">
-              <AeroCard theme={theme} className="flex-1 flex flex-col overflow-hidden border-none shadow-none bg-transparent">
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide md:scrollbar-default">
+            <div className="flex flex-col h-[500px] md:h-[600px] relative">
+              <div className={`flex-1 flex flex-col overflow-hidden rounded-[2rem] border transition-all duration-300 ${
+                theme === 'black' 
+                  ? 'bg-black/40 border-white/10 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]' 
+                  : 'bg-white/20 border-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)]'
+              } backdrop-blur-xl relative`}>
+                <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
+                
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10 custom-scrollbar">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full opacity-20 text-center space-y-2">
                        <MessageSquare size={48} className="mx-auto" />
@@ -1025,29 +1031,54 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                        <p className="text-[10px]">¡Sé el primero en saludar!</p>
                     </div>
                   ) : (
-                    messages.map((msg) => {
+                    messages.map((msg, idx) => {
                       const isMe = msg.authorName === userName;
+                      const showHeader = idx === 0 || messages[idx - 1].authorName !== msg.authorName;
+                      
                       return (
-                        <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                          <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 ${
-                            isMe 
-                              ? 'bg-sky-500 text-white rounded-tr-none' 
-                              : theme === 'black' ? 'bg-white/10 text-white rounded-tl-none' : 'bg-white border border-sky-100 text-sky-950 rounded-tl-none shadow-sm'
-                          }`}>
-                            {!isMe && <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">{msg.authorName}</p>}
-                            <p className="text-xs font-bold leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                        <motion.div 
+                          key={msg.id} 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end mb-1`}
+                        >
+                          <div className="flex-shrink-0 mb-5">
+                            {showHeader ? (
+                              <UserAvatar name={msg.authorName} className="w-7 h-7 border-2 border-transparent" />
+                            ) : (
+                              <div className="w-7" />
+                            )}
                           </div>
-                          <p className="text-[8px] font-bold opacity-30 mt-1 uppercase tracking-tighter">
-                            {msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Enviando...'}
-                          </p>
-                        </div>
+
+                          <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                            {showHeader && !isMe && (
+                              <span className={`text-[9px] font-black uppercase tracking-widest opacity-40 ml-1 mb-1 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                                {msg.authorName}
+                              </span>
+                            )}
+                            <div className={`rounded-2xl px-4 py-2.5 transition-all ${
+                              isMe 
+                                ? 'bg-sky-500 text-white rounded-br-none shadow-lg shadow-sky-500/20' 
+                                : theme === 'black' 
+                                  ? 'bg-white/10 text-white rounded-bl-none' 
+                                  : 'bg-white border border-sky-100 text-sky-950 rounded-bl-none shadow-sm'
+                            }`}>
+                              <p className="text-xs font-bold leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                            </div>
+                            <span className="text-[7px] font-black opacity-30 mt-1 uppercase tracking-tighter mx-1">
+                              {msg.createdAt?.toDate 
+                                ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                : 'Enviando...'}
+                            </span>
+                          </div>
+                        </motion.div>
                       );
                     })
                   )}
                   <div ref={chatEndRef} />
                 </div>
                 
-                <div className={`p-4 bg-transparent border-t flex gap-2 ${theme === 'black' ? 'border-white/5' : 'border-sky-100'}`}>
+                <div className={`p-4 bg-transparent border-t flex gap-2 relative z-10 ${theme === 'black' ? 'border-white/5' : 'border-sky-100'}`}>
                    <input 
                     type="text"
                     value={chatMessage}
@@ -1065,7 +1096,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                      <Send size={18} />
                    </GlossyButton>
                 </div>
-              </AeroCard>
+              </div>
             </div>
           ) : (
             <div className="space-y-8">

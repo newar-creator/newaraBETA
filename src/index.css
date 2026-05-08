@@ -145,7 +145,7 @@
 
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(76, 165, 255, 0.4) rgba(255, 255, 255, 0.1);
+    scrollbar-color: rgba(76, 165, 255, 0.6) rgba(255, 255, 255, 0.1);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -156,9 +156,9 @@
     border-radius: 10px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(76, 165, 255, 0.4);
+    background: rgba(76, 165, 255, 0.7);
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 }
 
