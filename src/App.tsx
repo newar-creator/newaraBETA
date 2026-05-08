@@ -1051,6 +1051,8 @@ export default function App() {
     setClassAssignments([]);
     setClassSubmissions([]);
     setActiveClass(null);
+    setCompletedUnits([]);
+    setActivityHistory([]);
     
     // Clear all user-related localStorage
     localStorage.removeItem('newara_user_name');
@@ -1062,8 +1064,14 @@ export default function App() {
     localStorage.removeItem('newara_mod_auth');
     localStorage.removeItem('newara_activity_history');
     localStorage.removeItem('newara_completed_units');
+    localStorage.removeItem('newara_visited');
     
     playExternalBubble();
+    
+    // Force a reload to ensure all states are completely fresh
+    setTimeout(() => {
+      window.location.href = '/inicio';
+    }, 100);
   };
 
   useEffect(() => {
@@ -2644,9 +2652,9 @@ export default function App() {
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
       case 'violet':
-      case 'purple': return 'from-violet-400 to-violet-600';
+      case 'purple': return 'from-violet-400 to-violet-600 shadow-violet-500/20';
       case 'pink':
-      case 'rose': return 'from-pink-400 to-pink-600 shadow-pink-500/20';
+      case 'rose': return 'from-rose-400 to-rose-600 shadow-rose-500/30';
       default: return 'from-sky-400 to-sky-600';
     }
   };
@@ -7156,6 +7164,8 @@ function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }
       case 'violet':
       case 'purple': return 'from-violet-400/80 to-violet-600/80 text-white';
       case 'slate': return 'from-slate-400/80 to-slate-600/80 text-white';
+      case 'pink':
+      case 'rose': return 'from-rose-400/80 to-rose-600/80 text-white';
       default: return theme === 'black' ? 'bg-white/5 text-white/20' : 'bg-white/20 text-sky-900/40';
     }
   };
@@ -7192,7 +7202,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
       case 'violet':
       case 'purple': return 'from-violet-400 to-violet-600 shadow-violet-500/50';
       case 'pink':
-      case 'rose': return 'from-pink-400 to-pink-600 shadow-pink-500/50';
+      case 'rose': return 'from-rose-400 to-rose-600 shadow-rose-500/50';
       default: return 'from-sky-400 to-sky-600 shadow-sky-500/50';
     }
   };
@@ -7246,6 +7256,22 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
     );
   }
 
+  const getDotColor = (color: string) => {
+    switch (color) {
+      case 'green': return theme === 'black' ? 'bg-green-500/40' : 'bg-green-500/60';
+      case 'blue': return theme === 'black' ? 'bg-blue-500/40' : 'bg-blue-500/60';
+      case 'sky': return theme === 'black' ? 'bg-sky-500/40' : 'bg-sky-500/60';
+      case 'amber': return theme === 'black' ? 'bg-amber-500/40' : 'bg-amber-500/60';
+      case 'indigo': return theme === 'black' ? 'bg-indigo-500/40' : 'bg-indigo-500/60';
+      case 'red': return theme === 'black' ? 'bg-red-500/40' : 'bg-red-500/60';
+      case 'violet':
+      case 'purple': return theme === 'black' ? 'bg-violet-500/40' : 'bg-violet-500/60';
+      case 'pink':
+      case 'rose': return theme === 'black' ? 'bg-rose-500/40' : 'bg-rose-500/60';
+      default: return theme === 'black' ? 'bg-sky-500/40' : 'bg-sky-500/60';
+    }
+  };
+
   return (
     <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative w-full">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
@@ -7275,14 +7301,14 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
             {/* Connector dots */}
             {i < units.length - 1 && (
               <div 
-                className="absolute left-1/2 -translate-x-1/2 top-20 md:top-24 h-8 md:h-12 flex flex-col gap-2 items-center opacity-30"
+                className="absolute left-1/2 -translate-x-1/2 top-20 md:top-24 h-8 md:h-12 flex flex-col gap-2 items-center opacity-80"
                 style={{
                    transform: `translateX(${-offset/2}px) rotate(${offset > 0 ? '-15deg' : '15deg'})`
                 }}
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
-                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
-                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
               </div>
             )}
           </div>
@@ -7302,7 +7328,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
       case 'red': return 'from-red-400 to-red-600';
       case 'violet': return 'from-violet-400 to-violet-600';
       case 'pink':
-      case 'rose': return 'from-pink-400 to-pink-600';
+      case 'rose': return 'from-rose-400 to-rose-600';
       default: return 'from-sky-400 to-sky-600';
     }
   };
