@@ -73,10 +73,10 @@ import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
-import { AeroCard, GlossyButton } from './components/AeroUI';
+import { AeroCard, GlossyButton, AeroAuthAlert } from './components/AeroUI';
 import { NewAraLogo } from './components/NewAraLogo';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
@@ -673,6 +673,7 @@ export default function App() {
   const [isModAuthorized, setIsModAuthorized] = useState(() => localStorage.getItem('newara_mod_auth') === 'true');
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('newara_logged_in') === 'true');
+  const [authRequiredMsg, setAuthRequiredMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const checkMod = async () => {
@@ -796,6 +797,58 @@ export default function App() {
       console.error("Check username error:", error);
     } finally {
       setIsCheckingAccount(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Check if user exists in our Firestore 'users' collection
+      const userDoc = await getDoc(doc(db, 'users', user.displayName || user.uid));
+      
+      if (!userDoc.exists()) {
+        // Create user record if new
+        await setDoc(doc(db, 'users', user.displayName || user.uid), {
+          name: user.displayName || user.uid,
+          email: user.email,
+          avatar: user.photoURL || '',
+          bio: 'Explorador del conocimiento en NewAra.',
+          role: 'Estudiante',
+          createdAt: serverTimestamp()
+        });
+      }
+
+      const userData = userDoc.exists() ? userDoc.data() : { 
+        name: user.displayName || user.uid, 
+        role: 'Estudiante', 
+        avatar: user.photoURL || '',
+        bio: 'Explorador del conocimiento en NewAra.'
+      };
+
+      setUserName(userData.name);
+      setUserRole(userData.role || 'Estudiante');
+      setUserAvatar(userData.avatar || user.photoURL || '');
+      setUserBio(userData.bio || '');
+      setIsLoggedIn(true);
+      setIsRegistering(false);
+      
+      localStorage.setItem('newara_user_name', userData.name);
+      localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
+      localStorage.setItem('newara_user_avatar', userData.avatar || user.photoURL || '');
+      localStorage.setItem('newara_logged_in', 'true');
+      
+      playSuccessSound();
+    } catch (error: any) {
+      console.error("Google Login Error:", error);
+      setAuthError("Error al iniciar sesión con Google.");
+      playErrorSound();
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
@@ -984,33 +1037,39 @@ export default function App() {
     auth.signOut(); // Ensure Firebase Auth session is also cleared
     setUserName('Estudiante');
     setUserPassword('');
+    setUserRole('Estudiante');
+    setUserAvatar('');
+    setUserBio('Explorador del conocimiento en NewAra.');
+    setIsModAuthorized(false);
+    setUserClasses([]);
+    setNotifications([]);
+    setClassAnnouncements([]);
+    setClassMessages([]);
+    setClassMembers([]);
+    setClassResources([]);
+    setClassAssignments([]);
+    setClassSubmissions([]);
+    setActiveClass(null);
+    
+    // Clear all user-related localStorage
     localStorage.removeItem('newara_user_name');
     localStorage.removeItem('newara_user_password');
+    localStorage.removeItem('newara_user_role');
+    localStorage.removeItem('newara_user_avatar');
+    localStorage.removeItem('newara_user_bio');
     localStorage.removeItem('newara_logged_in');
-    localStorage.removeItem('newara_mod_auth'); // Security: Clear moderator auth on logout
-    setIsModAuthorized(false);
+    localStorage.removeItem('newara_mod_auth');
+    localStorage.removeItem('newara_activity_history');
+    localStorage.removeItem('newara_completed_units');
+    
     playExternalBubble();
   };
-
-  useEffect(() => {
-    localStorage.setItem('newara_user_role', userRole);
-  }, [userRole]);
-
-  useEffect(() => {
-    localStorage.setItem('newara_user_password', userPassword);
-  }, [userPassword]);
-
-  useEffect(() => {
-    localStorage.setItem('newara_user_bio', userBio);
-  }, [userBio]);
 
   useEffect(() => {
     // If somehow the avatar became too large, we clear it to avoid sync errors
     if (userAvatar.length > 800000) { 
       setUserAvatar('');
       localStorage.removeItem('newara_user_avatar');
-    } else {
-      localStorage.setItem('newara_user_avatar', userAvatar);
     }
   }, [userAvatar]);
 
@@ -1141,7 +1200,7 @@ export default function App() {
   // Minigames Logic
   const createMinigameSession = async (activity: any) => {
     if (!isLoggedIn) {
-      alert("Inicia sesión para crear un minijuego.");
+      setAuthRequiredMsg("Inicia sesión para crear un servidor de minijuego y jugar con tus amigos.");
       return;
     }
     setIsTakingAction(true);
@@ -1183,7 +1242,7 @@ export default function App() {
 
   const joinMinigameSession = async (code: string) => {
     if (!isLoggedIn) {
-      alert("Inicia sesión para unirte.");
+      setAuthRequiredMsg("Inicia sesión para unirte a partidas multijugador.");
       return;
     }
     const cleanCode = code.trim().toUpperCase();
@@ -1857,7 +1916,11 @@ export default function App() {
   };
 
   const createClass = async (name: string, description: string) => {
-    if (!isLoggedIn || userRole !== 'Profesor') return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para crear y gestionar tus propias clases.");
+      return;
+    }
+    if (userRole !== 'Profesor') return;
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
       const newClass = {
@@ -1890,7 +1953,10 @@ export default function App() {
   };
 
   const joinClass = async (code: string) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para unirte a clases con código.");
+      return;
+    }
     try {
       const q = query(collection(db, 'classes'), where('code', '==', code.trim().toUpperCase()));
       const snap = await getDocs(q);
@@ -1949,7 +2015,10 @@ export default function App() {
   };
 
   const postAnnouncement = async (classId: string, content: string, attachment?: any) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para publicar novedades en esta clase.");
+      return;
+    }
     try {
       await addDoc(collection(db, 'classes', classId, 'announcements'), {
         authorName: userName,
@@ -1972,6 +2041,10 @@ export default function App() {
   };
 
   const postMessage = async (classId: string, content: string) => {
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para participar en el chat grupal de la clase.");
+      return;
+    }
     if (!content.trim()) return;
     const path = `classes/${classId}/messages`;
     try {
@@ -1987,7 +2060,10 @@ export default function App() {
   };
 
   const postComment = async (classId: string, announcementId: string, content: string) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para comentar en las publicaciones.");
+      return;
+    }
     try {
       await addDoc(collection(db, 'classes', classId, 'announcements', announcementId, 'comments'), {
         authorName: userName,
@@ -2005,7 +2081,11 @@ export default function App() {
   };
 
   const createAssignment = async (classId: string, title: string, description: string, dueDate: string, attachment?: any) => {
-    if (!isLoggedIn || userRole !== 'Profesor') return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para crear tareas para tus alumnos.");
+      return;
+    }
+    if (userRole !== 'Profesor') return;
     try {
       await addDoc(collection(db, 'classes', classId, 'assignments'), {
         classId,
@@ -2028,7 +2108,11 @@ export default function App() {
   };
 
   const submitTask = async (assignmentId: string, attachment: any) => {
-    if (!isLoggedIn || !activeClass) return;
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para realizar tus tareas y llevar un seguimiento de tu progreso.");
+      return;
+    }
+    if (!activeClass) return;
     try {
       await addDoc(collection(db, 'classes', activeClass.id, 'assignments', assignmentId, 'submissions'), {
         assignmentId,
@@ -2135,16 +2219,7 @@ export default function App() {
 
   const reportAbuse = async (type: 'announcement' | 'comment' | 'activity', id: string, content: string, authorName: string, classId?: string, parentId?: string) => {
     if (!isLoggedIn) {
-      setConfirmModal({
-        show: true,
-        title: 'Sesión Requerida',
-        message: 'Debes iniciar sesión para denunciar contenido inapropiado.',
-        type: 'warning',
-        onConfirm: () => {
-          setIsRegistering(true);
-          setConfirmModal(prev => ({ ...prev, show: false }));
-        }
-      });
+      setAuthRequiredMsg("Inicia sesión para denunciar contenido inapropiado y ayudarnos a mantener la comunidad segura.");
       return;
     }
     setShowReportModal({ id, name: content, creatorName: authorName, type, classId, parentId });
@@ -2739,8 +2814,8 @@ export default function App() {
 
   const handleLikeActivity = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isLoggedIn || userName === 'Estudiante') {
-      setIsRegistering(true);
+    if (!isLoggedIn) {
+      setAuthRequiredMsg("Inicia sesión para dar like a las actividades que te gusten.");
       return;
     }
     if (loadingLikes.has(id)) return;
@@ -6408,6 +6483,15 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Auth Alert */}
+      <AeroAuthAlert 
+        isOpen={!!authRequiredMsg} 
+        onClose={() => setAuthRequiredMsg(null)}
+        onLogin={handleGoogleLogin}
+        message={authRequiredMsg || undefined}
+        theme={theme}
+      />
 
       {/* Register Modal */}
       <AnimatePresence>
