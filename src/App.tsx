@@ -91,8 +91,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
 const auth = getAuth(app);
 
-const APP_VERSION = "1.2.0-STABLE";
-const APP_LAST_BUILD = "2026-05-07 21:12 UTC";
+const APP_VERSION = "1.2.1-FIX";
+const APP_LAST_BUILD = "2026-05-08 22:55 UTC";
 
 const compressImage = (base64Str: string, maxWidth = 300, maxHeight = 300): Promise<string> => {
   return new Promise((resolve) => {

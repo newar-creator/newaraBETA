@@ -130,9 +130,8 @@ export const playGong = async () => {
     source.buffer = gongBuffer;
     const gain = ctx.createGain();
     
-    // Linear fade-in of 0.02s to prevent cutting and clicks
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+    // Set volume instantly to prevent cutting and clicks
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
     
     source.connect(gain);
     gain.connect(ctx.destination);
