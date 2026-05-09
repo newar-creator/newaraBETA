@@ -2421,6 +2421,12 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    if (selectedActivityDetail && selectedActivityDetail.id) {
+       trackActivityView(selectedActivityDetail.id, selectedActivityDetail.creatorName);
+    }
+  }, [selectedActivityDetail]);
+
   const fetchGallery = async () => {
     setIsGalleryLoading(true);
     try {
@@ -2873,6 +2879,26 @@ export default function App() {
     }
   };
 
+  // Helper para incrementar vistas de actividad de forma segura (una por sesión)
+  const trackActivityView = async (activityId: string, creatorName?: string) => {
+    if (!activityId || !isLoggedIn || userName === 'Estudiante') return;
+    
+    const viewedKey = `viewed_activity_${activityId}`;
+    if (sessionStorage.getItem(viewedKey)) return;
+    
+    try {
+      const docRef = doc(db, 'activities', activityId);
+      await updateDoc(docRef, { views: increment(1) });
+      sessionStorage.setItem(viewedKey, 'true');
+      
+      if (creatorName) {
+        incrementUserStat(creatorName, 'totalViews', 1);
+      }
+    } catch (error) {
+      console.error("Error tracking view:", error);
+    }
+  };
+
   const handleLoadActivity = async (code: string) => {
     if (!code) return;
     setLoadError(null);
@@ -2883,13 +2909,8 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // Incrementar vistas de la actividad y del creador solo si está logueado
-        if (isLoggedIn && userName !== 'Estudiante') {
-          updateDoc(docRef, { views: increment(1) });
-          if (data.creatorName) {
-            incrementUserStat(data.creatorName, 'totalViews', 1);
-          }
-        }
+        // Incrementar vistas con protección de sesión
+        trackActivityView(code, data.creatorName);
 
         // Transform back to exercise format
         const unitExtras = {
