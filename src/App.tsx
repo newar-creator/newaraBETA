@@ -3622,13 +3622,13 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-32 md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-center md:justify-start py-3 md:py-8 gap-2 md:gap-6 border-4 shadow-2xl z-40 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 h-[100px] md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-start md:justify-start py-1 md:py-8 gap-0 md:gap-6 border-4 shadow-2xl z-40 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Now visible on mobile too */}
-        <div className="flex flex-col items-center gap-1 md:gap-2 mb-1 px-4 scale-90 md:scale-100">
+        <div className="flex flex-col items-center gap-0 md:gap-2 mb-0 md:mb-1 px-4 scale-90 md:scale-100">
            <div className="md:hidden">
-             <NewAraLogo size="md" theme={theme} onClick={() => playExternalBubble()} />
+             <NewAraLogo size="sm" theme={theme} onClick={() => playExternalBubble()} />
            </div>
            <div className="hidden md:block">
              <NewAraLogo size="lg" theme={theme} onClick={() => playExternalBubble()} />
@@ -3886,7 +3886,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
-                className={`fixed bottom-24 left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 flex flex-col max-h-[70vh] overflow-hidden ${
+                className={`fixed bottom-[115px] left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 flex flex-col max-h-[70vh] overflow-hidden ${
                   theme === 'black' 
                     ? 'bg-black/90 border-white/10' 
                     : 'bg-white/95 border-white/60'
@@ -3983,7 +3983,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 100 }}
-                    className={`fixed bottom-24 left-4 right-4 p-5 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden flex flex-col max-h-[70vh] ${
+                    className={`fixed bottom-[115px] left-4 right-4 p-5 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden flex flex-col max-h-[70vh] ${
                       theme === 'black' 
                         ? 'bg-black/90 border-white/10' 
                         : 'bg-white/95 border-white/60'
@@ -4101,7 +4101,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-8 relative">
+      <main className="flex-1 overflow-y-auto p-4 pb-52 md:p-8 relative">
         <AnimatePresence>
           {isOffline && (
             <motion.div 
@@ -7262,7 +7262,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97, y: 0 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
+      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
       style={{ willChange: 'transform' }}
     >
       {active && <div className="glossy-overlay opacity-30" />}
