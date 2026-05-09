@@ -4617,6 +4617,7 @@ export default function App() {
                    </AeroCard>
                  </motion.div>
                ) : (
+                 <>
                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <motion.div 
                       variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}
@@ -4648,36 +4649,6 @@ export default function App() {
                           </div>
                        </AeroCard>
 
-                       {creationError && (
-                         <motion.div 
-                           initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                           className="p-5 rounded-[1.5rem] bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-black text-center shadow-lg"
-                         >
-                           <div className="flex items-center justify-center gap-2">
-                             <AlertCircle size={18} />
-                             {creationError}
-                           </div>
-                         </motion.div>
-                       )}
-
-                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                         <GlossyButton 
-                           onClick={handleCreateActivity}
-                           loading={isCreatingActivity}
-                           className={`w-full py-8 text-2xl font-black tracking-[0.2em] gap-3 shadow-[0_15px_30px_-10px_rgba(59,130,246,0.6)] border-t-white/50 border-l-white/40 ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
-                         >
-                            {isCreatingActivity ? (
-                              <div className="flex items-center gap-4">
-                                 <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                                 <span>PUBLICANDO...</span>
-                              </div>
-                            ) : (
-                              <>
-                                PUBLICAR <Share2 size={28} />
-                              </>
-                            )}
-                         </GlossyButton>
-                       </motion.div>
                     </motion.div>
 
                     <motion.div 
@@ -4890,6 +4861,41 @@ export default function App() {
                       </motion.button>
                     </motion.div>
                  </div>
+
+                 {/* Publicar al fondo */}
+                 <div className="max-w-xl mx-auto space-y-6 pt-12 pb-8">
+                    {creationError && (
+                      <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                        className="p-5 rounded-[1.5rem] bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-black text-center shadow-lg"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <AlertCircle size={18} />
+                          {creationError}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <GlossyButton 
+                        onClick={handleCreateActivity}
+                        loading={isCreatingActivity}
+                        className={`w-full py-10 text-2xl font-black tracking-[0.2em] gap-4 shadow-[0_20px_40px_-10px_rgba(59,130,246,0.5)] border-t-white/50 border-l-white/40 ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
+                      >
+                         {isCreatingActivity ? (
+                           <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                              <span>PUBLICANDO...</span>
+                           </div>
+                         ) : (
+                           <>
+                             PUBLICAR ACTIVIDAD <Share2 size={32} />
+                           </>
+                         )}
+                      </GlossyButton>
+                    </motion.div>
+                 </div>
+                 </>
                )}
             </motion.div>
           )}
