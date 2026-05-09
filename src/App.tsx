@@ -16,6 +16,7 @@ import {
   ShieldCheck, 
   Languages, 
   Calculator,
+  Croissant,
   Calendar as CalendarIcon, 
   BookOpen, 
   ClipboardCheck, 
@@ -2639,6 +2640,7 @@ export default function App() {
       case 'Languages': return <Languages size={size} />;
       case 'Calculator': return <Calculator size={size} />;
       case 'BookOpen': return <BookOpen size={size} />;
+      case 'Croissant': return <Croissant size={size} />;
       default: return <BookOpen size={size} />;
     }
   };

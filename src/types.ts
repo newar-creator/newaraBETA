@@ -357,7 +357,7 @@ export const SUBJECTS: Subject[] = [
   {
     id: 'frances',
     name: 'Francés',
-    icon: 'Flag',
+    icon: 'Croissant',
     color: 'sky',
     description: 'Exploración de la lengua francesa, desde las bases hasta la fluidez comunicativa.',
     units: [
