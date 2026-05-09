@@ -78,7 +78,7 @@ import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc,
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
-import { AeroCard, GlossyButton, AeroAuthAlert } from './components/AeroUI';
+import { AeroCard, GlossyButton, GlossyInput, AeroAuthAlert } from './components/AeroUI';
 import { NewAraLogo } from './components/NewAraLogo';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
@@ -3742,7 +3742,6 @@ export default function App() {
               icon={<Globe size={22} />} 
               label="Galería" 
               theme={theme}
-              badge="NUEVO"
             />
             <NavButton 
               id="nav-leaderboard"
@@ -3754,7 +3753,6 @@ export default function App() {
               icon={<Trophy size={22} />} 
               label={t('leaderboard')} 
               theme={theme}
-              badge="TOP"
             />
             <NavButton 
               id="nav-minigames"
@@ -3778,7 +3776,6 @@ export default function App() {
               icon={<Users size={22} />} 
               label="Clases" 
               theme={theme}
-              badge="NUEVO"
             />
             <NavButton 
               id="nav-schedule"
@@ -3938,7 +3935,6 @@ export default function App() {
                     icon={<Trophy size={20} />} 
                     label={t('leaderboard')} 
                     theme={theme}
-                    badge="TOP"
                   />
                   <MobileMenuButton 
                     id="nav-minigames"
@@ -4512,280 +4508,387 @@ export default function App() {
           {currentView === 'create-activity' && (
             <motion.div 
               key="create-activity"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="max-w-4xl mx-auto space-y-8"
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } }
+              }}
+              className="max-w-4xl mx-auto space-y-8 relative"
             >
-               <header className="flex items-center gap-4">
+               {/* Decorative Aero Bubbles */}
+               {!disableAnimations && (
+                 <div className="absolute -z-10 inset-0 overflow-hidden pointer-events-none">
+                    {[...Array(6)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute rounded-full bg-gradient-to-br from-white/20 to-white/5 border border-white/20 backdrop-blur-[2px]"
+                        style={{
+                          width: Math.random() * 100 + 50,
+                          height: Math.random() * 100 + 50,
+                          left: `${Math.random() * 100}%`,
+                          top: `${Math.random() * 100}%`,
+                        }}
+                        animate={{
+                          y: [0, -30, 0],
+                          x: [0, 20, 0],
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 45, 0],
+                        }}
+                        transition={{
+                          duration: 4 + Math.random() * 4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: Math.random() * 5
+                        }}
+                      />
+                    ))}
+                 </div>
+               )}
+
+               <motion.header 
+                 variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}
+                 className="flex items-center gap-4 py-2"
+               >
                   <button 
                     onClick={() => setCurrentView(lastView)}
-                    className="p-2 rounded-xl bg-white/20 border border-white/40 shadow-lg"
+                    className="p-3 rounded-2xl bg-white/30 border-t-white/80 border-l-white/60 border border-white/20 shadow-xl backdrop-blur-md active:scale-90 transition-all group"
                   >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={24} className="text-sky-600 group-hover:-translate-x-1 transition-transform" />
                   </button>
                   <div>
-                    <h1 className={`text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Crear Actividad</h1>
-                    <p className={`font-medium opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Wordwall Style - 3 Preguntas Gratis</p>
+                    <h1 className={`text-5xl font-black tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'} drop-shadow-sm`}>
+                      Crear <span className="text-blue-500">Actividad</span>
+                    </h1>
+                    <p className={`font-bold text-sm tracking-wide flex items-center gap-2 opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                      <Sparkles size={14} className="text-blue-400" /> Rapido Y Portatil - Todo Gratis
+                    </p>
                   </div>
-               </header>
+               </motion.header>
 
                {newActivityCode ? (
-                 <AeroCard title="¡Actividad Publicada!" theme={theme}>
-                    <div className="flex flex-col items-center py-8 text-center space-y-6">
-                       <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white shadow-xl shadow-green-500/30 animate-bounce">
-                         <CheckCircle2 size={42} />
-                       </div>
-                       <div className="space-y-2">
-                         <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Listo para Compartir!</h2>
-                         <p className={`text-sm font-medium ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>Comparte este código con tus amigos para que jueguen.</p>
-                       </div>
-                       
-                       <div className="w-full p-6 rounded-3xl bg-white/20 border border-white/40 flex flex-col items-center gap-4">
-                          <p className={`text-xs font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Código de Actividad</p>
-                          <div className="text-4xl font-black tracking-widest text-blue-500 font-mono select-all">
-                             {newActivityCode}
-                          </div>
-                          <GlossyButton 
-                            onClick={() => {
-                              navigator.clipboard.writeText(newActivityCode);
-                              playExternalBubble();
-                            }}
-                            className="text-xs px-6 py-2 flex items-center gap-2"
-                          >
-                            <Copy size={14} /> Copiar Código
-                          </GlossyButton>
-                       </div>
-
-                       <GlossyButton 
-                         onClick={() => {
-                           setNewActivityCode('');
-                           setActivityName('');
-                           setActivityQuestions([
-                             { question: '', options: ['', '', '', ''], correct: 0 },
-                             { question: '', options: ['', '', '', ''], correct: 0 },
-                             { question: '', options: ['', '', '', ''], correct: 0 }
-                           ]);
-                           setCurrentView('home');
-                         }}
-                         className="w-full py-4 text-white bg-sky-500 border-2 border-white/20 shadow-xl"
-                       >
-                         Volver al Inicio
-                       </GlossyButton>
-                    </div>
-                 </AeroCard>
-               ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-6">
-                      <AeroCard title="General" theme={theme}>
-                        <div className="space-y-4">
-                           <div className="space-y-1">
-                             <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Nombre de la Actividad</label>
-                             <input 
-                               type="text" 
-                               value={activityName}
-                               onChange={(e) => setActivityName(e.target.value)}
-                               className={`w-full px-4 py-3 rounded-2xl border text-sm font-bold transition-all focus:ring-2 focus:ring-blue-400 outline-none ${
-                                 theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
-                               }`}
-                               placeholder="Ej: Quiz de Historia Argentina"
-                             />
-                           </div>
-                        </div>
-                      </AeroCard>
-
-                      <AeroCard title="Atención" theme={theme} className="bg-amber-400/10 border-amber-400/20">
-                         <div className="flex gap-4 p-2 text-xs font-medium leading-relaxed opacity-80">
-                            <Lightbulb className="text-amber-500 flex-shrink-0" size={24} />
-                            <p>Las actividades compartidas son públicas. Cualquier persona con el código podrá jugar tu actividad. Sé creativo y diviértete.</p>
-                         </div>
-                      </AeroCard>
-
-                      {creationError && (
-                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold text-center animate-shake">
-                          {creationError}
-                        </div>
-                      )}
-
-                      <GlossyButton 
-                        onClick={handleCreateActivity}
-                        loading={isCreatingActivity}
-                        className={`w-full py-6 text-xl tracking-widest gap-2 shadow-[0_10px_20px_-10px_rgba(59,130,246,0.5)] ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
-                      >
-                         {isCreatingActivity ? (
-                           <div className="flex items-center gap-4">
-                              <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                              <span>PUBLICANDO...</span>
-                           </div>
-                         ) : (
-                           <>
-                             PUBLICAR <Share2 size={24} />
-                           </>
-                         )}
-                      </GlossyButton>
-                   </div>
-
-                   <div className="space-y-6">
-                     {activityQuestions.map((q, qIdx) => (
-                        <AeroCard 
-                          key={qIdx} 
-                          title={`Pregunta ${qIdx + 1}`} 
-                          theme={theme}
-                          extra={
-                            activityQuestions.length > 1 && (
-                              <button 
-                                onClick={() => {
-                                  removeQuestion(qIdx);
-                                  playErrorSound();
-                                }}
-                                className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90 group flex items-center gap-1.5"
-                                title="Eliminar pregunta"
-                              >
-                                <Trash2 size={14} className="group-hover:animate-bounce" />
-                                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Eliminar</span>
-                              </button>
-                            )
-                          }
-                        >
-                          <div className="space-y-4">
-                            <div className="flex flex-wrap gap-2 mb-2">
-                               {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
-                                  <button 
-                                     key={type}
-                                     onClick={() => {
-                                        const newQs = [...activityQuestions];
-                                        (newQs[qIdx] as any).type = type;
-                                        if (type === 'true-false' || type === 'boolean') {
-                                           newQs[qIdx].options = ['Verdadero', 'Falso'];
-                                           newQs[qIdx].correct = 0;
-                                        } else if (type === 'writing' || type === 'written') {
-                                           newQs[qIdx].options = [];
-                                           newQs[qIdx].correct = '';
-                                        } else {
-                                           newQs[qIdx].options = ['', '', '', ''];
-                                           newQs[qIdx].correct = 0;
-                                        }
-                                        setActivityQuestions(newQs);
-                                        playExternalBubble();
-                                     }}
-                                     className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                        q.type === type 
-                                        ? 'bg-blue-500 text-white border-blue-400 shadow-md scale-105' 
-                                        : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/40' : 'bg-white/60 border-white/40 text-sky-900/40')
-                                     }`}
-                                  >
-                                     {type === 'multiple-choice' ? 'Quiz' : type === 'true-false' ? 'V/F' : 'Escribir'}
-                                  </button>
-                               ))}
+                 <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }}>
+                   <AeroCard title="¡Actividad Publicada!" theme={theme}>
+                      <div className="flex flex-col items-center py-8 text-center space-y-8">
+                         <div className="relative">
+                            <div className="absolute inset-0 bg-green-400/30 blur-2xl rounded-full scale-150 animate-pulse" />
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white shadow-2xl shadow-green-500/40 relative z-10 animate-bounce">
+                              <CheckCircle2 size={48} />
                             </div>
-
-                            <input 
-                              type="text" 
-                              value={q.question}
-                              onChange={(e) => {
-                                const newQs = [...activityQuestions];
-                                newQs[qIdx].question = e.target.value;
-                                setActivityQuestions(newQs);
+                         </div>
+                         <div className="space-y-2">
+                           <h2 className={`text-3xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Listo para Compartir!</h2>
+                           <p className={`font-medium ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>Copia el código y dáselo a tus amigos.</p>
+                         </div>
+                         
+                         <div className="w-full p-8 rounded-[2.5rem] bg-white/30 border border-white/60 shadow-inner flex flex-col items-center gap-6 relative overflow-hidden group">
+                           <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
+                            <p className={`text-xs font-black uppercase tracking-[0.2em] opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Código de Actividad</p>
+                            <div className="text-6xl font-black tracking-[0.15em] text-blue-500 font-mono select-all drop-shadow-[0_2px_10px_rgba(59,130,246,0.2)]">
+                               {newActivityCode}
+                            </div>
+                            <GlossyButton 
+                              onClick={() => {
+                                navigator.clipboard.writeText(newActivityCode);
+                                playExternalBubble();
                               }}
-                              className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-blue-400 outline-none ${
-                                theme === 'black' ? 'bg-white/10 border-white/5 text-white' : 'bg-white/40 border-white/20 text-sky-950'
-                              }`}
-                              placeholder={q.type === 'writing' || q.type === 'written' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
+                              className="px-10 py-4 flex items-center gap-3 group-hover:scale-105 transition-transform"
+                            >
+                              <Copy size={18} /> COPIAR CÓDIGO
+                            </GlossyButton>
+                         </div>
+
+                         <GlossyButton 
+                           onClick={() => {
+                             setNewActivityCode('');
+                             setActivityName('');
+                             setActivityQuestions([
+                               { question: '', options: ['', '', '', ''], correct: 0 },
+                               { question: '', options: ['', '', '', ''], correct: 0 },
+                               { question: '', options: ['', '', '', ''], correct: 0 }
+                             ]);
+                             setCurrentView('home');
+                           }}
+                           className="w-full py-5 text-white bg-sky-500 border-2 border-white/20 shadow-2xl"
+                         >
+                           VOLVER AL INICIO
+                         </GlossyButton>
+                      </div>
+                   </AeroCard>
+                 </motion.div>
+               ) : (
+                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <motion.div 
+                      variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}
+                      className="lg:col-span-5 space-y-6 lg:sticky lg:top-8"
+                    >
+                       <AeroCard title="General" theme={theme} className="relative overflow-hidden">
+                         <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <PlusCircle size={64} />
+                         </div>
+                         <div className="space-y-6 pt-2">
+                            <GlossyInput 
+                              label="Nombre de la Actividad"
+                              theme={theme}
+                              value={activityName}
+                              onChange={(e) => setActivityName(e.target.value)}
+                              placeholder="Ej: Quiz de Historia Argentina"
+                              className="text-lg py-4"
                             />
-                            
-                            {(q.type === 'writing' || q.type === 'written') ? (
-                              <div className="space-y-2">
-                                <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Respuesta Correcta</label>
-                                <input 
-                                  type="text" 
-                                  value={q.correct}
-                                  onChange={(e) => {
-                                    const newQs = [...activityQuestions];
-                                    newQs[qIdx].correct = e.target.value;
-                                    setActivityQuestions(newQs);
-                                  }}
-                                  className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:ring-2 focus:ring-green-400 outline-none ${
-                                    theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
-                                  }`}
-                                  placeholder="Ingresa la respuesta exacta..."
-                                />
+                         </div>
+                       </AeroCard>
+
+                       <AeroCard theme={theme} className="bg-blue-400/5 border-blue-400/20 backdrop-blur-sm">
+                          <div className="flex gap-4 p-2 text-xs font-bold leading-relaxed">
+                             <Lightbulb className="text-blue-500 flex-shrink-0 animate-pulse" size={24} />
+                             <div className="space-y-1">
+                               <p className={theme === 'black' ? 'text-white' : 'text-sky-900'}>Consejo Aero</p>
+                               <p className="opacity-60">Usa títulos descriptivos y preguntas claras para que otros usuarios encuentren tu contenido fácilmente.</p>
+                             </div>
+                          </div>
+                       </AeroCard>
+
+                       {creationError && (
+                         <motion.div 
+                           initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                           className="p-5 rounded-[1.5rem] bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-black text-center shadow-lg"
+                         >
+                           <div className="flex items-center justify-center gap-2">
+                             <AlertCircle size={18} />
+                             {creationError}
+                           </div>
+                         </motion.div>
+                       )}
+
+                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                         <GlossyButton 
+                           onClick={handleCreateActivity}
+                           loading={isCreatingActivity}
+                           className={`w-full py-8 text-2xl font-black tracking-[0.2em] gap-3 shadow-[0_15px_30px_-10px_rgba(59,130,246,0.6)] border-t-white/50 border-l-white/40 ${isCreatingActivity ? 'opacity-80 pointer-events-none' : ''}`}
+                         >
+                            {isCreatingActivity ? (
+                              <div className="flex items-center gap-4">
+                                 <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                 <span>PUBLICANDO...</span>
                               </div>
                             ) : (
-                              <div className="grid grid-cols-1 gap-2">
-                                {q.options.map((opt, optIdx) => (
-                                  <div key={optIdx} className="flex gap-2 items-center group/opt">
-                                    <input 
-                                      type="text" 
-                                      value={opt}
-                                      readOnly={q.type === 'true-false' || q.type === 'boolean'}
-                                      onChange={(e) => {
-                                        const newQs = [...activityQuestions];
-                                        newQs[qIdx].options[optIdx] = e.target.value;
-                                        setActivityQuestions(newQs);
-                                      }}
-                                      className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                                        theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
-                                      } ${q.correct === optIdx ? 'ring-2 ring-green-500 border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : ''}`}
-                                      placeholder={`Opción ${optIdx + 1}`}
-                                    />
-                                    
-                                    {(q.type === 'multiple-choice' || q.type === 'multiple') && q.options.length > 2 && (
-                                      <button 
-                                        onClick={() => removeOption(qIdx, optIdx)}
-                                        className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center opacity-0 group-hover/opt:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white"
-                                        title="Eliminar opción"
-                                      >
-                                        <X size={14} />
-                                      </button>
-                                    )}
-
-                                    <button 
-                                      onClick={() => {
-                                        const newQs = [...activityQuestions];
-                                        newQs[qIdx].correct = optIdx;
-                                        setActivityQuestions(newQs);
-                                        playExternalBubble();
-                                      }}
-                                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${
-                                        q.correct === optIdx 
-                                          ? 'bg-green-500 text-white border-green-500 shadow-lg scale-110' 
-                                          : theme === 'black' ? 'border-white/10 text-white/40' : 'border-white/40 text-sky-950/20'
-                                      }`}
-                                    >
-                                      <CheckCircle2 size={16} />
-                                    </button>
-                                  </div>
-                                ))}
-
-                                {(q.type === 'multiple-choice' || q.type === 'multiple') && q.options.length < 6 && (
-                                  <button 
-                                    onClick={() => addOption(qIdx)}
-                                    className={`mt-1 py-2 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95 ${
-                                      theme === 'black' ? 'bg-white/5 border-white/10 text-white/30 hover:border-white/20 hover:text-white/60' : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-blue-200 hover:text-blue-500 hover:bg-blue-50'
-                                    }`}
-                                  >
-                                    <Plus size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Añadir opción</span>
-                                  </button>
-                                )}
-                              </div>
+                              <>
+                                PUBLICAR <Share2 size={28} />
+                              </>
                             )}
-                          </div>
-                        </AeroCard>
-                      ))}
+                         </GlossyButton>
+                       </motion.div>
+                    </motion.div>
 
-                      <button 
-                        onClick={addQuestion}
-                        className={`w-full py-6 rounded-[32px] border-4 border-dashed flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 group ${
+                    <motion.div 
+                      variants={{ hidden: { opacity: 0, x: 20 }, visible: { opacity: 1, x: 0 } }}
+                      className="lg:col-span-7 space-y-6"
+                    >
+                      <div className="flex items-center justify-between px-2">
+                         <h2 className={`text-xl font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                           Contenido <span className="text-blue-500">({activityQuestions.length})</span>
+                         </h2>
+                         <button 
+                           onClick={() => {
+                             if (activityQuestions.length < 15) {
+                               setActivityQuestions([...activityQuestions, { question: '', options: ['', '', '', ''], correct: 0, type: 'multiple-choice' }]);
+                               playExternalBubble();
+                             }
+                           }}
+                           className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:brightness-110 active:scale-95 transition-all"
+                         >
+                           <Plus size={16} /> Añadir Pregunta
+                         </button>
+                      </div>
+
+                      <div className="space-y-8">
+                        {activityQuestions.map((q, qIdx) => (
+                           <motion.div
+                             key={qIdx}
+                             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                           >
+                             <AeroCard 
+                               title={`Pregunta ${qIdx + 1}`} 
+                               theme={theme}
+                               className="group"
+                               extra={
+                                 <div className="flex items-center gap-2">
+                                   {activityQuestions.length > 1 && (
+                                     <button 
+                                       onClick={() => {
+                                         removeQuestion(qIdx);
+                                         playErrorSound();
+                                       }}
+                                       className="p-2.5 bg-red-500/10 text-red-500 border border-red-500/10 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90 group/del flex items-center gap-1.5"
+                                       title="Eliminar pregunta"
+                                     >
+                                       <Trash2 size={16} className="group-hover/del:animate-bounce" />
+                                       <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Eliminar</span>
+                                     </button>
+                                   )}
+                                 </div>
+                               }
+                             >
+                               <div className="space-y-6">
+                                 <div className="flex flex-wrap gap-2 pt-1">
+                                    {['multiple-choice', 'true-false', 'writing'].map((type: any) => (
+                                       <button 
+                                          key={type}
+                                          onClick={() => {
+                                             const newQs = [...activityQuestions];
+                                             (newQs[qIdx] as any).type = type;
+                                             if (type === 'true-false') {
+                                                newQs[qIdx].options = ['Verdadero', 'Falso'];
+                                                newQs[qIdx].correct = 0;
+                                             } else if (type === 'writing') {
+                                                newQs[qIdx].options = [];
+                                                newQs[qIdx].correct = '';
+                                             } else {
+                                                newQs[qIdx].options = ['', '', '', ''];
+                                                newQs[qIdx].correct = 0;
+                                             }
+                                             setActivityQuestions(newQs);
+                                             playExternalBubble();
+                                          }}
+                                          className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-300 flex items-center gap-2 ${
+                                             q.type === type 
+                                             ? 'bg-blue-500 text-white border-blue-400 shadow-[0_5px_15px_-5px_rgba(59,130,246,0.6)] scale-105 z-10' 
+                                             : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/40 opacity-60 hover:opacity-100 hover:bg-white/10' : 'bg-white/60 border-white/40 text-sky-900/40 opacity-60 hover:opacity-100 hover:bg-white/80')
+                                          }`}
+                                       >
+                                          {type === 'multiple-choice' && <MessageSquare size={12} />}
+                                          {type === 'true-false' && <CheckCircle size={12} />}
+                                          {type === 'writing' && <Edit3 size={12} />}
+                                          {type === 'multiple-choice' ? 'Quiz' : type === 'true-false' ? 'V/F' : 'Escribir'}
+                                       </button>
+                                    ))}
+                                 </div>
+
+                                 <GlossyInput 
+                                   theme={theme}
+                                   label="Enunciado"
+                                   value={q.question}
+                                   onChange={(e) => {
+                                     const newQs = [...activityQuestions];
+                                     newQs[qIdx].question = e.target.value;
+                                     setActivityQuestions(newQs);
+                                   }}
+                                   placeholder={q.type === 'writing' ? "Instrucción (Ej: Pasa a negativo...)" : "Escribe la pregunta..."}
+                                   className="text-md"
+                                 />
+                                 
+                                 <motion.div layout className="space-y-4">
+                                   {q.type === 'writing' ? (
+                                     <GlossyInput 
+                                       theme={theme}
+                                       label="Respuesta Correcta"
+                                       value={q.correct as string}
+                                       onChange={(e) => {
+                                         const newQs = [...activityQuestions];
+                                         newQs[qIdx].correct = e.target.value;
+                                         setActivityQuestions(newQs);
+                                       }}
+                                       placeholder="Ingresa la respuesta exacta..."
+                                       className="border-green-500/30 focus:border-green-500"
+                                     />
+                                   ) : (
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                       {q.options.map((opt: string, optIdx: number) => (
+                                         <div key={optIdx} className="flex gap-2 items-center group/opt relative">
+                                           <div className="flex-1 relative group/input">
+                                              <input 
+                                                type="text" 
+                                                value={opt}
+                                                readOnly={q.type === 'true-false'}
+                                                onChange={(e) => {
+                                                  const newQs = [...activityQuestions];
+                                                  newQs[qIdx].options[optIdx] = e.target.value;
+                                                  setActivityQuestions(newQs);
+                                                }}
+                                                className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-bold transition-all duration-300 outline-none ${
+                                                  theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/20'
+                                                } ${q.correct === optIdx 
+                                                    ? 'ring-4 ring-green-500/20 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.15)] bg-green-500/5' 
+                                                    : 'hover:border-blue-400/50'
+                                                }`}
+                                                placeholder={`Opción ${optIdx + 1}`}
+                                              />
+                                              <div 
+                                                onClick={() => {
+                                                  const newQs = [...activityQuestions];
+                                                  newQs[qIdx].correct = optIdx;
+                                                  setActivityQuestions(newQs);
+                                                  playExternalBubble();
+                                                }}
+                                                className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center ${
+                                                  q.correct === optIdx 
+                                                  ? 'bg-green-500 border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.5)]' 
+                                                  : 'bg-white/20 border-white/40 group-hover/input:border-blue-400'
+                                                }`}
+                                              >
+                                                {q.correct === optIdx && <Check size={12} className="text-white" />}
+                                              </div>
+                                           </div>
+                                           
+                                           {q.type === 'multiple-choice' && q.options.length > 2 && (
+                                             <button 
+                                               onClick={() => removeOption(qIdx, optIdx)}
+                                               className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center opacity-0 group-hover/opt:opacity-100 focus:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm"
+                                               title="Eliminar opción"
+                                             >
+                                               <X size={16} />
+                                             </button>
+                                           )}
+                                         </div>
+                                       ))}
+                                       
+                                       {q.type === 'multiple-choice' && q.options.length < 6 && (
+                                          <button 
+                                            onClick={() => {
+                                              const newQs = [...activityQuestions];
+                                              newQs[qIdx].options.push('');
+                                              setActivityQuestions(newQs);
+                                              playExternalBubble();
+                                            }}
+                                            className={`flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all hover:scale-[1.02] active:scale-95 ${
+                                              theme === 'black' ? 'border-white/10 text-white/30 hover:border-white/30' : 'border-sky-900/10 text-sky-950/30 hover:border-sky-900/30'
+                                            }`}
+                                          >
+                                            <Plus size={16} /> <span className="text-[10px] font-black uppercase tracking-widest">Añadir Opción</span>
+                                          </button>
+                                       )}
+                                     </div>
+                                   )}
+                                 </motion.div>
+                               </div>
+                             </AeroCard>
+                           </motion.div>
+                        ))}
+                      </div>
+
+                      <motion.button 
+                        whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          if (activityQuestions.length < 15) {
+                            setActivityQuestions([...activityQuestions, { question: '', options: ['', '', '', ''], correct: 0, type: 'multiple-choice' }]);
+                            playExternalBubble();
+                          }
+                        }}
+                        className={`w-full py-10 rounded-[2rem] border-4 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${
                           theme === 'black' 
-                            ? 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:bg-white/10' 
-                            : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 hover:text-blue-500'
+                            ? 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:border-white/30' 
+                            : 'bg-white/40 border-sky-900/10 text-sky-950/40 hover:bg-white/80 hover:border-sky-900/20 shadow-inner'
                         }`}
                       >
-                        <Plus className="group-hover:rotate-90 transition-transform duration-500" />
-                        <span className="font-black uppercase tracking-widest text-sm">Añadir otra pregunta</span>
-                      </button>
-                   </div>
+                         <div className="w-16 h-16 rounded-[1.5rem] bg-blue-500/20 text-blue-500 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500 shadow-lg shadow-blue-500/20">
+                            <Plus size={32} strokeWidth={3} />
+                         </div>
+                         <div className="text-center">
+                            <p className="text-xl font-black uppercase tracking-[0.2em] group-hover:text-blue-500 transition-colors">Añadir otra Pregunta</p>
+                            <p className="text-xs font-bold opacity-60">¡Haz tu actividad más completa!</p>
+                         </div>
+                      </motion.button>
+                    </motion.div>
                  </div>
                )}
             </motion.div>

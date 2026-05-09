@@ -44,6 +44,34 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
   );
 };
 
+interface GlossyInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  theme?: 'white' | 'black';
+}
+
+export const GlossyInput: React.FC<GlossyInputProps> = ({ label, theme = 'white', className = '', ...props }) => {
+  return (
+    <div className="space-y-1.5 w-full">
+      {label && (
+        <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ml-1 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+          {label}
+        </label>
+      )}
+      <div className="relative group">
+        <input 
+          {...props}
+          className={`w-full px-5 py-3 rounded-2xl border text-sm font-bold transition-all duration-300 outline-none relative z-10 
+            ${theme === 'black' 
+              ? 'bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-white/30' 
+              : 'bg-white/60 border-white/40 text-sky-950 focus:bg-white/80 focus:border-sky-300 shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]'
+            } ${className}`}
+        />
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 z-20" />
+      </div>
+    </div>
+  );
+};
+
 interface GlossyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'blue' | 'green' | 'pink' | 'gray';
   loading?: boolean;
