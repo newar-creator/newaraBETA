@@ -2509,6 +2509,7 @@ export default function App() {
       (activity.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase());
     if (!canEdit) return;
 
+    setSelectedActivityDetail(null);
     setEditingActivityId(activity.id);
     setActivityName(activity.name);
     
