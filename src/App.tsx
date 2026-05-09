@@ -2969,7 +2969,7 @@ export default function App() {
                initial={{ scale: 0.9, y: 20, opacity: 0 }}
                animate={{ scale: 1, y: 0, opacity: 1 }}
                exit={{ scale: 0.9, y: 20, opacity: 0 }}
-               className={`relative w-full max-w-lg md:rounded-[40px] rounded-t-[40px] md:border-4 border-x-0 border-b-0 md:border-b-4 shadow-2xl flex flex-col h-full md:h-auto max-h-[92vh] md:max-h-[80vh] overflow-hidden self-end md:self-center ${
+               className={`relative w-full max-w-lg md:rounded-[40px] rounded-[40px] md:border-4 border shadow-2xl flex flex-col max-h-[80vh] overflow-hidden md:self-center self-center ${
                  theme === 'black' ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-white text-sky-950'
                }`}
             >
@@ -3278,7 +3278,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-[32px] md:rounded-[48px] border-4 shadow-2xl p-6 md:p-10 ${
+              className={`relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-[32px] md:rounded-[48px] border-4 shadow-2xl p-6 md:p-10 custom-scrollbar ${
                 theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
               }`}
             >
@@ -3854,14 +3854,14 @@ export default function App() {
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
-                className={`fixed bottom-24 left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden ${
+                className={`fixed bottom-24 left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 flex flex-col max-h-[70vh] overflow-hidden ${
                   theme === 'black' 
                     ? 'bg-black/90 border-white/10' 
                     : 'bg-white/95 border-white/60'
                 }`}
               >
                 <div className="glossy-overlay opacity-30 rounded-3xl" />
-                <div className="flex items-center justify-between mb-4 px-2">
+                <div className="flex items-center justify-between mb-4 px-2 flex-shrink-0">
                   <p className={`text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                     Menú Principal
                   </p>
@@ -3872,7 +3872,7 @@ export default function App() {
                     <X size={16} />
                   </button>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
                   <MobileMenuButton 
                     active={showMobileSubjects} 
                     onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
@@ -6661,7 +6661,7 @@ export default function App() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 30 }}
               onClick={e => e.stopPropagation()}
-              className={`max-w-4xl w-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col ${
+              className={`max-w-4xl w-full max-h-[80vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col ${
                 theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
               }`}
             >
