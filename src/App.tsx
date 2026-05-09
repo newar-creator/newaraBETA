@@ -5122,7 +5122,7 @@ export default function App() {
 
                         {/* Bottom Row: Options with Labels */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-auto md:h-1/3">
-                           {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' ? (
+                           { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
                              <div className="col-span-full flex flex-wrap justify-center gap-3">
                                 <AnimatePresence>
                                   {minigamePlayers
@@ -5176,7 +5176,7 @@ export default function App() {
 
                         {/* Student Input Grid */}
                         <div className="flex-1 flex flex-col justify-center">
-                           {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' ? (
+                           { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
                              <div className="space-y-6">
                                 <input 
                                   type="text"
@@ -5242,7 +5242,7 @@ export default function App() {
                     <div className="text-center space-y-4">
                        <h2 className="text-4xl font-black uppercase tracking-tight">Resultados de la Ronda</h2>
                        <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-black text-sm">
-                          <CheckCircle size={16} /> Respuesta Correcta: {minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}
+                          <CheckCircle size={16} /> {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') ? '¡Tiempo Agotado! Revisando Respuestas...' : `Respuesta Correcta: ${minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}`}
                        </div>
                     </div>
 
@@ -5260,7 +5260,7 @@ export default function App() {
                                >
                                   <div className="flex items-center gap-4">
                                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
-                                     <span className="font-bold text-lg">{p.lastResponse.answer}</span>
+                                     <span className="font-bold text-xl tracking-tight">{p.name}</span>
                                   </div>
                                   {p.isCorrect ? <CheckCircle className="text-green-500" size={24} /> : <XCircle className="text-red-500" size={24} />}
                                </motion.div>
