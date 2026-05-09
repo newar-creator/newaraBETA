@@ -161,7 +161,7 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 };
 
-type View = 'home' | 'subject' | 'schedule' | 'exam' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames';
+type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames';
 
 type NotificationType = 'assignment' | 'announcement' | 'moderation' | 'update';
 
@@ -191,8 +191,6 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>(() => {
     const path = window.location.pathname.split('/').filter(Boolean)[0];
     if (path === 'materias') return 'materias';
-    if (path === 'horario') return 'schedule';
-    if (path === 'examen') return 'exam';
     if (path === 'leaderboard') return 'leaderboard';
     if (path === 'gallery') return 'gallery';
     if (path === 'clases') return 'classes';
@@ -242,8 +240,6 @@ export default function App() {
 
     const viewMap: Record<string, View> = {
       'materias': 'materias',
-      'horario': 'schedule',
-      'examen': 'exam',
       'leaderboard': 'leaderboard',
       'gallery': 'gallery',
       'clases': 'classes',
@@ -316,8 +312,6 @@ export default function App() {
     switch(view) {
       case 'home': path = '/inicio'; break;
       case 'materias': path = '/materias'; break;
-      case 'schedule': path = '/horario'; break;
-      case 'exam': path = '/examen'; break;
       case 'leaderboard': path = '/leaderboard'; break;
       case 'gallery': path = '/gallery'; break;
       case 'classes': path = '/clases'; break;
@@ -376,8 +370,6 @@ export default function App() {
   const translations: any = {
     es: {
       materias: "Materias",
-      horario: "Horario",
-      examen: "Examen",
       leaderboard: "Leaderboard",
       ajustes: "Ajustes",
       denunciados: "Denunciados",
@@ -413,18 +405,6 @@ export default function App() {
       unidadesYTemas: "Unidades y Temas",
       informacion: "Información",
       verProgramas: "Ver Programas",
-      miHorario: "Mi Horario Escolar",
-      hora: "Hora",
-      lunes: "Lunes",
-      martes: "Martes",
-      miercoles: "Miércoles",
-      jueves: "Jueves",
-      viernes: "Viernes",
-      asistenteExamen: "Asistente de Examen Virtual",
-      pregunta: "Pregunta",
-      de: "de",
-      examenFinalizado: "¡Examen Finalizado!",
-      resultadoExamen: "Has respondido correctamente {score} de {total} preguntas.",
       reintentar: "Reintentar",
       volverAlInicio: "Volver al Inicio",
       misClases: "Mis Clases",
@@ -468,8 +448,6 @@ export default function App() {
     },
     en: {
       materias: "Subjects",
-      horario: "Schedule",
-      examen: "Exam",
       leaderboard: "Leaderboard",
       ajustes: "Settings",
       denunciados: "Reported",
@@ -505,18 +483,6 @@ export default function App() {
       unidadesYTemas: "Units and Topics",
       informacion: "Information",
       verProgramas: "View Programs",
-      miHorario: "My School Schedule",
-      hora: "Time",
-      lunes: "Monday",
-      martes: "Tuesday",
-      miercoles: "Wednesday",
-      jueves: "Thursday",
-      viernes: "Friday",
-      asistenteExamen: "Virtual Exam Assistant",
-      pregunta: "Question",
-      de: "of",
-      examenFinalizado: "Exam Finished!",
-      resultadoExamen: "You correctly answered {score} of {total} questions.",
       reintentar: "Retry",
       volverAlInicio: "Back to Home",
       misClases: "My Classes",
@@ -560,8 +526,6 @@ export default function App() {
     },
     ru: {
       materias: "Предметы",
-      horario: "Расписание",
-      examen: "Экзамен",
       leaderboard: "Таблица лидеров",
       ajustes: "Настройки",
       denunciados: "Жалобы",
@@ -597,18 +561,6 @@ export default function App() {
       unidadesYTemas: "Разделы и темы",
       informacion: "Информация",
       verProgramas: "Просмотреть программы",
-      miHorario: "Моё школьное расписание",
-      hora: "Время",
-      lunes: "Понедельник",
-      martes: "Вторник",
-      miercoles: "Среда",
-      jueves: "Четверг",
-      viernes: "Пятница",
-      asistenteExamen: "Виртуальный ассистент экзамена",
-      pregunta: "Вопрос",
-      de: "из",
-      examenFinalizado: "Экзамен завершён!",
-      resultadoExamen: "Вы правильно ответили на {score} из {total} вопросов.",
       reintentar: "Повторить",
       volverAlInicio: "Вернуться на главную",
       misClases: "Мои классы",
@@ -2638,12 +2590,6 @@ export default function App() {
     navigateTo('subject', { subjectId: subject.id });
   };
 
-  const resetExam = () => {
-    playExternalBubble();
-    setExamState({ active: true, currentQuestion: 0, score: 0, finished: false });
-    navigateTo('exam');
-  };
-
   const getIcon = (name: string, size = 20) => {
     switch (name) {
       case 'Leaf': return <Leaf size={size} />;
@@ -2672,48 +2618,6 @@ export default function App() {
       case 'rose': return 'from-rose-400 to-rose-600 shadow-rose-500/30';
       default: return 'from-sky-400 to-sky-600';
     }
-  };
-
-  const [examState, setExamState] = useState({
-    active: false,
-    currentQuestion: 0,
-    score: 0,
-    finished: false
-  });
-
-  const questions = [
-    { q: '¿Qué tipo de sistema es un termo con agua caliente (idealmente)?', a: ['Abierto', 'Cerrado', 'Aislado', 'Complejo'], r: 2 },
-    { q: '¿Cuál es la civilización más antigua de América identificada en los textos?', a: ['Inca', 'Maya', 'Azteca', 'Caral'], r: 3 },
-    { q: 'En FEC, ¿cuál es el fundamento último de los Derechos Humanos?', a: ['Las leyes', 'La Constitución', 'La Dignidad Humana', 'El Gobierno'], r: 2 },
-    { q: '¿A qué se refiere el término "Globalización" en geografía?', a: ['Solo al clima', 'Interconexión mundial económica y cultural', 'División por murallas', 'Estudio de mapas antiguos'], r: 1 },
-    { q: 'Complete: "While I ____ for the exam, the light went out."', a: ['study', 'was studying', 'studied', 'am studying'], r: 1 }
-  ];
-
-  const handleAnswer = (index: number) => {
-    if (selectedAnswer !== null) return;
-    
-    setSelectedAnswer(index);
-    const isCorrect = index === questions[examState.currentQuestion].r;
-    
-    if (isCorrect) {
-      playSuccessSound();
-    } else {
-      playErrorSound();
-    }
-
-    if (isCorrect) {
-      setExamState(prev => ({ ...prev, score: prev.score + 1 }));
-    }
-    
-    // Add delay for feedback
-    setTimeout(() => {
-      setSelectedAnswer(null);
-      if (examState.currentQuestion < questions.length - 1) {
-        setExamState(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
-      } else {
-        setExamState(prev => ({ ...prev, finished: true }));
-      }
-    }, 1500);
   };
 
   const generateShortCode = () => {
@@ -3778,28 +3682,6 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
-              id="nav-schedule"
-              active={currentView === 'schedule'} 
-              onClick={() => {
-                navigateTo('schedule');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<CalendarIcon size={22} />} 
-              label={t('horario')} 
-              theme={theme}
-            />
-            <NavButton 
-              id="nav-exam"
-              active={currentView === 'exam'} 
-              onClick={() => {
-                navigateTo('exam');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<ClipboardCheck size={22} />} 
-              label={t('examen')} 
-              theme={theme}
-            />
-            <NavButton 
               id="nav-settings"
               active={currentView === 'settings'} 
               onClick={() => {
@@ -3910,22 +3792,6 @@ export default function App() {
                     onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
                     icon={<Book size={20} />} 
                     label={t('materias')} 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    id="nav-schedule"
-                    active={currentView === 'schedule'} 
-                    onClick={() => { navigateTo('schedule'); setShowMoreMobileMenu(false); }} 
-                    icon={<CalendarIcon size={20} />} 
-                    label={t('horario')} 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    id="nav-exam"
-                    active={currentView === 'exam'} 
-                    onClick={() => { navigateTo('exam'); setShowMoreMobileMenu(false); }} 
-                    icon={<ClipboardCheck size={20} />} 
-                    label={t('examen')} 
                     theme={theme}
                   />
                   <MobileMenuButton 
@@ -4490,17 +4356,6 @@ export default function App() {
                 </AeroCard>
               </div>
 
-              <AeroCard className="bg-gradient-to-r from-sky-400/20 to-blue-500/20" theme={theme}>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="space-y-2 text-center md:text-left">
-                    <h2 className={`text-2xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¿Listo para el desafío?</h2>
-                    <p className={`${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>Realiza un examen virtual de práctica para poner a prueba tus conocimientos.</p>
-                  </div>
-                  <GlossyButton onClick={resetExam} className="w-full md:w-auto px-12 py-4 text-lg">
-                    Empezar Examen <ChevronRight />
-                  </GlossyButton>
-                </div>
-              </AeroCard>
             </motion.div>
           )}
 
@@ -6286,156 +6141,7 @@ export default function App() {
              />
           )}
 
-          {currentView === 'schedule' && (
-            <motion.div 
-               key="schedule"
-               initial={{ opacity: 0, y: 30 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -30 }}
-               className="space-y-8"
-            >
-               <div className="flex flex-col gap-1">
-                 <h1 className={`text-4xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('miHorario')}</h1>
-                 <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>Ciclo Lectivo 2026 - 1º 1ª</p>
-               </div>
 
-               <div className="space-y-4">
-                 <p className={`md:hidden text-[10px] text-center animate-pulse font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/40' : 'text-sky-800/40'}`}>↔ {t('deslizaTabla')}</p>
-                 <AeroCard className="p-0 overflow-x-auto shadow-2xl border-white/40" theme={theme}>
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                    <thead>
-                      <tr className={`backdrop-blur-sm ${theme === 'black' ? 'bg-white/5' : 'bg-white/30'}`}>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 uppercase tracking-tighter w-24 ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('hora')}</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('lunes')}</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('martes')}</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('miercoles')}</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('jueves')}</th>
-                        <th className={`p-4 text-xs font-black border-b border-white/10 border-l border-white/5 uppercase tracking-widest text-center ${theme === 'black' ? 'text-white/60' : 'text-sky-900'}`}>{t('viernes')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      <ScheduleRow theme={theme} time="07:40 - 08:20" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'GEO/FEC/HIST']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
-                      <ScheduleRow theme={theme} time="08:20 - 09:00" items={['Lengua y Lit.', 'Biología', 'LAA I/F', 'Lengua y Lit.', 'HIST/FEC/GEO']} colors={['blue', 'amber', 'amber', 'blue', 'red']} />
-                      <ScheduleRow theme={theme} time="09:10 - 09:50" items={['EDI Dragon', 'F.E.C', 'BIO / PP MAT', 'Tecnología', 'Lengua/PP ART']} colors={['indigo', 'red', 'green', 'indigo', 'green']} />
-                      <ScheduleRow theme={theme} time="09:50 - 10:30" items={['EDI Dragon', 'F.E.C', 'MAT / PP BIO', 'Tecnología', 'Arte PP Lengu.']} colors={['indigo', 'red', 'blue', 'indigo', 'green']} />
-                      <ScheduleRow theme={theme} time="10:45 - 11:25" items={['Historia', 'Tutoría', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'slate', 'blue', 'amber', 'amber']} />
-                      <ScheduleRow theme={theme} time="11:25 - 12:05" items={['Historia', 'Matemática', 'Matemática', 'LAA I/F', 'LAA I/F']} colors={['amber', 'blue', 'blue', 'amber', 'amber']} />
-                      <ScheduleRow theme={theme} time="12:10 - 12:50" items={['Geografía', 'Historia', 'Matemática', '', 'Artes']} colors={['indigo', 'amber', 'blue', '', 'blue']} />
-                      <ScheduleRow theme={theme} time="12:50 - 13:30" items={['Geografía', '', 'LAA I/F', '', 'Artes']} colors={['indigo', '', 'amber', '', 'blue']} />
-                      <ScheduleRow theme={theme} time="13:30 - 14:10" items={['', 'Ed. Física', '', '', 'Biología']} colors={['', 'green', '', '', 'amber']} highlight={true} />
-                    </tbody>
-                  </table>
-                </AeroCard>
-              </div>
-
-            </motion.div>
-          )}
-
-          {currentView === 'exam' && (
-            <motion.div 
-               key="exam"
-               initial={{ opacity: 0, scale: 0.9 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 1.1 }}
-               className="max-w-3xl mx-auto space-y-8 py-12"
-            >
-               <AeroCard title={t('asistenteExamen')} className="border-4 border-blue-400/30" theme={theme}>
-                  <AnimatePresence mode="wait">
-                    {!examState.finished ? (
-                      <motion.div 
-                        key={examState.currentQuestion}
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -20, opacity: 0 }}
-                        className="space-y-8 py-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-black text-blue-500 tracking-widest">{t('pregunta')} {examState.currentQuestion + 1} {t('de')} {questions.length}</span>
-                            <h2 className={`text-2xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{questions[examState.currentQuestion].q}</h2>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4">
-                          {questions[examState.currentQuestion].a.map((opt, i) => {
-                            const isCorrect = i === questions[examState.currentQuestion].r;
-                            const isSelected = i === selectedAnswer;
-                            
-                            let feedbackClass = "";
-                            if (selectedAnswer !== null) {
-                              if (isSelected) {
-                                feedbackClass = isCorrect 
-                                  ? "bg-green-500/80 border-green-400 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]" 
-                                  : "bg-red-500/80 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]";
-                              } else if (isCorrect) {
-                                feedbackClass = "bg-green-500/20 border-green-500 border-2 text-green-500 animate-pulse";
-                              } else {
-                                feedbackClass = "opacity-40 grayscale";
-                              }
-                            }
-
-                            const defaultClass = theme === 'black' 
-                              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-                              : 'bg-white/40 border-white/60 hover:bg-white/80 hover:border-blue-400 text-sky-900';
-
-                            return (
-                              <motion.button 
-                                key={i} 
-                                disabled={selectedAnswer !== null}
-                                onClick={() => handleAnswer(i)}
-                                animate={selectedAnswer !== null && isCorrect ? { scale: [1, 1.05, 1] } : {}}
-                                transition={{ duration: 0.5, repeat: selectedAnswer !== null && isCorrect ? 1 : 0 }}
-                                className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all text-left font-bold group flex items-center justify-between shadow-sm hover:shadow-xl ${selectedAnswer !== null ? feedbackClass : defaultClass}`}
-                              >
-                                {opt}
-                                <div className={`w-6 h-6 rounded-full border-4 transition-all shadow-inner ${selectedAnswer !== null && isSelected ? 'bg-white scale-125' : 'border-white group-hover:bg-blue-400 group-hover:scale-125'}`} />
-                              </motion.button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full h-2 bg-sky-100 rounded-full overflow-hidden">
-                          <motion.div 
-                            className="h-full bg-blue-500"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((examState.currentQuestion) / questions.length) * 100}%` }}
-                          />
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div 
-                        key="result"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="py-12 flex flex-col items-center text-center gap-6"
-                      >
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-2xl flex items-center justify-center text-white text-4xl font-black ring-8 ring-blue-100/10">
-                          {Math.round((examState.score / questions.length) * 100)}%
-                        </div>
-                        <div className="space-y-2">
-                          <h2 className={`text-3xl font-black transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{t('examenFinalizado')}</h2>
-                          <p className={`font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800'}`}>
-                            {t('resultadoExamen').replace('{score}', examState.score.toString()).replace('{total}', questions.length.toString())}
-                          </p>
-                        </div>
-                        <div className="flex gap-4">
-                           <GlossyButton onClick={resetExam}>{t('reintentar')}</GlossyButton>
-                           <button 
-                             onClick={() => {
-                               playExternalBubble();
-                               navigateTo('home');
-                             }} 
-                             className={`font-bold hover:underline transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-950'}`}
-                           >
-                             {t('volverAlInicio')}
-                           </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-               </AeroCard>
-            </motion.div>
-          )}
         </AnimatePresence>
       </main>
 
@@ -7294,44 +7000,6 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       {/* Glossy highlight effect on hover */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 rounded-t-xl transition-opacity pointer-events-none" />
     </motion.button>
-  );
-}
-
-function ScheduleRow({ time, items, colors, highlight = false, theme = 'white' }: { time: string, items: string[], colors: string[], highlight?: boolean, theme?: 'white' | 'black' }) {
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case 'green': return 'from-green-400/80 to-green-600/80 text-white';
-      case 'blue': return 'from-blue-400/80 to-blue-600/80 text-white';
-      case 'sky': return 'from-sky-400/80 to-sky-600/80 text-white';
-      case 'amber': return 'from-amber-400/80 to-amber-600/80 text-white';
-      case 'red': return 'from-red-400/80 to-red-600/80 text-white';
-      case 'indigo': return 'from-indigo-400/80 to-indigo-600/80 text-white';
-      case 'violet':
-      case 'purple': return 'from-violet-400/80 to-violet-600/80 text-white';
-      case 'slate': return 'from-slate-400/80 to-slate-600/80 text-white';
-      case 'pink':
-      case 'rose': return 'from-rose-400/80 to-rose-600/80 text-white';
-      default: return theme === 'black' ? 'bg-white/5 text-white/20' : 'bg-white/20 text-sky-900/40';
-    }
-  };
-
-  return (
-    <tr className={`border-b border-white/5 transition-colors ${highlight ? (theme === 'black' ? 'bg-blue-900/20' : 'bg-blue-50/20') : ''} ${theme === 'black' ? 'hover:bg-white/5' : 'hover:bg-white/10'}`}>
-      <td className={`p-4 text-[10px] font-black underline whitespace-nowrap transition-colors duration-500 ${theme === 'black' ? 'text-white/40 bg-white/5' : 'text-sky-900/60 bg-white/10'}`}>{time}</td>
-      {items.map((item, i) => (
-        <td key={i} className="p-2 border-l border-white/5">
-          {item ? (
-            <div className={`p-2 rounded-xl bg-gradient-to-br ${getColorClasses(colors[i])} text-center shadow-lg border border-white/20 transform transition-transform md:hover:scale-105 cursor-default`} style={{ willChange: 'transform' }}>
-              <p className="text-[10px] font-black uppercase tracking-tighter leading-tight">{item}</p>
-            </div>
-          ) : (
-            <div className="h-full w-full flex items-center justify-center opacity-10">
-               <div className={`w-1 h-1 rounded-full ${theme === 'black' ? 'bg-white' : 'bg-sky-900'}`} />
-            </div>
-          )}
-        </td>
-      ))}
-    </tr>
   );
 }
 
