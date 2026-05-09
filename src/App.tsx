@@ -815,8 +815,9 @@ export default function App() {
       
       if (!userDoc.exists()) {
         // Create user record if new
-        await setDoc(doc(db, 'users', user.displayName || user.uid), {
-          name: user.displayName || user.uid,
+        const trimmedName = (user.displayName || user.uid).trim();
+        await setDoc(doc(db, 'users', trimmedName), {
+          name: trimmedName,
           email: user.email,
           avatar: user.photoURL || '',
           bio: 'Explorador del conocimiento en NewAra.',
@@ -826,20 +827,21 @@ export default function App() {
       }
 
       const userData = userDoc.exists() ? userDoc.data() : { 
-        name: user.displayName || user.uid, 
+        name: (user.displayName || user.uid).trim(), 
         role: 'Estudiante', 
         avatar: user.photoURL || '',
         bio: 'Explorador del conocimiento en NewAra.'
       };
 
-      setUserName(userData.name);
+      const finalName = userData.name.trim();
+      setUserName(finalName);
       setUserRole(userData.role || 'Estudiante');
       setUserAvatar(userData.avatar || user.photoURL || '');
       setUserBio(userData.bio || '');
       setIsLoggedIn(true);
       setIsRegistering(false);
       
-      localStorage.setItem('newara_user_name', userData.name);
+      localStorage.setItem('newara_user_name', finalName);
       localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
       localStorage.setItem('newara_user_avatar', userData.avatar || user.photoURL || '');
       localStorage.setItem('newara_logged_in', 'true');
@@ -2467,9 +2469,11 @@ export default function App() {
     }
   };
 
-  const handleDeleteActivity = async (id: string, e: React.MouseEvent, creatorName?: string, activityTitle?: string) => {
+  const handleDeleteActivity = async (id: string, e: React.MouseEvent, creatorName?: string, activityTitle?: string, creatorId?: string) => {
     e.stopPropagation();
-    const canDelete = isModerator || (creatorName === userName);
+    const canDelete = isModerator || 
+      (creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase()) ||
+      (creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase());
     if (!canDelete) return;
 
     setConfirmModal({
@@ -2500,7 +2504,9 @@ export default function App() {
 
   const handleEditActivity = async (activity: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    const canEdit = isModerator || (activity.creatorName === userName);
+    const canEdit = isModerator || 
+      (activity.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase()) || 
+      (activity.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase());
     if (!canEdit) return;
 
     setEditingActivityId(activity.id);
@@ -3317,7 +3323,10 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {(isModerator || (selectedActivityDetail && selectedActivityDetail.creatorName === userName)) && (
+                    {(isModerator || (selectedActivityDetail && (
+                      selectedActivityDetail.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
+                      selectedActivityDetail.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
+                    ))) && (
                       <>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleEditActivity(selectedActivityDetail, e); }}
@@ -3327,7 +3336,7 @@ export default function App() {
                           <Edit3 size={18} />
                         </button>
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title); }}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title, selectedActivityDetail.creatorId); }}
                           className="aero-icon-button bg-red-500/10 text-red-500 shadow-lg shadow-red-500/10"
                           title="Eliminar"
                         >
@@ -3446,7 +3455,11 @@ export default function App() {
                     )}
                 </div>
 
-                {selectedActivityDetail && (selectedActivityDetail.creatorName === userName || isModerator) && selectedActivityDetail.likes?.length > 0 && (
+                {selectedActivityDetail && (
+                  selectedActivityDetail.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
+                  selectedActivityDetail.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase() || 
+                  isModerator
+                ) && selectedActivityDetail.likes?.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-white/10">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3 ml-1 flex items-center gap-2">
                        <Heart size={10} fill="currentColor" className="text-pink-500" /> {t('usuariosLike')}
@@ -5406,7 +5419,10 @@ export default function App() {
                             >
                               <Flag size={14} />
                             </button>
-                            {(isModerator || activity.creatorName === userName) && (
+                            {(isModerator || 
+                                activity.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
+                                activity.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
+                              ) && (
                               <>
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleEditActivity(activity, e); }}
@@ -5416,7 +5432,7 @@ export default function App() {
                                   <Edit3 size={14} />
                                 </button>
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title); }}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title, activity.creatorId); }}
                                   className="aero-icon-button text-red-500 bg-red-500/10"
                                   title="Eliminar Actividad"
                                 >
