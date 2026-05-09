@@ -3637,6 +3637,17 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-classes"
+              active={currentView === 'classes' || currentView === 'class-detail'} 
+              onClick={() => {
+                navigateTo('classes');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Users size={22} />} 
+              label="Clases" 
+              theme={theme}
+            />
+            <NavButton 
               id="nav-gallery"
               active={currentView === 'gallery'} 
               onClick={() => {
@@ -3645,17 +3656,6 @@ export default function App() {
               }} 
               icon={<Globe size={22} />} 
               label="Galería" 
-              theme={theme}
-            />
-            <NavButton 
-              id="nav-leaderboard"
-              active={currentView === 'leaderboard'} 
-              onClick={() => {
-                navigateTo('leaderboard');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Trophy size={22} />} 
-              label={t('leaderboard')} 
               theme={theme}
             />
             <NavButton 
@@ -3671,14 +3671,14 @@ export default function App() {
               badge="BETA"
             />
             <NavButton 
-              id="nav-classes"
-              active={currentView === 'classes' || currentView === 'class-detail'} 
+              id="nav-leaderboard"
+              active={currentView === 'leaderboard'} 
               onClick={() => {
-                navigateTo('classes');
+                navigateTo('leaderboard');
                 setShowMobileSubjects(false);
               }} 
-              icon={<Users size={22} />} 
-              label="Clases" 
+              icon={<Trophy size={22} />} 
+              label={t('leaderboard')} 
               theme={theme}
             />
             <NavButton 
@@ -3724,18 +3724,6 @@ export default function App() {
                 theme={theme}
               />
               <NavButton 
-                id="mobile-nav-gallery"
-                active={currentView === 'gallery'} 
-                onClick={() => {
-                  navigateTo('gallery');
-                  setShowMoreMobileMenu(false);
-                  setShowMobileSubjects(false);
-                }} 
-                icon={<Globe size={22} />} 
-                label="Galería" 
-                theme={theme}
-              />
-              <NavButton 
                 id="mobile-nav-classes"
                 active={currentView === 'classes' || currentView === 'class-detail'} 
                 onClick={() => {
@@ -3745,6 +3733,18 @@ export default function App() {
                 }} 
                 icon={<Users size={22} />} 
                 label="Clases" 
+                theme={theme}
+              />
+              <NavButton 
+                id="mobile-nav-gallery"
+                active={currentView === 'gallery'} 
+                onClick={() => {
+                  navigateTo('gallery');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Globe size={22} />} 
+                label="Galería" 
                 theme={theme}
               />
               <NavButton 
@@ -3795,14 +3795,6 @@ export default function App() {
                     theme={theme}
                   />
                   <MobileMenuButton 
-                    id="nav-leaderboard"
-                    active={currentView === 'leaderboard'} 
-                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
-                    icon={<Trophy size={20} />} 
-                    label={t('leaderboard')} 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
                     id="nav-minigames"
                     active={currentView === 'minigames'} 
                     onClick={() => { navigateTo('minigames'); setShowMoreMobileMenu(false); }} 
@@ -3810,6 +3802,14 @@ export default function App() {
                     label="Minijuegos" 
                     theme={theme}
                     badge="BETA"
+                  />
+                  <MobileMenuButton 
+                    id="nav-leaderboard"
+                    active={currentView === 'leaderboard'} 
+                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
+                    icon={<Trophy size={20} />} 
+                    label={t('leaderboard')} 
+                    theme={theme}
                   />
                   <MobileMenuButton 
                     active={showNotifications} 
