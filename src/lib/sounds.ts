@@ -113,40 +113,88 @@ export const playErrorSound = () => {
   } catch (e) {}
 };
 
-let gongBuffer: AudioBuffer | null = null;
 export const playGong = async () => {
   try {
     const ctx = getCtx();
     if (!ctx) return;
     if (ctx.state === 'suspended') await ctx.resume();
 
-    if (!gongBuffer) {
-      const response = await fetch(KAHOOT_GONG_DATA);
-      const arrayBuffer = await response.arrayBuffer();
-      gongBuffer = await ctx.decodeAudioData(arrayBuffer);
-    }
+    const now = ctx.currentTime;
+    
+    // To recreate the deep, metallic Kahoot gong, we use multiple oscillators
+    // with non-integer harmonic relationships for that "clash" effect.
+    const frequencies = [
+      { f: 110.00, type: 'triangle' as OscillatorType, vol: 0.15 }, // Deep fundamental
+      { f: 164.81, type: 'sine' as OscillatorType, vol: 0.1 },     // Harmonic
+      { f: 233.08, type: 'sine' as OscillatorType, vol: 0.08 },    // Dissonant harmonic
+      { f: 311.13, type: 'sine' as OscillatorType, vol: 0.05 },    // Higher partial
+      { f: 440.00, type: 'sine' as OscillatorType, vol: 0.03 }     // High ring
+    ];
 
-    const source = ctx.createBufferSource();
-    source.buffer = gongBuffer;
-    const gain = ctx.createGain();
+    frequencies.forEach(({ f, type, vol }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = type;
+      osc.frequency.setValueAtTime(f, now);
+      // Slight pitch drift for a more organic sound
+      osc.frequency.exponentialRampToValueAtTime(f * 0.99, now + 3);
+      
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 3);
+    });
+
+    // Impact punch (low frequency pulse)
+    const punch = ctx.createOscillator();
+    const punchGain = ctx.createGain();
+    punch.type = 'sine';
+    punch.frequency.setValueAtTime(80, now);
+    punch.frequency.exponentialRampToValueAtTime(40, now + 0.1);
     
-    // Set volume instantly to prevent cutting and clicks
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    punchGain.gain.setValueAtTime(0.3, now);
+    punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
     
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start(0);
+    punch.connect(punchGain);
+    punchGain.connect(ctx.destination);
+    punch.start(now);
+    punch.stop(now + 0.2);
+
+    // Metallic "crack" (short filtered noise)
+    const bufferSize = ctx.sampleRate * 0.1;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(1200, now);
+    
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.08, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+
   } catch (e) {
-    // Simple Audio fallback if everything else fails
-    try {
-      const audio = new Audio(KAHOOT_GONG_DATA);
-      audio.volume = 0.3;
-      audio.play().catch(() => {});
-    } catch (err) {}
+    console.warn("Could not play synthesized gong", e);
   }
 };
 
-const KAHOOT_GONG_DATA = "data:audio/mp3;base64,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aNzV/61PiuneslbpDjxcJjaGVRUFWgAAkKQKCAZROLfwCDGZCJpJCYAzmShRzxwOkC8wcbQYMCbNTAMJiQdUwMtRKogwp0KHyIQBQoOFpDZO80dgC4KeB7b94igesaF2vKGX+63iBMCnuZffhgBSmQhxiTjmztJmPR+mLZKGDAUjB4mHAmBa0By5sCACtgwGjqcYgZUUblYEkFhAwYjag8FAzKyENL2ArfWSAg69oQ4bE5A+V5hoUMNPwm//U6ynovkb4v01GXCoLvQTtwIHzjEFV3MHnAQ8BmTiCL1Dga+hwkDhgUIaVRxAUCPTPw45GaGEnX6Q4Sl4Kfj7Tkutz9sgcYaLcgYRpKZ3Q/k/CF/HxweqBe+AAMyoB52OcjgdhhYfTrNAKhUPV4bZQoGaxpVJEk1ERwsOYOAsEALYTbVMsRd7hwDGGmRh/ofJjBgkI9rgwhHY//uSZCEN0qYg0ht5MeRUI5oTZ0w8i1SvRG5lB5EgjmiNrCFigG/6f7bz1ujaElcJnCI4p8QeTAkwAAXIKABh5+VmNCBaDcLPloZtE0g3AIwo4EiwMRVcCVg2HKIhlQwFSyAzpEqgCgQSho4igUAFjop0R4WxspNrRof2/p4YhgO6loV/aZl9VzvoNAC8ggRh4XGco+a1CZCUDE4UCEOY8HB30jLRkJogCFIiGbOW3PIwElmMOWFmjjQi7EYQSAhqsWmhtyqUHBaWko88sqKrqv//gVH+S9qvIiRiUIG2av/+CD3qwWAUpKMQDJymeZlmBUcEgjCZxwKcgOBhZswikxw4IoR3OpAME+6nOISXCn/8LpxhwzJJV/igUY6KX8f8AmAH2yPCWwNOgc4omLcDEsREDQsLCNkvA2fAtADbgUgBrkp/8LIwBUBp4BBSJgEBRX/4YkAMGG8gJASIWNCAaSvX/C6Qn4NlIkHoiwB6In0Oi+r/8WSFkwdsLBBb0BAIoIMCh2QslC+v///hxQuUTcKMH7B6wfiK2FpE+iOQ9USIVqL7////8iRDhmh8kBAL/+5JkVwAFW2hHtm5gADEiKWPIKAAAAAGkHAAAIAAANIOAAAQBgQCADpEu+SJ3wxqDcPlQFfAKj4/8lQzlUlviYqv8VV/qWtav+WUPWv/6lDh+qkxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+// Removed KAHOOT_GONG_DATA base64 string as requested
+
 
 export const playTick = () => {
   try {
