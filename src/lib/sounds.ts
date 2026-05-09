@@ -119,16 +119,17 @@ export const playGong = async () => {
     if (!ctx) return;
     if (ctx.state === 'suspended') await ctx.resume();
 
+    console.log("Playing synthesized Kahoot-style gong");
     const now = ctx.currentTime;
     
     // To recreate the deep, metallic Kahoot gong, we use multiple oscillators
     // with non-integer harmonic relationships for that "clash" effect.
     const frequencies = [
-      { f: 110.00, type: 'triangle' as OscillatorType, vol: 0.15 }, // Deep fundamental
-      { f: 164.81, type: 'sine' as OscillatorType, vol: 0.1 },     // Harmonic
-      { f: 233.08, type: 'sine' as OscillatorType, vol: 0.08 },    // Dissonant harmonic
-      { f: 311.13, type: 'sine' as OscillatorType, vol: 0.05 },    // Higher partial
-      { f: 440.00, type: 'sine' as OscillatorType, vol: 0.03 }     // High ring
+      { f: 108.00, type: 'triangle' as OscillatorType, vol: 0.15 }, // Slightly tuned fundamental
+      { f: 162.81, type: 'sine' as OscillatorType, vol: 0.1 },     
+      { f: 231.08, type: 'sine' as OscillatorType, vol: 0.08 },    
+      { f: 309.13, type: 'sine' as OscillatorType, vol: 0.05 },    
+      { f: 438.00, type: 'sine' as OscillatorType, vol: 0.03 }     
     ];
 
     frequencies.forEach(({ f, type, vol }) => {
@@ -192,9 +193,6 @@ export const playGong = async () => {
     console.warn("Could not play synthesized gong", e);
   }
 };
-
-// Removed KAHOOT_GONG_DATA base64 string as requested
-
 
 export const playTick = () => {
   try {
