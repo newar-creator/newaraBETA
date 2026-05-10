@@ -706,10 +706,16 @@ export default function App() {
               localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
             }
             
+            // Fix: Ensure name is always present in Firestore
+            if (!data.name) {
+              await updateDoc(userRef, { name: userName.trim() });
+            }
+
             // Sync local storage too
             if (data.bio) localStorage.setItem('newara_user_bio', data.bio);
             if (data.role) localStorage.setItem('newara_user_role', data.role);
             if (data.avatar) localStorage.setItem('newara_user_avatar', data.avatar);
+            if (data.name || userName) localStorage.setItem('newara_user_name', data.name || userName);
 
             // Ensure stats structure exists for legacy users
             if (!data.stats) {
@@ -721,6 +727,7 @@ export default function App() {
             // Create profile for user if it doesn't exist but they are logged in
             const hashedPassword = await hashPassword(userPassword);
             await setDoc(userRef, {
+              name: userName.trim(),
               password: hashedPassword,
               role: userRole,
               bio: userBio,
@@ -1631,6 +1638,7 @@ export default function App() {
         const fallbackRole = activityFallback?.creatorRole || "Usuario de NewAra";
         
         userData = {
+          id: creatorId || creatorName || 'explorador',
           name: creatorName || creatorId || 'Explorador',
           bio: fallbackBio,
           avatar: fallbackAvatar,
@@ -1641,6 +1649,16 @@ export default function App() {
             totalCorrect: 0
           }
         };
+      } else {
+        // Ensure name exists if it's not in the object
+        if (!userData.name) userData.name = userData.id || creatorName || creatorId || 'Explorador';
+        
+        // Aggregate correct answers from completedUnits and stats (matching leaderboard logic)
+        const completedCount = userData.completedUnits?.length || 0;
+        const statsCorrect = userData.stats?.totalCorrect || 0;
+        
+        if (!userData.stats) userData.stats = { totalViews: 0, totalLikes: 0, totalCorrect: 0 };
+        userData.stats.totalCorrectAggregated = completedCount + statsCorrect;
       }
 
       setViewingProfile(userData);
@@ -3425,7 +3443,7 @@ export default function App() {
                       </div>
                       <div className="space-y-1 md:space-y-2">
                         <h2 className="text-2xl md:text-5xl font-black tracking-tight leading-tight">
-                          {viewingProfile.name}
+                          {viewingProfile.name || viewingProfile.id}
                         </h2>
                         <div className="flex gap-2 items-center justify-center md:justify-start opacity-60">
                           <ShieldCheck size={14} className="text-blue-500" />
@@ -3464,7 +3482,7 @@ export default function App() {
                     </div>
                     <div className="p-3 md:p-4 rounded-2xl md:rounded-3xl bg-green-500/10 border border-green-500/10 text-center">
                       <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">RESP. CORRECTAS</p>
-                      <p className="text-xl md:text-2xl font-black">{viewingProfile.stats?.totalCorrect || 0}</p>
+                      <p className="text-xl md:text-2xl font-black">{viewingProfile.stats?.totalCorrectAggregated ?? (viewingProfile.stats?.totalCorrect || 0)}</p>
                     </div>
                   </div>
                 </div>
