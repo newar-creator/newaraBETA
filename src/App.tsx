@@ -1868,6 +1868,34 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isMinigameHost, minigameSessionId, minigameSession?.status, minigameSession?.timer]);
 
+  // Auto-advance minigame if everyone has answered
+  useEffect(() => {
+    if (!isMinigameHost || !minigameSessionId || !minigameSession || minigameSession.status !== 'playing') return;
+    
+    const playersCount = minigamePlayers.length;
+    if (playersCount === 0) return;
+    
+    const currentQIdx = minigameSession.currentQuestionIndex;
+    const answeredCount = minigamePlayers.filter(p => 
+      p.lastResponse && p.lastResponse.questionIndex === currentQIdx
+    ).length;
+    
+    if (answeredCount >= playersCount) {
+      showMinigameResults();
+    }
+  }, [isMinigameHost, minigameSessionId, minigameSession?.status, minigameSession?.currentQuestionIndex, minigamePlayers.length, minigamePlayers]);
+
+  // Auto-advance from Reveal to Results after 5 seconds
+  useEffect(() => {
+    if (!isMinigameHost || !minigameSessionId || !minigameSession || minigameSession.status !== 'reveal') return;
+    
+    const timer = setTimeout(() => {
+      showMinigameLeaderboard();
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [isMinigameHost, minigameSessionId, minigameSession?.status]);
+
   const fetchUserClasses = async () => {
     if (!isLoggedIn) return;
     setIsClassesLoading(true);
