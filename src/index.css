@@ -143,6 +143,24 @@
     );
   }
 
+  .podium-reflection {
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(115deg, 
+      transparent 0%, 
+      rgba(255, 255, 255, 0) 40%, 
+      rgba(255, 255, 255, 0.4) 50%, 
+      rgba(255, 255, 255, 0) 60%, 
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: reflection-sweep 3s infinite linear;
+  }
+
+  @keyframes reflection-sweep {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(76, 165, 255, 0.6) rgba(255, 255, 255, 0.1);

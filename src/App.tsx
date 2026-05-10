@@ -5269,62 +5269,145 @@ export default function App() {
                       <motion.div 
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-24 h-24 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-2xl mx-auto mb-8"
+                        className="w-24 h-24 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-2xl mx-auto mb-8 relative"
                       >
                          <Trophy size={60} />
+                         <motion.div 
+                           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                           transition={{ duration: 2, repeat: Infinity }}
+                           className="absolute inset-0 rounded-full bg-amber-400 blur-xl -z-10"
+                         />
                       </motion.div>
-                      <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase whitespace-pre-wrap">¡FIN DEL JUEGO!</h1>
+                      <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase whitespace-pre-wrap bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent drop-shadow-2xl">¡FIN DEL JUEGO!</h1>
                       <p className="text-xl font-black uppercase tracking-[0.4em] opacity-40">Podio de Campeones</p>
                    </div>
 
-                   <div className="flex items-end justify-center gap-4 md:gap-8 w-full max-w-4xl px-4">
-                      {/* Podio 2 */}
+                   <div className="flex items-end justify-center gap-4 md:gap-12 w-full max-w-5xl px-4 mt-8">
+                      {/* Podio 2 - PLATA */}
                       {minigamePlayers[1] && (
-                        <div className="flex flex-col items-center gap-4 flex-1">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 100 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.8, type: 'spring' }}
+                          className="flex flex-col items-center gap-4 flex-1 group"
+                        >
+                           <div className="relative mb-4">
+                             <motion.div 
+                               initial={{ scale: 0 }}
+                               animate={{ scale: 1 }}
+                               transition={{ delay: 1.2, type: 'spring' }}
+                               className="w-16 h-16 md:w-24 md:h-24 rounded-full border-4 border-slate-300 shadow-2xl overflow-hidden bg-slate-800"
+                             >
+                               {minigamePlayers[1].avatar ? (
+                                 <img src={minigamePlayers[1].avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-300 bg-slate-700">
+                                   {minigamePlayers[1].name?.[0].toUpperCase()}
+                                 </div>
+                               )}
+                             </motion.div>
+                             <div className="absolute -bottom-2 -right-2 bg-slate-300 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-lg border-2 border-slate-900">
+                               2
+                             </div>
+                           </div>
                            <div className="text-center mb-2">
-                             <p className="text-xs md:text-lg font-black line-clamp-1">{minigamePlayers[1].name}</p>
-                             <p className="text-[10px] md:text-xs opacity-60 font-bold">{minigamePlayers[1].score}</p>
+                             <p className="text-sm md:text-xl font-black line-clamp-1 text-slate-300">{minigamePlayers[1].name}</p>
+                             <p className="text-[10px] md:text-sm opacity-60 font-black tracking-widest uppercase">{minigamePlayers[1].score} PTS</p>
                            </div>
-                           <div className="w-full h-32 md:h-48 rounded-t-[32px] bg-gradient-to-t from-slate-400/40 to-slate-300/40 border-x-4 border-t-4 border-slate-300/60 relative flex items-center justify-center">
-                              <span className="text-4xl md:text-6xl font-black text-slate-400/40">2</span>
+                           <div className="w-full h-32 md:h-56 rounded-t-[32px] bg-gradient-to-t from-slate-500/40 via-slate-400/20 to-transparent border-x-4 border-t-4 border-slate-300/40 relative flex items-center justify-center overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(148,163,184,0.2),transparent)]" />
+                              <span className="text-4xl md:text-7xl font-black text-slate-300/20 relative z-10">2</span>
+                              <div className="podium-reflection" />
                            </div>
-                        </div>
+                        </motion.div>
                       )}
                       
-                      {/* Podio 1 */}
+                      {/* Podio 1 - ORO */}
                       {minigamePlayers[0] && (
-                        <div className="flex flex-col items-center gap-4 flex-1 mb-12">
-                           <motion.div 
-                             animate={{ y: [0, -10, 0] }}
-                             transition={{ duration: 2, repeat: Infinity }}
-                             className="text-amber-500"
-                           >
-                              <Award size={40} />
-                           </motion.div>
+                        <motion.div 
+                          initial={{ opacity: 0, y: 150 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.8, duration: 1, type: 'spring' }}
+                          className="flex flex-col items-center gap-4 flex-1 mb-16 group"
+                        >
+                           <div className="relative mb-6">
+                             <motion.div 
+                               animate={{ y: [0, -15, 0] }}
+                               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                               className="absolute -top-14 left-1/2 -translate-x-1/2 text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.6)]"
+                             >
+                                <Award size={56} />
+                             </motion.div>
+                             <motion.div 
+                               initial={{ scale: 0 }}
+                               animate={{ scale: 1 }}
+                               transition={{ delay: 1.5, type: 'spring' }}
+                               className="w-24 h-24 md:w-36 md:h-36 rounded-full border-4 border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.4)] overflow-hidden bg-amber-900 ring-8 ring-amber-400/10"
+                             >
+                               {minigamePlayers[0].avatar ? (
+                                 <img src={minigamePlayers[0].avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center text-4xl font-black text-amber-400 bg-amber-950/50">
+                                   {minigamePlayers[0].name?.[0].toUpperCase()}
+                                 </div>
+                               )}
+                             </motion.div>
+                             <div className="absolute -bottom-2 -right-2 bg-amber-400 text-amber-950 w-12 h-12 rounded-full flex items-center justify-center font-black text-xl shadow-lg border-2 border-amber-950">
+                               1
+                             </div>
+                           </div>
                            <div className="text-center mb-2">
-                             <p className="text-sm md:text-2xl font-black line-clamp-1">{minigamePlayers[0].name}</p>
-                             <p className="text-xs md:text-sm text-amber-500 font-bold">{minigamePlayers[0].score} pts</p>
+                             <p className="text-lg md:text-4xl font-black line-clamp-1 text-amber-400 drop-shadow-sm">{minigamePlayers[0].name}</p>
+                             <p className="text-xs md:text-xl text-amber-400 font-black tracking-[0.2em]">{minigamePlayers[0].score} PTS</p>
                            </div>
-                           <div className="w-full h-48 md:h-64 rounded-t-[32px] bg-gradient-to-t from-amber-600/40 to-amber-400/40 border-x-4 border-t-4 border-amber-400/60 relative flex items-center justify-center shadow-[0_-20px_50px_rgba(245,158,11,0.2)]">
-                              <span className="text-5xl md:text-8xl font-black text-amber-500/40">1</span>
+                           <div className="w-full h-48 md:h-80 rounded-t-[40px] bg-gradient-to-t from-amber-600/40 via-amber-500/20 to-transparent border-x-4 border-t-4 border-amber-400/50 relative flex items-center justify-center shadow-[0_-20px_60px_rgba(245,158,11,0.2)] overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.4),transparent)]" />
+                              <span className="text-7xl md:text-[10rem] font-black text-amber-400/20 relative z-10">1</span>
+                              <div className="podium-reflection" />
+                              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-400/30" />
                            </div>
-                        </div>
+                        </motion.div>
                       )}
 
-                      {/* Podio 3 */}
+                      {/* Podio 3 - BRONCE */}
                       {minigamePlayers[2] && (
-                        <div className="flex flex-col items-center gap-4 flex-1">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 100 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.6, type: 'spring' }}
+                          className="flex flex-col items-center gap-4 flex-1 group"
+                        >
+                           <div className="relative mb-4">
+                             <motion.div 
+                               initial={{ scale: 0 }}
+                               animate={{ scale: 1 }}
+                               transition={{ delay: 1, type: 'spring' }}
+                               className="w-14 h-14 md:w-20 md:h-20 rounded-full border-4 border-orange-400 shadow-xl overflow-hidden bg-orange-900"
+                             >
+                               {minigamePlayers[2].avatar ? (
+                                 <img src={minigamePlayers[2].avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center text-xl font-black text-orange-400 bg-orange-800">
+                                   {minigamePlayers[2].name?.[0].toUpperCase()}
+                                 </div>
+                               )}
+                             </motion.div>
+                             <div className="absolute -bottom-1 -right-1 bg-orange-400 text-orange-950 w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shadow-lg border-2 border-orange-950">
+                               3
+                             </div>
+                           </div>
                            <div className="text-center mb-2">
-                             <p className="text-xs md:text-lg font-black line-clamp-1">{minigamePlayers[2].name}</p>
-                             <p className="text-[10px] md:text-xs opacity-60 font-bold">{minigamePlayers[2].score}</p>
+                             <p className="text-xs md:text-lg font-black line-clamp-1 text-orange-400">{minigamePlayers[2].name}</p>
+                             <p className="text-[10px] md:text-sm opacity-60 font-black tracking-widest uppercase">{minigamePlayers[2].score} PTS</p>
                            </div>
-                           <div className="w-full h-24 md:h-32 rounded-t-[32px] bg-gradient-to-t from-orange-600/40 to-orange-400/40 border-x-4 border-t-4 border-orange-400/60 relative flex items-center justify-center">
-                              <span className="text-3xl md:text-5xl font-black text-orange-400/40">3</span>
+                           <div className="w-full h-24 md:h-40 rounded-t-[32px] bg-gradient-to-t from-orange-700/40 via-orange-600/20 to-transparent border-x-4 border-t-4 border-orange-400/40 relative flex items-center justify-center overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(194,65,12,0.2),transparent)]" />
+                              <span className="text-3xl md:text-5xl font-black text-orange-400/20 relative z-10">3</span>
+                              <div className="podium-reflection" />
                            </div>
-                        </div>
+                        </motion.div>
                       )}
                    </div>
-
                    <div className="w-full max-w-xl space-y-2 mt-8">
                       {minigamePlayers.slice(3, 10).map((player, idx) => (
                         <div key={player.name} className="flex justify-between items-center p-3 px-6 rounded-2xl bg-white/5 border border-white/5 opacity-60">
@@ -5333,7 +5416,6 @@ export default function App() {
                         </div>
                       ))}
                    </div>
-
                    <div className="flex gap-4">
                       <GlossyButton onClick={leaveMinigame} className="px-12 py-4">
                         VOLVER AL INICIO
