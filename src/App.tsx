@@ -5644,7 +5644,7 @@ export default function App() {
                              loading={isLoadingActivity && !currentSharedActivity}
                              className="w-full py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
                            >
-                             PRÁCTICA INDIVIDUAL <Play size={10} fill="currentColor" />
+                             JUGAR <Play size={10} fill="currentColor" />
                            </GlossyButton>
                         </div>
                       </div>
