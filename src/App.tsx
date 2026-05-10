@@ -5621,20 +5621,30 @@ export default function App() {
                       </div>
 
                       <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
-                        <div className="flex gap-2">
-                           <GlossyButton 
-                             onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
-                             variant="gray"
-                             className="flex-1 py-2 rounded-xl text-[10px]"
-                           >
-                             Ver más
-                           </GlossyButton>
+                        <div className="flex flex-col gap-2">
+                           <div className="flex gap-2">
+                              <GlossyButton 
+                                onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
+                                variant="gray"
+                                className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
+                              >
+                                Ver más
+                              </GlossyButton>
+                              {userRole === 'Profesor' && (
+                                <GlossyButton 
+                                  onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
+                                  className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px] bg-gradient-to-br from-amber-400 to-orange-500"
+                                >
+                                  MINIJUEGO <Gamepad2 size={12} />
+                                </GlossyButton>
+                              )}
+                           </div>
                            <GlossyButton 
                              onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
                              loading={isLoadingActivity && !currentSharedActivity}
-                             className="flex-[1.5] py-2 rounded-xl text-[10px]"
+                             className="w-full py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
                            >
-                             Jugar <Play size={10} fill="currentColor" />
+                             PRÁCTICA INDIVIDUAL <Play size={10} fill="currentColor" />
                            </GlossyButton>
                         </div>
                       </div>
