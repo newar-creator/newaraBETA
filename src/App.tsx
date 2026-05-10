@@ -2029,7 +2029,7 @@ export default function App() {
   };
 
   const fetchPendingTasks = async () => {
-    if (!isLoggedIn || userRole !== 'Estudiante' || userClasses.length === 0) return;
+    if (!isLoggedIn || userClasses.length === 0) return;
     setIsPendingTasksLoading(true);
     try {
       const allPending: any[] = [];
@@ -4468,8 +4468,7 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                {userRole === 'Profesor' && (
-                  <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
+                <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
                     <div className="space-y-4">
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {galleryActivities
@@ -4516,7 +4515,6 @@ export default function App() {
                       </div>
                     </div>
                   </AeroCard>
-                )}
 
                 <AeroCard title="Top 5 - Ranking Global" theme={theme} className="bg-gradient-to-br from-emerald-400/10 to-teal-500/10">
                    <div className="space-y-4">
