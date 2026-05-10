@@ -60,6 +60,7 @@ import {
   Trophy,
   Award,
   Gamepad2,
+  LayoutGrid,
   TrendingDown,
   Bell,
   Check,
@@ -178,6 +179,96 @@ interface Notification {
 }
 
 const MODERATORS = ['AraTester', 'NewAra'];
+
+function HomeShortcut({ icon, label, onClick, color, theme }: { icon: React.ReactNode, label: string, onClick: () => void, color: string, theme: string }) {
+  return (
+    <button 
+      onClick={() => { playExternalBubble(); onClick(); }}
+      className={`group flex flex-col items-center gap-2 p-4 rounded-3xl transition-all active:scale-95 flex-1 min-w-[80px] max-w-[120px] ${
+        theme === 'black' ? 'bg-white/5 hover:bg-white/10' : 'bg-white/50 hover:bg-white border border-white/50 shadow-sm'
+      }`}
+    >
+      <div className={`p-3 rounded-2xl ${color} text-white shadow-lg group-hover:scale-110 transition-all duration-300`}>
+        {icon}
+      </div>
+      <span className={`text-[9px] font-black uppercase tracking-widest text-center leading-tight ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>
+        {label}
+      </span>
+    </button>
+  );
+}
+
+function LeaderboardPreview({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
+  const [topUsers, setTopUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTop = async () => {
+      try {
+        const usersRef = collection(db, 'users');
+        const userSnap = await getDocs(query(usersRef, limit(100)));
+        const userData = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        const sorted = userData
+          .filter(u => u.id !== 'Estudiante' && u.id !== 'AraTester' && u.id !== 'newen.araoz' && u.id !== 'NewAra')
+          .sort((a: any, b: any) => {
+            const scoreA = (a.completedUnits?.length || 0) + (a.stats?.totalCorrect || 0);
+            const scoreB = (b.completedUnits?.length || 0) + (b.stats?.totalCorrect || 0);
+            return scoreB - scoreA;
+          })
+          .slice(0, 5);
+        
+        setTopUsers(sorted);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTop();
+  }, []);
+
+  if (loading) return (
+    <div className="space-y-3 py-2">
+      {[1, 2, 3, 4, 5].map(i => (
+        <div key={i} className={`h-10 w-full animate-pulse rounded-xl ${theme === 'black' ? 'bg-white/5' : 'bg-sky-900/5'}`} />
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-1.5 py-1">
+      {topUsers.map((user, idx) => (
+        <div 
+          key={user.id} 
+          onClick={() => { playExternalBubble(); onViewProfile(user.id, user.name); }}
+          className={`flex items-center gap-3 p-2 rounded-xl transition-all cursor-pointer group ${
+            theme === 'black' ? 'hover:bg-white/5' : 'hover:bg-sky-50'
+          }`}
+        >
+          <div className={`w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-xs font-black ${
+            idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-lg shadow-amber-500/20' : 
+            idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800 shadow-lg shadow-slate-400/20' :
+            idx === 2 ? 'bg-gradient-to-br from-orange-200 to-orange-400 text-orange-950 shadow-lg shadow-orange-400/20' :
+            theme === 'black' ? 'bg-white/10 text-white/40' : 'bg-sky-100 text-sky-900/40'
+          }`}>
+            {idx + 1}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs font-bold truncate group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+              {user.name || user.id}
+            </p>
+            <p className="text-[9px] opacity-40 font-bold uppercase truncate">{user.name ? user.id : ''}</p>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-500/5">
+            <p className="text-[10px] font-black text-blue-500">{(user.completedUnits?.length || 0) + (user.stats?.totalCorrect || 0)}</p>
+            <Sparkles size={10} className="text-amber-500" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function App() {
   const navigate = useNavigate();
@@ -4193,14 +4284,63 @@ export default function App() {
                 </div>
               </div>
 
-              <header className="flex flex-col gap-1">
-                <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                  {t('inicio')}
-                </h1>
-                <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>{t('explorar')} <span className={`font-logo font-bold transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-900'}`}>NewAra</span>.</p>
+              <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className={`text-3xl md:text-4xl font-bold tracking-tight font-logo uppercase transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                    {t('inicio')}
+                  </h1>
+                  <p className={`text-sm md:text-base font-medium transition-colors duration-500 ${theme === 'black' ? 'text-white/60' : 'text-sky-800/60'}`}>{t('explorar')} <span className={`font-logo font-bold transition-colors duration-500 ${theme === 'black' ? 'text-blue-400' : 'text-sky-900'}`}>NewAra</span>.</p>
+                </div>
+                
+                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                  <HomeShortcut 
+                    icon={<LayoutGrid size={18} />} 
+                    label="Galería" 
+                    onClick={() => navigateTo('gallery')} 
+                    color="bg-blue-500" 
+                    theme={theme} 
+                  />
+                  <HomeShortcut 
+                    icon={<Gamepad2 size={18} />} 
+                    label="Minijuegos" 
+                    onClick={() => navigateTo('minigames')} 
+                    color="bg-orange-500" 
+                    theme={theme} 
+                  />
+                  <HomeShortcut 
+                    icon={<Plus size={18} />} 
+                    label="Crear" 
+                    onClick={() => navigateTo('create-activity')} 
+                    color="bg-emerald-500" 
+                    theme={theme} 
+                  />
+                  <HomeShortcut 
+                    icon={<Settings size={18} />} 
+                    label="Ajustes" 
+                    onClick={() => navigateTo('settings')} 
+                    color="bg-slate-500" 
+                    theme={theme} 
+                  />
+                </div>
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AeroCard title="Top 5 - Ranking Global" theme={theme} className="bg-gradient-to-br from-emerald-400/10 to-teal-500/10 row-span-1 md:row-span-2 lg:row-span-1">
+                   <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Líderes de la Semana</p>
+                       <button onClick={() => navigateTo('leaderboard')} className="text-[10px] font-black text-blue-500 hover:underline">VER TODO</button>
+                     </div>
+                     <LeaderboardPreview theme={theme} onViewProfile={handleViewProfile} />
+                     <div className={`p-3 rounded-2xl bg-white/5 border border-emerald-500/10 flex items-center gap-3`}>
+                       <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                         <Trophy size={16} />
+                       </div>
+                       <p className="text-[10px] font-medium leading-tight opacity-70">Sigue completando unidades para subir en el ranking.</p>
+                     </div>
+                   </div>
+                </AeroCard>
+
                 <AeroCard title="Minijuegos en Vivo" theme={theme} className="bg-gradient-to-br from-amber-400/10 to-orange-500/10">
                   <div className="space-y-4">
                     <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Unirse a una Partida</p>
