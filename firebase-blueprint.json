@@ -235,9 +235,23 @@
         "joinedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "score", "joinedAt"]
+    },
+    "SubjectConfig": {
+      "title": "Subject Config",
+      "description": "Custom configuration for a subject, like unit order",
+      "type": "object",
+      "properties": {
+        "unitOrder": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string" }
+      }
     }
   },
   "firestore": {
+    "/subject_configs/{subjectId}": {
+      "schema": "SubjectConfig",
+      "description": "Configuration for subjects (e.g. unit order)"
+    },
     "/gameSessions/{sessionId}": {
       "schema": "GameSession",
       "description": "Live game servers"
