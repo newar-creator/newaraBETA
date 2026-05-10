@@ -1800,6 +1800,8 @@ export default function App() {
             } else {
                throw new Error("Missing parentId for comment deletion");
             }
+          } else if (targetType === 'chat-message') {
+            await deleteDoc(doc(db, 'classes', classId, 'messages', targetId));
           }
           
           // Eliminar el reporte solo si la eliminación del contenido funcionó (o no arrojó error)
@@ -2319,7 +2321,7 @@ export default function App() {
     });
   };
 
-  const reportAbuse = async (type: 'announcement' | 'comment' | 'activity', id: string, content: string, authorName: string, classId?: string, parentId?: string) => {
+  const reportAbuse = async (type: 'announcement' | 'comment' | 'activity' | 'chat-message', id: string, content: string, authorName: string, classId?: string, parentId?: string) => {
     if (!isLoggedIn) {
       setAuthRequiredMsg("Inicia sesión para denunciar contenido inapropiado y ayudarnos a mantener la comunidad segura.");
       return;
@@ -3664,7 +3666,7 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-[100px] md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-start md:justify-start py-1 md:py-8 gap-0 md:gap-6 border-4 shadow-2xl z-40 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 h-[100px] md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-start md:justify-start py-1 md:py-8 gap-0 md:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Now visible on mobile too */}
@@ -3775,17 +3777,6 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
-              id="nav-classes"
-              active={currentView === 'classes' || currentView === 'class-detail'} 
-              onClick={() => {
-                navigateTo('classes');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Users size={22} />} 
-              label="Clases" 
-              theme={theme}
-            />
-            <NavButton 
               id="nav-gallery"
               active={currentView === 'gallery'} 
               onClick={() => {
@@ -3795,6 +3786,18 @@ export default function App() {
               icon={<Globe size={22} />} 
               label="Galería" 
               theme={theme}
+            />
+            <NavButton 
+              id="nav-minigames"
+              active={currentView === 'minigames'} 
+              onClick={() => {
+                navigateTo('minigames');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Gamepad2 size={22} />} 
+              label="Minijuegos" 
+              theme={theme}
+              badge="BETA"
             />
             <NavButton 
               id="nav-minigames"
@@ -3844,6 +3847,40 @@ export default function App() {
                 badge={reports.length > 0 ? reports.length.toString() : undefined}
               />
             )}
+
+            <div className="w-full h-px bg-white/10 my-2" />
+
+            <NavButton 
+              id="nav-classes"
+              active={currentView === 'classes' || currentView === 'class-detail'} 
+              onClick={() => {
+                navigateTo('classes');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Users size={22} />} 
+              label="Clases" 
+              theme={theme}
+            />
+
+            <div className="flex flex-col gap-2 w-full pb-8 pt-4 border-t border-white/10 mt-4">
+              <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
+              {SUBJECTS.map(s => (
+                <button 
+                  key={s.id}
+                  onClick={() => {
+                    playExternalBubble();
+                    setSelectedSubject(s);
+                    navigateTo('subject', { subjectId: s.id });
+                  }}
+                  className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
+                >
+                  <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
+                    {getIcon(s.icon, 16)}
+                  </div>
+                  <span className={`text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Mobile Navigation */}
@@ -3862,18 +3899,6 @@ export default function App() {
                 theme={theme}
               />
               <NavButton 
-                id="mobile-nav-classes"
-                active={currentView === 'classes' || currentView === 'class-detail'} 
-                onClick={() => {
-                  navigateTo('classes');
-                  setShowMoreMobileMenu(false);
-                  setShowMobileSubjects(false);
-                }} 
-                icon={<Users size={22} />} 
-                label="Clases" 
-                theme={theme}
-              />
-              <NavButton 
                 id="mobile-nav-gallery"
                 active={currentView === 'gallery'} 
                 onClick={() => {
@@ -3883,6 +3908,18 @@ export default function App() {
                 }} 
                 icon={<Globe size={22} />} 
                 label="Galería" 
+                theme={theme}
+              />
+              <NavButton 
+                id="mobile-nav-classes"
+                active={currentView === 'classes' || currentView === 'class-detail'} 
+                onClick={() => {
+                  navigateTo('classes');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Users size={22} />} 
+                label="Clases" 
                 theme={theme}
               />
               <NavButton 
@@ -3925,13 +3962,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
-                  <MobileMenuButton 
-                    active={showMobileSubjects} 
-                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
-                    icon={<Book size={20} />} 
-                    label={t('materias')} 
-                    theme={theme}
-                  />
+                  <div className="h-0.5 bg-white/10 my-2" />
                   <MobileMenuButton 
                     id="nav-minigames"
                     active={currentView === 'minigames'} 
@@ -3940,14 +3971,6 @@ export default function App() {
                     label="Minijuegos" 
                     theme={theme}
                     badge="BETA"
-                  />
-                  <MobileMenuButton 
-                    id="nav-leaderboard"
-                    active={currentView === 'leaderboard'} 
-                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
-                    icon={<Trophy size={20} />} 
-                    label={t('leaderboard')} 
-                    theme={theme}
                   />
                   <MobileMenuButton 
                     active={showNotifications} 
@@ -3976,6 +3999,24 @@ export default function App() {
                       badge={reports.length > 0 ? reports.length.toString() : undefined}
                     />
                   )}
+
+                  <div className="h-px bg-white/10 my-2" />
+                  
+                  <MobileMenuButton 
+                    active={showMobileSubjects} 
+                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
+                    icon={<Book size={20} />} 
+                    label={t('materias')} 
+                    theme={theme}
+                  />
+                  <MobileMenuButton 
+                    id="nav-classes"
+                    active={currentView === 'classes' || currentView === 'class-detail'} 
+                    onClick={() => { navigateTo('classes'); setShowMoreMobileMenu(false); }} 
+                    icon={<Users size={20} />} 
+                    label="Clases" 
+                    theme={theme}
+                  />
                 </div>
               </motion.div>
             )}
@@ -4034,26 +4075,6 @@ export default function App() {
                   </motion.div>
                 )}
           </AnimatePresence>
-
-          <div className="hidden md:flex flex-col gap-2 w-full pb-8">
-            <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
-            {SUBJECTS.map(s => (
-              <button 
-                key={s.id}
-                onClick={() => {
-                  playExternalBubble();
-                  setSelectedSubject(s);
-                  navigateTo('subject', { subjectId: s.id });
-                }}
-                className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
-              >
-                <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
-                  {getIcon(s.icon, 16)}
-                </div>
-                <span className={`text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
-              </button>
-            ))}
-          </div>
         </div>
       </nav>
 
@@ -4325,22 +4346,6 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AeroCard title="Top 5 - Ranking Global" theme={theme} className="bg-gradient-to-br from-emerald-400/10 to-teal-500/10 row-span-1 md:row-span-2 lg:row-span-1">
-                   <div className="space-y-4">
-                     <div className="flex items-center justify-between">
-                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Líderes de la Semana</p>
-                       <button onClick={() => navigateTo('leaderboard')} className="text-[10px] font-black text-blue-500 hover:underline">VER TODO</button>
-                     </div>
-                     <LeaderboardPreview theme={theme} onViewProfile={handleViewProfile} />
-                     <div className={`p-3 rounded-2xl bg-white/5 border border-emerald-500/10 flex items-center gap-3`}>
-                       <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
-                         <Trophy size={16} />
-                       </div>
-                       <p className="text-[10px] font-medium leading-tight opacity-70">Sigue completando unidades para subir en el ranking.</p>
-                     </div>
-                   </div>
-                </AeroCard>
-
                 <AeroCard title="Minijuegos en Vivo" theme={theme} className="bg-gradient-to-br from-amber-400/10 to-orange-500/10">
                   <div className="space-y-4">
                     <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Unirse a una Partida</p>
@@ -4435,7 +4440,6 @@ export default function App() {
                 {userRole === 'Profesor' && (
                   <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
                     <div className="space-y-4">
-                      
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {galleryActivities
                           .filter(a => (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && a.creatorName)
@@ -4473,18 +4477,34 @@ export default function App() {
                               >
                                 <div className="flex items-center justify-center gap-2">
                                   <PlusCircle size={16} className="group-hover:scale-110 transition-transform" />
-                                  <span className="tracking-widest">CREAR ACTIVIDAD</span>
+                                  Crear mi primera actividad
                                 </div>
                               </GlossyButton>
                             </div>
-                          )
-                        }
+                          )}
                       </div>
                     </div>
                   </AeroCard>
                 )}
 
-                <AeroCard title="Estado NewAra" theme={theme}>
+                <AeroCard title="Top 5 - Ranking Global" theme={theme} className="bg-gradient-to-br from-emerald-400/10 to-teal-500/10">
+                   <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Líderes de la Semana</p>
+                       <button onClick={() => navigateTo('leaderboard')} className="text-[10px] font-black text-blue-500 hover:underline">VER TODO</button>
+                     </div>
+                     <LeaderboardPreview theme={theme} onViewProfile={handleViewProfile} />
+                     <div className={`p-3 rounded-2xl bg-white/5 border border-emerald-500/10 flex items-center gap-3`}>
+                       <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                         <Trophy size={16} />
+                       </div>
+                       <p className="text-[10px] font-medium leading-tight opacity-70">Sigue completando unidades para subir en el ranking.</p>
+                     </div>
+                   </div>
+                </AeroCard>
+              </div>
+
+              <AeroCard title="Estado NewAra" theme={theme}>
                   <div className="space-y-4">
                     <div className={`p-4 rounded-2xl border shadow-inner ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60'}`}>
                       <div className="flex items-center gap-2 mb-2">
@@ -4576,9 +4596,8 @@ export default function App() {
                     </div>
                   </div>
                 </AeroCard>
-              </div>
-
-            </motion.div>
+              
+              </motion.div>
           )}
 
           {/* Remove play-activity block here to consolidate into the main overlay */}
@@ -5868,13 +5887,19 @@ export default function App() {
                         >
                           <div className="flex items-center gap-4 flex-1">
                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
-                               targetType === 'activity' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                               targetType === 'activity' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                               targetType === 'chat-message' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
+                               'bg-amber-500/10 text-amber-500 border-amber-500/20'
                              }`}>
-                               {targetType === 'activity' ? <AlertTriangle size={24} /> : <MessageSquare size={24} />}
+                               {targetType === 'activity' ? <AlertTriangle size={24} /> : 
+                                targetType === 'chat-message' ? <Send size={24} /> :
+                                <MessageSquare size={24} />}
                              </div>
                              <div className="min-w-0 flex-1">
                                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">
-                                 {targetType === 'activity' ? 'Actividad' : 'Anuncio de Clase'} • Por {report.creatorName || report.authorName}
+                                 {targetType === 'activity' ? 'Actividad' : 
+                                  targetType === 'chat-message' ? 'Chat de Clase' :
+                                  'Anuncio de Clase'} • Por {report.creatorName || report.authorName}
                                </p>
                                <h3 className={`font-black text-lg leading-tight truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                                  {report.reporterName} : <span className="text-red-500">{report.reason}</span>
@@ -5940,7 +5965,7 @@ export default function App() {
                               onClick={() => handleDeleteTargetAndReport(report)}
                               className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
                             >
-                              Borrar {targetType === 'activity' ? 'Actividad' : 'Anuncio'}
+                              Borrar {targetType === 'activity' ? 'Actividad' : targetType === 'chat-message' ? 'Mensaje' : 'Anuncio'}
                             </button>
 
                             <button 

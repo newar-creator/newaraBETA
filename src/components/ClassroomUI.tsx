@@ -193,7 +193,7 @@ interface ClassDetailProps {
   onDeleteAnnouncement: (announcementId: string) => void;
   onEditComment: (announcementId: string, commentId: string, content: string) => void;
   onDeleteComment: (announcementId: string, commentId: string) => void;
-  onReportAbuse: (type: 'announcement' | 'comment' | 'activity', id: string, content: string, author: string, classId?: string, parentId?: string) => void;
+  onReportAbuse: (type: 'announcement' | 'comment' | 'activity' | 'chat-message', id: string, content: string, author: string, classId?: string, parentId?: string) => void;
   onPostMessage: (content: string) => void;
   onShareResource: (title: string, code: string) => void;
   onPlayActivity: (code: string) => void;
@@ -533,9 +533,9 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
       </div>
 
       {/* Main Content Grid */}
-      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 md:gap-8 px-1 md:px-0">
+      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 md:gap-8 px-1 md:px-0 mb-32 md:mb-0">
         {/* Navigation Tabs - Sticky on Mobile */}
-        <div className="lg:col-span-1 sticky top-0 z-40 bg-zinc-950/20 backdrop-blur-md lg:static lg:bg-transparent lg:backdrop-blur-none -mx-1 px-1 lg:mx-0 lg:px-0 py-2 lg:py-0">
+        <div className="lg:col-span-1 sticky top-0 z-20 bg-zinc-950/20 backdrop-blur-md lg:static lg:bg-transparent lg:backdrop-blur-none -mx-1 px-1 lg:mx-0 lg:px-0 py-2 lg:py-0">
            <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide mask-fade-right lg:mask-none px-2 lg:px-0">
               {[
                 { id: 'anuncios', label: 'Novedades', icon: MessageSquare },
@@ -1094,11 +1094,22 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                             }`}>
                               <p className="text-xs font-bold leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
                             </div>
-                            <span className="text-[7px] font-black opacity-30 mt-1 uppercase tracking-tighter mx-1">
-                              {msg.createdAt?.toDate 
-                                ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                                : 'Enviando...'}
-                            </span>
+                            <div className="flex items-center gap-2 mt-1 mx-1">
+                              <span className="text-[7px] font-black opacity-30 uppercase tracking-tighter">
+                                {msg.createdAt?.toDate 
+                                  ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                  : 'Enviando...'}
+                              </span>
+                              {!isMe && (
+                                <button 
+                                  onClick={() => onReportAbuse('chat-message', msg.id, msg.content, msg.authorName, cls.id)}
+                                  className="text-amber-500/30 hover:text-amber-500 transition-colors"
+                                  title="Denunciar abuso"
+                                >
+                                  <Flag size={10} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       );
