@@ -69,7 +69,8 @@ import {
   MessageSquare,
   ShieldAlert,
   Send,
-  XCircle
+  XCircle,
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -1531,10 +1532,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (currentView === 'gallery') {
+    if (currentView === 'gallery' || (currentView === 'minigames' && userRole === 'Profesor')) {
       fetchGallery();
     }
-  }, [currentView]);
+  }, [currentView, userRole]);
 
   const fetchReports = async () => {
     if (!isModerator) return;
@@ -4200,9 +4201,10 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <AeroCard title="Minijuegos Multinivel" theme={theme} className="bg-gradient-to-br from-amber-400/10 to-orange-500/10">
+                <AeroCard title="Minijuegos en Vivo" theme={theme} className="bg-gradient-to-br from-amber-400/10 to-orange-500/10">
                   <div className="space-y-4">
-                    <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Código de Servidor</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Unirse a una Partida</p>
+                    <p className="text-[10px] opacity-60 leading-tight">Compite en tiempo real con tus compañeros.</p>
                     <div className="flex gap-2">
                        <input 
                          type="text" 
@@ -4227,10 +4229,11 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Actividad Compartida" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
+                <AeroCard title="Práctica Individual" theme={theme} className="bg-gradient-to-br from-purple-400/10 to-pink-500/10">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Ingresar Código</p>
+                       <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Ingresar Código de Actividad</p>
+                       <p className="text-[10px] opacity-60 leading-tight">Resuelve actividades compartidas a tu propio ritmo.</p>
                        <div className="flex gap-2">
                          <input 
                            type="text" 
@@ -4307,6 +4310,64 @@ export default function App() {
                     </div>
                   </div>
                 </AeroCard>
+
+                {userRole === 'Profesor' && (
+                  <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                         <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Acceso Rápido</p>
+                         <button 
+                           onClick={() => {
+                             playExternalBubble();
+                             navigateTo('create-activity');
+                           }}
+                           className="text-[10px] font-black text-blue-500 hover:underline flex items-center gap-1"
+                         >
+                           <Plus size={12} /> NUEVA
+                         </button>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                        {galleryActivities
+                          .filter(a => (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && a.creatorName)
+                          .length > 0 ? (
+                            galleryActivities
+                              .filter(a => (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && a.creatorName)
+                              .map(activity => (
+                                <div key={activity.id} className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60'}`}>
+                                  <div className="overflow-hidden">
+                                    <p className={`text-xs font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{activity.name}</p>
+                                    <p className="text-[9px] opacity-40 font-bold uppercase">{activity.id}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => createMinigameSession(activity)}
+                                    className="p-2 rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all flex-shrink-0"
+                                    title="Hostear Minijuego"
+                                  >
+                                    <Gamepad2 size={16} />
+                                  </button>
+                                </div>
+                              ))
+                          ) : (
+                            <div className="py-8 text-center space-y-3">
+                              <Library size={32} className="mx-auto opacity-10" />
+                              <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-4">No tienes actividades creadas todavía</p>
+                              <GlossyButton 
+                                onClick={() => {
+                                  playExternalBubble();
+                                  navigateTo('create-activity');
+                                }}
+                                className="py-2 px-4 text-[10px] bg-blue-500"
+                              >
+                                CREAR AHORA
+                              </GlossyButton>
+                            </div>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </AeroCard>
+                )}
 
                 <AeroCard title="Estado NewAra" theme={theme}>
                   <div className="space-y-4">
@@ -4545,7 +4606,11 @@ export default function App() {
                              <Lightbulb className="text-blue-500 flex-shrink-0 animate-pulse" size={24} />
                              <div className="space-y-1">
                                <p className={theme === 'black' ? 'text-white' : 'text-sky-900'}>Consejo Aero</p>
-                               <p className="opacity-60">Usa títulos descriptivos y preguntas claras para que otros usuarios encuentren tu contenido fácilmente.</p>
+                               <p className="opacity-60">
+                                 Usa títulos descriptivos y preguntas claras.
+                                 <br/>
+                                 <span className="text-blue-500 font-bold">¡Tip!</span> Las actividades pueden jugarse como <span className="font-bold underline">Minijuegos en Vivo</span> con toda tu clase.
+                               </p>
                              </div>
                           </div>
                        </AeroCard>
