@@ -42,6 +42,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { AeroCard, GlossyButton } from './AeroUI';
+import { playExternalBubble } from '../lib/sounds';
 
 const FileAttachment: React.FC<{ file: any; theme: 'black' | 'light' }> = ({ file, theme }) => {
   if (!file) return null;
@@ -453,52 +454,80 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
         cls.themeColor === 'rose' ? 'from-rose-600 to-red-700' : 'from-sky-600 to-blue-700'
       }`}>
         <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-             <button 
-               onClick={onBack}
-               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-[10px] md:text-xs font-black uppercase tracking-widest mb-4 md:mb-6"
-             >
-               <ArrowLeft size={16} /> Volver a clases
-             </button>
-             <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-lg leading-tight">{cls.name}</h1>
-             <p className="text-white/80 font-bold max-w-xl text-sm md:text-base leading-relaxed">{cls.description}</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end gap-4 md:gap-3">
-             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-4 md:p-5 border border-white/20 w-full md:w-auto text-center md:text-left">
-               <p className="text-[9px] md:text-[10px] font-black text-white/60 tracking-widest uppercase mb-1">Código de Clase</p>
-               <div className="flex items-center justify-center md:justify-start gap-4">
-                 <span className="text-2xl md:text-3xl font-black text-white tracking-[0.2em]">{cls.code}</span>
-                 <button 
-                   onClick={() => {
-                     navigator.clipboard.writeText(cls.code);
-                     alert("Código copiado!");
-                   }}
-                   className="p-2 hover:bg-white/20 rounded-xl transition-all active:scale-95"
-                 >
-                   <Copy size={20} className="text-white" />
-                 </button>
-               </div>
-             </div>
-             <div className="flex gap-2 w-full md:w-auto">
+        <div className="relative z-10 space-y-6">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={onBack}
+              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-[10px] md:text-xs font-black uppercase tracking-widest"
+            >
+              <ArrowLeft size={16} /> Volver a clases
+            </button>
+            <div className="hidden md:flex gap-2">
                {isOwner ? (
                   <button 
                     onClick={() => setShowArchiveConfirm(true)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-red-500/30"
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-100 rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-red-500/20 backdrop-blur-md"
                   >
-                    <Archive size={14} /> Archivar
+                    <Archive size={14} /> Archivar clase
                   </button>
                ) : (
                   <button 
                     onClick={() => {
                       if (confirm("¿Estás seguro de que quieres salir de la clase?")) onLeave();
                     }}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-950/20 hover:bg-zinc-950/40 text-white rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-white/10"
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all text-[10px] font-black uppercase tracking-wider border border-white/10 backdrop-blur-md"
                   >
-                    <LogOut size={14} /> Salir
+                    <LogOut size={14} /> Salir de clase
                   </button>
                )}
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center text-center space-y-6 py-4">
+             <div className="space-y-4 max-w-3xl">
+               <h1 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl leading-tight tracking-tight">{cls.name}</h1>
+               <p className="text-white/80 font-medium text-sm md:text-lg leading-relaxed opacity-90">{cls.description}</p>
              </div>
+             
+             <div className="relative group">
+               <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition-opacity" />
+               <div className="relative bg-white/10 backdrop-blur-xl rounded-[2rem] px-8 md:px-12 py-4 md:py-6 border border-white/20 shadow-2xl flex flex-col items-center">
+                 <p className="text-[9px] md:text-[10px] font-black text-white/40 tracking-[0.4em] uppercase mb-2">Código de Clase</p>
+                 <div className="flex items-center gap-4 md:gap-6">
+                   <span className="text-3xl md:text-5xl font-black text-white tracking-[0.2em] drop-shadow-md select-all">{cls.code}</span>
+                   <button 
+                     onClick={() => {
+                       navigator.clipboard.writeText(cls.code);
+                       playExternalBubble();
+                       alert("Código copiado!");
+                     }}
+                     className="p-3 hover:bg-white/20 rounded-2xl transition-all active:scale-90 text-white/60 hover:text-white"
+                   >
+                     <Copy size={22} className="md:w-6 md:h-6" />
+                   </button>
+                 </div>
+               </div>
+             </div>
+          </div>
+
+          <div className="md:hidden flex gap-2 w-full">
+             {isOwner ? (
+                <button 
+                  onClick={() => setShowArchiveConfirm(true)}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-red-500/20 text-red-100 rounded-2xl text-[10px] font-black uppercase tracking-wider border border-red-500/30"
+                >
+                  <Archive size={14} /> Archivar
+                </button>
+             ) : (
+                <button 
+                  onClick={() => {
+                    if (confirm("¿Estás seguro de que quieres salir de la clase?")) onLeave();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider border border-white/10"
+                >
+                  <LogOut size={14} /> Salir
+                </button>
+             )}
           </div>
         </div>
       </div>
