@@ -17,7 +17,7 @@ import {
   Languages, 
   Calculator,
   Croissant,
-  Calendar as CalendarIcon, 
+  Calendar, 
   BookOpen, 
   ClipboardCheck, 
   Home,
@@ -712,6 +712,9 @@ export default function App() {
   const [classJoinCode, setClassJoinCode] = useState('');
   const [isArchivingClass, setIsArchivingClass] = useState(false);
   const [archiveConfirmName, setArchiveConfirmName] = useState('');
+  const [initialClassTab, setInitialClassTab] = useState<'anuncios' | 'tareas' | 'personas' | 'chat'>('anuncios');
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
+  const [isPendingTasksLoading, setIsPendingTasksLoading] = useState(false);
 
   // Profile State
   const [userName, setUserName] = useState(() => (localStorage.getItem('newara_user_name') || 'Estudiante'));
@@ -755,6 +758,12 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
+
+  useEffect(() => {
+    if (currentView === 'home' && isLoggedIn && userRole === 'Estudiante') {
+      fetchPendingTasks();
+    }
+  }, [currentView, isLoggedIn, userRole, userClasses]);
 
   useEffect(() => {
     if (isLoggedIn && userName && userName !== 'Estudiante') {
@@ -2016,6 +2025,38 @@ export default function App() {
       console.error("Error fetching classes:", error);
     } finally {
       setIsClassesLoading(false);
+    }
+  };
+
+  const fetchPendingTasks = async () => {
+    if (!isLoggedIn || userRole !== 'Estudiante' || userClasses.length === 0) return;
+    setIsPendingTasksLoading(true);
+    try {
+      const allPending: any[] = [];
+      for (const cls of userClasses) {
+        if (cls.isArchived) continue;
+        const assSnap = await getDocs(collection(db, 'classes', cls.id, 'assignments'));
+        const assignments = assSnap.docs.map(d => ({ id: d.id, ...d.data(), classId: cls.id, className: cls.name }));
+        
+        for (const ass of assignments) {
+          const subSnap = await getDocs(query(
+            collection(db, 'classes', cls.id, 'assignments', ass.id, 'submissions'),
+            where('studentName', '==', userName)
+          ));
+          if (subSnap.empty) {
+            allPending.push(ass);
+          }
+        }
+      }
+      setPendingTasks(allPending.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || 0;
+        const dateB = b.createdAt?.seconds || 0;
+        return dateB - dateA;
+      }));
+    } catch (e) {
+      console.error("Error fetching pending tasks:", e);
+    } finally {
+      setIsPendingTasksLoading(false);
     }
   };
 
@@ -3437,7 +3478,7 @@ export default function App() {
 
                     <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10">
                         <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                          <CalendarIcon size={18} />
+                          <Calendar size={18} />
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] font-black uppercase opacity-40">Fecha</span>
@@ -3786,18 +3827,6 @@ export default function App() {
               icon={<Globe size={22} />} 
               label="Galería" 
               theme={theme}
-            />
-            <NavButton 
-              id="nav-minigames"
-              active={currentView === 'minigames'} 
-              onClick={() => {
-                navigateTo('minigames');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Gamepad2 size={22} />} 
-              label="Minijuegos" 
-              theme={theme}
-              badge="BETA"
             />
             <NavButton 
               id="nav-minigames"
@@ -4253,9 +4282,11 @@ export default function App() {
                exit={{ opacity: 0, x: -20 }}
              >
                 <ClassDetail 
+                  key={activeClass.id}
                   cls={activeClass}
+                  initialTab={initialClassTab}
                   theme={theme}
-                  onBack={() => { setCurrentView('classes'); setActiveClass(null); }}
+                  onBack={() => { setCurrentView('classes'); setActiveClass(null); setInitialClassTab('anuncios'); }}
                   isOwner={activeClass.ownerName === userName}
                   announcements={classAnnouncements}
                   comments={announcementComments}
@@ -4502,6 +4533,71 @@ export default function App() {
                      </div>
                    </div>
                 </AeroCard>
+
+                {isLoggedIn && (
+                  <AeroCard title="Tareas Pendientes" theme={theme} className="bg-gradient-to-br from-rose-400/10 to-orange-500/10 col-span-1 md:col-span-2">
+                     <div className="space-y-4">
+                        {isPendingTasksLoading ? (
+                          <div className="flex flex-col items-center justify-center py-10 gap-3">
+                            <div className="w-8 h-8 border-4 border-rose-500/30 border-t-rose-500 rounded-full animate-spin" />
+                            <p className="text-[10px] font-black uppercase opacity-40">Buscando tareas pendientes...</p>
+                          </div>
+                        ) : pendingTasks.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {pendingTasks.map(task => (
+                              <div 
+                                key={task.id} 
+                                className={`p-4 rounded-3xl border flex flex-col gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                                  theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60 shadow-sm'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="p-2.5 rounded-2xl bg-rose-500/20 text-rose-500 flex-shrink-0">
+                                    <ClipboardList size={20} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className={`text-sm font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{task.title}</p>
+                                    <p className="text-[10px] font-bold opacity-40 uppercase truncate">{task.className}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                                  <div className="flex items-center gap-1.5 opacity-50">
+                                    <Calendar size={12} />
+                                    <span className="text-[10px] font-bold">Vence: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Sin fecha'}</span>
+                                  </div>
+                                  <GlossyButton 
+                                    onClick={() => {
+                                      playExternalBubble();
+                                      const cls = userClasses.find(c => c.id === task.classId);
+                                      if (cls) {
+                                        setActiveClass(cls);
+                                        setInitialClassTab('tareas');
+                                        navigateTo('class-detail', { classId: task.classId });
+                                      }
+                                    }}
+                                    className="py-2 px-4 text-[9px] font-black bg-rose-500 shadow-lg shadow-rose-500/20"
+                                  >
+                                    IR A TAREA
+                                  </GlossyButton>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-12 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+                              <CheckCircle2 size={32} className="text-emerald-500 opacity-40" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className={`text-base font-black tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Estás al día!</p>
+                              <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">No tienes tareas pendientes por ahora.</p>
+                            </div>
+                          </div>
+                        )}
+                     </div>
+                  </AeroCard>
+                )}
               </div>
 
               <AeroCard title="Estado NewAra" theme={theme}>

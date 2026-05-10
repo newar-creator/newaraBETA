@@ -203,6 +203,7 @@ interface ClassDetailProps {
   onArchive: () => void;
   onLeave: () => void;
   userName: string;
+  initialTab?: 'anuncios' | 'tareas' | 'personas' | 'chat';
 }
 
 const UserAvatar: React.FC<{ name: string; url?: string; className?: string; textClass?: string }> = ({ 
@@ -354,9 +355,10 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
   cls, announcements, comments, members, resources, assignments, submissions, messages, theme, isOwner, 
   onPostAnnouncement, onPostComment, onEditAnnouncement, onDeleteAnnouncement, 
   onEditComment, onDeleteComment, onReportAbuse, onPostMessage,
-  onShareResource, onPlayActivity, onCreateAssignment, onSubmitTask, onBack, onArchive, onLeave, userName 
+  onShareResource, onPlayActivity, onCreateAssignment, onSubmitTask, onBack, onArchive, onLeave, userName,
+  initialTab = 'anuncios'
 }) => {
-  const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas' | 'chat'>('anuncios');
+  const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas' | 'chat'>(initialTab);
   const [taskFilter, setTaskFilter] = useState<'todas' | 'pendientes' | 'entregadas' | 'atrasadas'>('todas');
   const [newAnnouncement, setNewAnnouncement] = useState('');
   const [annAttachment, setAnnAttachment] = useState<any>(null);
