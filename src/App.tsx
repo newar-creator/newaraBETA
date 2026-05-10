@@ -22,8 +22,6 @@ import {
   ClipboardCheck, 
   Home,
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
   User,
   Sparkles,
   TrendingUp,
@@ -190,9 +188,6 @@ export default function App() {
   const [activeClass, setActiveClass] = useState<any | null>(null);
   const [userClasses, setUserClasses] = useState<any[]>([]);
   const [unitSearch, setUnitSearch] = useState('');
-  const [subjectUnitOrders, setSubjectUnitOrders] = useState<Record<string, string[]>>({});
-  const [isReordering, setIsReordering] = useState(false);
-  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const [currentView, setCurrentView] = useState<View>(() => {
     const path = window.location.pathname.split('/').filter(Boolean)[0];
@@ -1537,10 +1532,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchSubjectOrders();
-  }, []);
-
-  useEffect(() => {
     if (currentView === 'gallery' || (currentView === 'minigames' && userRole === 'Profesor')) {
       fetchGallery();
     }
@@ -2474,44 +2465,6 @@ export default function App() {
       console.error("Error fetching gallery:", error);
     } finally {
       setIsGalleryLoading(false);
-    }
-  };
-
-  const fetchSubjectOrders = async () => {
-    try {
-      const q = query(collection(db, 'subject_configs'));
-      const querySnapshot = await getDocs(q);
-      const orders: Record<string, string[]> = {};
-      querySnapshot.docs.forEach(doc => {
-        orders[doc.id] = doc.data().unitOrder || [];
-      });
-      setSubjectUnitOrders(orders);
-    } catch (error) {
-      console.error("Error fetching subject orders:", error);
-      handleFirestoreError(error, OperationType.LIST, 'subject_configs');
-    }
-  };
-
-  const saveSubjectOrder = async (subjectId: string, newOrder: string[]) => {
-    setIsSavingOrder(true);
-    try {
-      await setDoc(doc(db, 'subject_configs', subjectId), {
-        unitOrder: newOrder,
-        updatedAt: serverTimestamp(),
-        updatedBy: userName
-      });
-      setSubjectUnitOrders(prev => ({
-        ...prev,
-        [subjectId]: newOrder
-      }));
-      playSuccessSound();
-      setIsReordering(false);
-    } catch (error) {
-      console.error("Error saving subject order:", error);
-      handleFirestoreError(error, OperationType.WRITE, `subject_configs/${subjectId}`);
-      playErrorSound();
-    } finally {
-      setIsSavingOrder(false);
     }
   };
 
@@ -4336,43 +4289,12 @@ export default function App() {
                         </div>
                       </div>
                     )}
-
-                    <div className="pt-2 border-t border-purple-500/10">
-                      <button 
-                        onClick={() => {
-                          playExternalBubble();
-                          if (!userPassword) {
-                            setIsRegistering(true);
-                          } else {
-                            navigateTo('create-activity');
-                          }
-                        }}
-                        className={`w-full flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed transition-all hover:border-purple-400 hover:bg-purple-400/10 ${
-                          theme === 'black' ? 'border-white/10 text-white/60' : 'border-purple-200 text-purple-600'
-                        }`}
-                      >
-                        <PlusCircle size={18} />
-                        <span className="text-xs font-black uppercase tracking-widest">Crear Actividad</span>
-                      </button>
-                    </div>
                   </div>
                 </AeroCard>
 
                 {userRole === 'Profesor' && (
                   <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                         <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Acceso Rápido</p>
-                         <button 
-                           onClick={() => {
-                             playExternalBubble();
-                             navigateTo('create-activity');
-                           }}
-                           className="text-[10px] font-black text-blue-500 hover:underline flex items-center gap-1"
-                         >
-                           <Plus size={12} /> NUEVA
-                         </button>
-                      </div>
                       
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {galleryActivities
@@ -4396,17 +4318,23 @@ export default function App() {
                                 </div>
                               ))
                           ) : (
-                            <div className="py-8 text-center space-y-3">
-                              <Library size={32} className="mx-auto opacity-10" />
-                              <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-4">No tienes actividades creadas todavía</p>
+                            <div className="py-8 text-center space-y-4">
+                              <div className="relative inline-block mb-2">
+                                <Library size={48} className="mx-auto opacity-10" />
+                                <Plus className="absolute -top-1 -right-1 text-blue-500 opacity-50" size={20} />
+                              </div>
+                              <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-6 leading-relaxed">No tienes actividades creadas todavía</p>
                               <GlossyButton 
                                 onClick={() => {
                                   playExternalBubble();
                                   navigateTo('create-activity');
                                 }}
-                                className="py-2 px-4 text-[10px] bg-blue-500"
+                                className="w-full py-4 text-[10px] font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group"
                               >
-                                CREAR AHORA
+                                <div className="flex items-center justify-center gap-2">
+                                  <PlusCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                  <span className="tracking-widest">CREAR ACTIVIDAD</span>
+                                </div>
                               </GlossyButton>
                             </div>
                           )
@@ -6290,21 +6218,7 @@ export default function App() {
                 <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 text-white shadow-xl flex-shrink-0">
                   {getIcon(selectedSubject.icon, 24)}
                 </div>
-                <div className="flex-1">
-                  <h1 className={`text-3xl md:text-5xl font-black tracking-tighter text-center md:text-left transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h1>
-                  {userRole === 'Profesor' && (
-                    <button 
-                      onClick={() => setIsReordering(!isReordering)}
-                      className={`mt-2 flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all mx-auto md:mx-0 ${
-                        isReordering 
-                          ? 'bg-amber-500 border-amber-400 text-white animate-pulse shadow-lg shadow-amber-500/20' 
-                          : 'bg-white/10 border-white/20 text-sky-500 hover:bg-white/20'
-                      }`}
-                    >
-                      <Edit3 size={12} /> {isReordering ? 'TERMINAR REORDEN' : 'REORDENAR UNIDADES'}
-                    </button>
-                  )}
-                </div>
+                <h1 className={`text-3xl md:text-5xl font-black tracking-tighter text-center md:text-left transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h1>
               </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -6336,27 +6250,13 @@ export default function App() {
                         </div>
 
                         <DuolingoPath 
-                          units={(() => {
-                            const rawUnits = selectedSubject.units.map((u, idx) => ({ ...u, originalIndex: idx }));
-                            const customOrder = subjectUnitOrders[selectedSubject.id];
-                            
-                            let sortedUnits = rawUnits;
-                            if (customOrder && customOrder.length > 0) {
-                              sortedUnits = [...rawUnits].sort((a, b) => {
-                                const indexA = customOrder.indexOf(a.title);
-                                const indexB = customOrder.indexOf(b.title);
-                                if (indexA === -1 && indexB === -1) return 0;
-                                if (indexA === -1) return 1;
-                                if (indexB === -1) return -1;
-                                return indexA - indexB;
-                              });
-                            }
-                            
-                            return sortedUnits.filter(u => 
+                          units={selectedSubject.units
+                            .map((u, idx) => ({ ...u, originalIndex: idx }))
+                            .filter(u => 
                               u.title.toLowerCase().includes(unitSearch.toLowerCase()) || 
                               u.description.toLowerCase().includes(unitSearch.toLowerCase())
-                            );
-                          })()} 
+                            )
+                          } 
                           subjectColor={selectedSubject.color}
                           subjectId={selectedSubject.id}
                           completedUnits={completedUnits}
@@ -6366,11 +6266,6 @@ export default function App() {
                              navigateTo('unit-study', { subjectId: selectedSubject.id, unitIndex: index });
                           }}
                           theme={theme}
-                          isReordering={isReordering && userRole === 'Profesor'}
-                          onReorder={(newUnits) => {
-                            const newOrder = newUnits.map(u => u.title);
-                            saveSubjectOrder(selectedSubject.id, newOrder);
-                          }}
                         />
                       </div>
                     </AeroCard>
@@ -7346,25 +7241,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
   );
 }
 
-function DuolingoPath({ 
-  units, 
-  subjectColor, 
-  onUnitClick, 
-  theme = 'white', 
-  subjectId, 
-  completedUnits = [],
-  isReordering = false,
-  onReorder
-}: { 
-  units: any[], 
-  subjectColor: string, 
-  onUnitClick: (index: number) => void, 
-  theme?: 'white' | 'black', 
-  subjectId: string, 
-  completedUnits?: string[],
-  isReordering?: boolean,
-  onReorder?: (newUnits: any[]) => void
-}) {
+function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subjectId, completedUnits = [] }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black', subjectId: string, completedUnits?: string[] }) {
   if (units.length === 0) {
     return (
       <div className="py-12 text-center opacity-40 italic flex flex-col items-center gap-3">
@@ -7390,17 +7267,6 @@ function DuolingoPath({
     }
   };
 
-  const moveUnit = (index: number, direction: 'up' | 'down') => {
-    if (!onReorder) return;
-    const newUnits = [...units];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newUnits.length) return;
-    
-    // Swap
-    [newUnits[index], newUnits[targetIndex]] = [newUnits[targetIndex], newUnits[index]];
-    onReorder(newUnits);
-  };
-
   return (
     <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative w-full">
       {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
@@ -7417,36 +7283,15 @@ function DuolingoPath({
             style={{ transform: `translateX(${offset}px)` }}
             className="relative z-10"
           >
-            <div className="relative group/reorder">
-              <UnitButton 
-                number={displayIndex + 1} 
-                title={unit.title} 
-                color={subjectColor} 
-                isCompleted={isCompleted}
-                onClick={() => !isReordering && onUnitClick(displayIndex)} 
-                theme={theme}
-                difficulty={unit.difficulty}
-              />
-
-              {isReordering && (
-                <div className={`absolute -right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2 scale-90 transition-all ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                  <button 
-                    onClick={() => moveUnit(i, 'up')}
-                    disabled={i === 0}
-                    className={`p-2 rounded-xl border transition-all ${i === 0 ? 'opacity-20 cursor-not-allowed' : 'bg-white/20 border-white/30 hover:bg-blue-500 hover:text-white shadow-lg shadow-blue-500/20 active:scale-90'}`}
-                  >
-                    <ChevronUp size={20} />
-                  </button>
-                  <button 
-                    onClick={() => moveUnit(i, 'down')}
-                    disabled={i === units.length - 1}
-                    className={`p-2 rounded-xl border transition-all ${i === units.length - 1 ? 'opacity-20 cursor-not-allowed' : 'bg-white/20 border-white/30 hover:bg-blue-500 hover:text-white shadow-lg shadow-blue-500/20 active:scale-90'}`}
-                  >
-                    <ChevronDown size={20} />
-                  </button>
-                </div>
-              )}
-            </div>
+            <UnitButton 
+              number={displayIndex + 1} 
+              title={unit.title} 
+              color={subjectColor} 
+              isCompleted={isCompleted}
+              onClick={() => onUnitClick(displayIndex)} 
+              theme={theme}
+              difficulty={unit.difficulty}
+            />
             
             {/* Connector dots */}
             {i < units.length - 1 && (
