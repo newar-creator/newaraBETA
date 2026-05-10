@@ -19,7 +19,17 @@ export default defineConfig(({mode}) => {
     build: {
       target: 'es2015',
       minify: 'terser',
-      cssTarget: 'chrome60'
+      cssTarget: 'chrome60',
+      chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          }
+        }
+      }
     },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
