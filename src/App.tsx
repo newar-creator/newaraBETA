@@ -5020,7 +5020,7 @@ export default function App() {
                                  <div key={idx} className={`flex items-center gap-4 p-4 md:p-6 rounded-2xl md:rounded-3xl ${colors[idx]} text-white shadow-lg relative overflow-hidden`}>
                                     <div className="glossy-overlay opacity-20" />
                                     <span className="text-3xl md:text-5xl font-black relative z-10">{shapes[idx]}</span>
-                                    <span className="text-lg md:text-3xl font-black truncate relative z-10">{option}</span>
+                                    <span className="text-lg md:text-3xl font-black relative z-10 break-words line-clamp-none">{option}</span>
                                  </div>
                                );
                              })
@@ -5089,11 +5089,15 @@ export default function App() {
                                        onClick={() => submitMinigameAnswer(option)}
                                        className={`relative rounded-[32px] md:rounded-[48px] ${colors[idx]} shadow-xl flex items-center justify-center transition-all overflow-hidden ${
                                          isAnswered ? 'opacity-30 grayscale-[0.5]' : 'hover:scale-[1.02]'
-                                       } h-40 md:h-full min-h-[140px]`}
+                                       } h-40 md:h-full min-h-[140px] p-4`}
                                      >
                                         <div className="glossy-overlay opacity-20" />
-                                        <span className="text-7xl md:text-9xl font-black text-white drop-shadow-2xl">{shapes[idx]}</span>
-                                        {/* Optional: label small for remote students, but per user request we follow the image (which has no label for students) */}
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                          <span className="text-5xl md:text-7xl font-black text-white drop-shadow-2xl">{shapes[idx]}</span>
+                                          <span className="text-xs md:text-xl font-black text-white text-center leading-tight break-words line-clamp-none">
+                                            {option}
+                                          </span>
+                                        </div>
                                      </motion.button>
                                    );
                                 })}
