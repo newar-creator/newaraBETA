@@ -156,9 +156,19 @@
     animation: reflection-sweep 3s infinite linear;
   }
 
+  .aero-bubble {
+    @apply absolute rounded-full pointer-events-none;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  }
+
   @keyframes reflection-sweep {
     from { background-position: 200% 0; }
     to { background-position: -200% 0; }
+  }
+
+  @keyframes float-aero {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 
   .custom-scrollbar {

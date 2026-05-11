@@ -7472,29 +7472,60 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
 
   return (
     <motion.div 
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
+      whileHover={{ scale: 1.15, rotate: 2 }}
+      whileTap={{ scale: 0.9, rotate: -2 }}
       className="flex flex-col items-center gap-4 group cursor-pointer"
       onClick={onClick}
     >
       <div className="relative">
-        {/* Ring */}
-        <div className={`absolute inset-0 rounded-full border-4 scale-125 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-150 blur-sm ${theme === 'black' ? 'border-white/10' : 'border-white/40'}`} />
+        {/* Frutiger Aero Glossy Ring / Aura */}
+        <div className={`absolute inset-0 rounded-full border-2 scale-125 opacity-20 group-hover:opacity-100 group-hover:scale-150 transition-all duration-700 blur-[2px] ${theme === 'black' ? 'border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'}`} />
+        <div className={`absolute inset-0 rounded-full border-2 scale-135 opacity-10 group-hover:opacity-60 group-hover:scale-160 transition-all duration-1000 blur-[4px] ${theme === 'black' ? 'border-sky-300' : 'border-sky-400'}`} />
         
-        {/* Main Button */}
-        <div className={`w-20 h-20 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600 shadow-green-500/50' : getColorClasses(color)} flex items-center justify-center text-white text-3xl font-black shadow-[0_8px_0_rgb(0,0,0,0.1),0_15px_20px_-5px_rgba(0,0,0,0.3)] border-4 border-white/60 relative overflow-hidden active:translate-y-1 active:shadow-[0_4px_0_rgb(0,0,0,0.1)] transition-all`}>
-           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 to-transparent opacity-50" />
-           {isCompleted ? <CheckCircle2 size={40} className="relative z-10 drop-shadow-lg" /> : number}
+        {/* Main Button Body - Sphere Effect */}
+        <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600' : getColorClasses(color)} flex items-center justify-center text-white text-3xl md:text-4xl font-black shadow-[0_12px_24px_-8px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3),inset_0_4px_10px_rgba(255,255,255,0.5)] border-4 border-white relative overflow-hidden active:translate-y-1 transition-all`}>
+           {/* Top Gloss Flare */}
+           <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
+           {/* Center Light Reflection */}
+           <div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] bg-gradient-to-br from-white/30 to-transparent rounded-full blur-[2px] pointer-events-none" />
+           {/* Bottom Shading */}
+           <div className="absolute bottom-0 left-0 w-full h-[20%] bg-black/10 pointer-events-none" />
+           
+           {/* Moving Shine Animation */}
+           <div className="podium-reflection opacity-40 group-hover:opacity-70 transition-opacity" />
+
+           {isCompleted ? <CheckCircle2 size={44} className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" /> : <span className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] tracking-tighter">{number}</span>}
         </div>
 
-        {/* Floating Tooltip */}
-        <div className={`absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl shadow-xl border opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 translate-y-2 group-hover:translate-y-0 ${theme === 'black' ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'}`}>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-xs font-bold uppercase tracking-tighter">{isCompleted ? '¡Completado!' : title}</span>
-            {difficulty && <span className={`text-[9px] font-black uppercase tracking-[0.15em] ${getDifficultyColor(difficulty)}`}>{difficulty}</span>}
-          </div>
-          <div className={`absolute bottom-[-6px] left-1/2 -translate-x-1/2 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] ${theme === 'black' ? 'border-t-slate-900' : 'border-t-white'}`} />
+        {/* Dynamic Label Tooltip - Enhanced Aero Glass */}
+        <div className={`absolute -top-16 left-1/2 -translate-x-1/2 px-5 py-3 rounded-[24px] shadow-2xl border backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-20 translate-y-3 group-hover:translate-y-0 flex flex-col items-center gap-1 ${
+          theme === 'black' 
+            ? 'bg-black/60 border-white/20 text-white' 
+            : 'bg-white/80 border-white/60 text-sky-950'
+        }`}>
+          <div className="glossy-overlay opacity-20 rounded-[24px]" />
+          <span className="text-xs md:text-sm font-black uppercase tracking-tight">{isCompleted ? '¡Completado!' : title}</span>
+          {difficulty && (
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full bg-black/5 ${getDifficultyColor(difficulty)}`}>
+                {difficulty}
+              </span>
+            </div>
+          )}
+          {/* Tooltip Triangle */}
+          <div className={`absolute bottom-[-10px] left-1/2 -translate-x-1/2 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] ${theme === 'black' ? 'border-t-black/60' : 'border-t-white/80'}`} />
         </div>
+
+        {/* Completion Checkmark Badge */}
+        {isCompleted && (
+          <motion.div 
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            className="absolute -right-1 -bottom-1 bg-green-500 text-white p-1.5 rounded-full border-4 border-white shadow-lg z-10"
+          >
+            <Check size={16} strokeWidth={4} />
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );
@@ -7527,13 +7558,18 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
   };
 
   return (
-    <div className="flex flex-col items-center py-6 md:py-12 gap-8 md:gap-16 relative w-full">
-      {/* Curved Path Svg background could go here, but we'll use a staggered layout for simplicity & feel */}
+    <div className="flex flex-col items-center py-10 md:py-16 gap-12 md:gap-20 relative w-full overflow-visible">
+      {/* Background Decorative Elements for Aero feel */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden select-none">
+        <div className="absolute top-[10%] -left-10 w-40 h-40 bg-blue-400/5 rounded-full blur-3xl" />
+        <div className="absolute top-[40%] -right-10 w-60 h-60 bg-green-400/5 rounded-full blur-3xl" />
+        <div className="absolute top-[70%] -left-20 w-80 h-80 bg-purple-400/5 rounded-full blur-3xl" />
+      </div>
+
       {units.map((unit, i) => {
         const displayIndex = unit.originalIndex !== undefined ? unit.originalIndex : i;
-        // Calculate horizontal offset for a zigzag path - reduced for mobile
-        const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 80;
-        const offset = Math.sin(i * 1.2) * offsetMultiplier;
+        const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 100;
+        const offset = Math.sin(i * 1.4) * offsetMultiplier;
         const isCompleted = completedUnits.includes(`${subjectId}-${displayIndex}`);
         
         return (
@@ -7552,22 +7588,36 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
               difficulty={unit.difficulty}
             />
             
-            {/* Connector dots */}
+            {/* Connector dots - Styled more like organic "water drops" */}
             {i < units.length - 1 && (
               <div 
-                className="absolute left-1/2 -translate-x-1/2 top-20 md:top-24 h-8 md:h-12 flex flex-col gap-2 items-center opacity-80"
+                className="absolute left-1/2 -translate-x-1/2 top-24 md:top-32 h-12 md:h-16 flex flex-col gap-3 items-center opacity-60"
                 style={{
-                   transform: `translateX(${-offset/2}px) rotate(${offset > 0 ? '-15deg' : '15deg'})`
+                   transform: `translateX(${-offset/1.5}px) rotate(${offset > 0 ? '-20deg' : '20deg'})`
                 }}
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
-                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
-                <div className={`w-1.5 h-1.5 rounded-full ${getDotColor(subjectColor)}`} />
+                <div className={`w-2 h-2 rounded-full ${getDotColor(subjectColor)} shadow-sm`} />
+                <div className={`w-2 h-2 rounded-full ${getDotColor(subjectColor)} shadow-sm opacity-80`} />
+                <div className={`w-2 h-2 rounded-full ${getDotColor(subjectColor)} shadow-sm opacity-60`} />
+                <div className={`w-3 h-3 rounded-full border-2 border-white/20 ${getDotColor(subjectColor)} shadow-inner opacity-40`} />
               </div>
             )}
+            
+            {/* Unit Title Inline (Desktop Only) */}
+            <div className={`hidden lg:block absolute top-[20%] ${offset > 0 ? 'right-[120%]' : 'left-[120%]'} w-48 text-left ${offset > 0 ? 'text-right' : 'text-left'} transition-all group-hover:scale-105 pointer-events-none`}>
+               <h4 className={`text-sm font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-950/60'}`}>{unit.title}</h4>
+               <p className={`text-[10px] font-bold opacity-40 line-clamp-1 italic ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>{unit.description}</p>
+            </div>
           </div>
         );
       })}
+
+      {/* Final "Castle" or "Finish" flag could go here */}
+      <div className="mt-8 flex flex-col items-center gap-4 opacity-30 select-none">
+        <div className={`w-16 h-1 h-px ${theme === 'black' ? 'bg-white/10' : 'bg-sky-950/10'}`} />
+        <Trophy size={48} strokeWidth={1} />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em]">META</p>
+      </div>
     </div>
   );
 }
@@ -7595,100 +7645,116 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
       transition={disableAnimations ? { duration: 0 } : { type: "spring", damping: 22, stiffness: 100 }}
       className="max-w-4xl mx-auto space-y-8"
     >
-      <header className="flex items-center gap-4 md:gap-6">
+      <header className="flex items-center gap-4 md:gap-6 sticky top-0 z-30 pt-2 pb-4 backdrop-blur-md">
         <button 
           onClick={onBack}
-          className={`p-2 md:p-3 rounded-full aero-glass transition-all ${theme === 'black' ? 'hover:bg-white/10 text-white' : 'hover:bg-white/60 text-sky-900'}`}
+          className={`p-3 md:p-4 rounded-3xl aero-glass transition-all active:scale-95 shadow-xl ${theme === 'black' ? 'hover:bg-white/10 text-white border-white/20' : 'hover:bg-white/80 text-sky-900 border-white/60'}`}
         >
           <ArrowLeft size={20} />
         </button>
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className={`text-2xl md:text-4xl font-black tracking-tighter leading-tight transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className={`text-2xl md:text-5xl font-black tracking-tighter leading-tight transition-colors duration-500 truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
             {unit.difficulty && (
-              <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
-                unit.difficulty === 'Baja' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
-                unit.difficulty === 'Media' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
-                'bg-red-500/10 border-red-500/20 text-red-500'
+              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm transition-all ${
+                unit.difficulty === 'Baja' ? 'bg-green-500/20 border-green-500/30 text-green-500' :
+                unit.difficulty === 'Media' ? 'bg-amber-500/20 border-amber-500/30 text-amber-500' :
+                'bg-red-500/20 border-red-500/30 text-red-500'
               }`}>
                 {unit.difficulty}
               </span>
             )}
           </div>
-          <p className={`font-bold uppercase text-[10px] md:text-xs tracking-widest transition-colors duration-500 ${theme === 'black' ? 'text-white/40' : 'text-sky-800/60'}`}>{unit.description}</p>
+          <p className={`font-bold uppercase text-[10px] md:text-xs tracking-[0.25em] transition-colors duration-500 opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{unit.description}</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
         <div className="md:col-span-2 space-y-4 md:space-y-8">
-          <AeroCard title="Explicación" theme={theme}>
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-              <div className="p-2 md:p-3 rounded-2xl bg-amber-100 text-amber-600 w-fit h-fit shrink-0">
-                <Lightbulb size={24} />
-              </div>
-              <div className="space-y-3 md:space-y-4">
-                <p className={`text-base md:text-lg font-medium leading-relaxed transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
-                  {unit.explanation}
-                </p>
-                <div className={`p-4 md:p-6 rounded-3xl border transition-colors duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50/50 border-sky-100'}`}>
-                  <h4 className={`text-sm font-black mb-3 md:mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                    <Book className="text-sky-500" size={16} /> Conceptos Clave
-                  </h4>
-                  <div className="grid grid-cols-1 gap-3 md:gap-4">
-                    {unit.meanings.map((m: any, i: number) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-2 shrink-0" />
-                        <div>
-                          <strong className={`block text-sm md:text-base transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.term}</strong>
-                          <span className={`text-[13px] md:text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>{m.definition}</span>
-                        </div>
+          <AeroCard title="Lección Interactiva" theme={theme}>
+            <div className="flex flex-col gap-4 md:gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
+                <div className="p-4 rounded-3xl bg-amber-100/30 border border-amber-200/50 text-amber-600 w-fit h-fit shrink-0 shadow-inner">
+                  <Lightbulb size={32} />
+                </div>
+                <div className="space-y-4 md:space-y-6 flex-1">
+                  <p className={`text-lg md:text-2xl font-medium leading-relaxed transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>
+                    {unit.explanation}
+                  </p>
+                  
+                  <div className={`p-6 md:p-8 rounded-[40px] border relative overflow-hidden transition-all duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10 shadow-2xl' : 'bg-gradient-to-br from-sky-50 to-white border-white shadow-xl'}`}>
+                    <div className="glossy-overlay opacity-30 pointer-events-none" />
+                    <h4 className={`text-sm md:text-base font-black mb-4 md:mb-6 flex items-center gap-3 transition-colors duration-500 uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                      <div className="p-2 rounded-xl bg-sky-500/20 text-sky-500">
+                        <BookOpen size={20} />
                       </div>
-                    ))}
+                      Conceptos Clave
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4 md:gap-6">
+                      {unit.meanings.map((m: any, i: number) => (
+                        <div key={i} className={`flex gap-4 p-4 rounded-3xl border transition-all hover:scale-[1.01] ${theme === 'black' ? 'bg-white/5 border-white/5' : 'bg-white/50 border-white/80 shadow-sm'}`}>
+                          <div className="w-2 h-2 rounded-full bg-sky-400 mt-2 shrink-0 animate-pulse" />
+                          <div className="flex-1">
+                            <strong className={`block text-base md:text-lg transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.term}</strong>
+                            <span className={`text-sm md:text-base transition-colors duration-500 leading-relaxed ${theme === 'black' ? 'text-white/50' : 'text-sky-800/70'}`}>{m.definition}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </AeroCard>
 
-          <AeroCard title="Significados Rápidos" theme={theme}>
-             <div className="flex flex-wrap gap-3">
+          <AeroCard title="Vocabulario" theme={theme}>
+             <div className="flex flex-wrap gap-4">
                 {unit.meanings.map((m: any, i: number) => (
-                   <div key={i} className={`px-4 py-2 rounded-2xl border shadow-sm flex items-center gap-2 group transition-colors duration-500 ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/40 border-white/60 hover:bg-white'}`}>
-                      <CheckCircle2 className="text-green-500" size={16} />
-                      <span className={`text-sm font-bold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{m.term}</span>
-                   </div>
+                   <motion.div 
+                    key={i} 
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    className={`px-6 py-3 rounded-full border shadow-lg flex items-center gap-3 group transition-all relative overflow-hidden ${theme === 'black' ? 'bg-white/5 border-white/10 hover:bg-white/15' : 'bg-white/60 border-white hover:bg-white'}`}
+                   >
+                      <div className="glossy-overlay opacity-10" />
+                      <div className="p-1.5 rounded-full bg-green-500/20 text-green-500">
+                        <CheckCircle2 size={16} />
+                      </div>
+                      <span className={`text-base font-black transition-colors duration-500 ${theme === 'black' ? 'text-white/90' : 'text-sky-950'}`}>{m.term}</span>
+                   </motion.div>
                 ))}
              </div>
           </AeroCard>
         </div>
 
         <div className="space-y-6">
-          <AeroCard className={`bg-gradient-to-br ${getGradient(color)} text-white border-0 shadow-2xl`} theme={theme}>
-             <div className="space-y-6 flex flex-col items-center text-center">
-                <div className="p-4 rounded-3xl bg-white/20 border border-white/30">
-                  <HelpCircle size={48} />
+          <AeroCard className={`bg-gradient-to-br ${getGradient(color)} text-white border-0 shadow-2xl relative overflow-hidden`} theme={theme}>
+             <div className="podium-reflection opacity-30" />
+             <div className="glossy-overlay opacity-40" />
+             <div className="space-y-6 flex flex-col items-center text-center relative z-10 py-4">
+                <div className="p-5 rounded-[32px] bg-white/20 border border-white/40 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                  <HelpCircle size={56} className="drop-shadow-lg" />
                 </div>
-                <div className="space-y-2">
-                   <h3 className="text-2xl font-black">¿Listo para practicar?</h3>
-                   <p className="text-white/80 font-medium text-sm">Pon a prueba lo aprendido con los ejercicios interactivos de esta unidad.</p>
+                <div className="space-y-2 px-4 shadow-sm pb-2">
+                   <h3 className="text-3xl font-black tracking-tighter">¿Listo para el reto?</h3>
+                   <p className="text-white/90 font-bold text-sm leading-tight">Demuestra lo que sabes con nuestros ejercicios inteligentes.</p>
                 </div>
                 <GlossyButton 
                   onClick={onStartExercise}
-                  className="w-full py-4 font-black shadow-xl text-white"
+                  className="w-full py-5 font-black shadow-2xl text-white text-lg bg-white/20 border-white/30 active:scale-95 transition-all"
                 >
-                  EMPEZAR EJERCICIOS
+                  EMPEZAR AHORA
                 </GlossyButton>
              </div>
           </AeroCard>
 
           {hasNextUnit && (
-            <div className="space-y-3">
-              <p className={`text-[10px] font-black uppercase tracking-[0.2em] text-center ${theme === 'black' ? 'text-white/30' : 'text-sky-900/30'}`}>¿Quieres seguir explorando?</p>
+            <div className="space-y-4">
+              <p className={`text-[10px] font-black uppercase tracking-[0.4em] text-center ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>PRÓXIMA PARADA</p>
               <GlossyButton 
                 onClick={onNextUnit}
-                className={`w-full py-4 text-lg shadow-[0_10px_20px_rgba(0,0,0,0.1)] border-2 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${theme === 'black' ? 'bg-blue-600/20 border-blue-400/30 text-white' : 'bg-blue-600 border-blue-400 text-white'}`}
+                className={`w-full py-5 text-xl shadow-2xl border-4 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all rounded-[32px] ${theme === 'black' ? 'bg-blue-600/20 border-blue-400/30 text-white' : 'bg-blue-600 border-blue-400 text-white'}`}
               >
-                Siguiente Unidad <ChevronRight size={20} />
+                Siguiente Unidad <ChevronRight size={24} />
               </GlossyButton>
             </div>
           )}
