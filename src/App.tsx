@@ -3788,9 +3788,11 @@ export default function App() {
                   const normalized = val.toLowerCase().trim();
                   const secret = 'newen.araoz.ar/horario';
                   const secretAlt = 'newen.araoz.ar/horarios';
+                  const secretShort = '/horario';
+                  const secretShortAlt = '/horarios';
                   
                   // Solo redirigir si es el match exacto
-                  if (normalized === secret || normalized === secretAlt) {
+                  if (normalized === secret || normalized === secretAlt || normalized === secretShort || normalized === secretShortAlt) {
                     window.location.href = 'https://newen.araoz.ar/horario';
                     setGallerySearch('');
                     return;
@@ -3807,7 +3809,12 @@ export default function App() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const normalized = gallerySearch.toLowerCase().trim();
-                    if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                    if (
+                      normalized === 'newen.araoz.ar/horario' || 
+                      normalized === 'newen.araoz.ar/horarios' ||
+                      normalized === '/horario' ||
+                      normalized === '/horarios'
+                    ) {
                       window.location.href = 'https://newen.araoz.ar/horario';
                       setGallerySearch('');
                     }
@@ -5800,7 +5807,12 @@ export default function App() {
                         onChange={(e) => {
                           const val = e.target.value;
                           const normalized = val.toLowerCase().trim();
-                          if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                          if (
+                            normalized === 'newen.araoz.ar/horario' || 
+                            normalized === 'newen.araoz.ar/horarios' ||
+                            normalized === '/horario' ||
+                            normalized === '/horarios'
+                          ) {
                             window.location.href = 'https://newen.araoz.ar/horario';
                             setGallerySearch('');
                             return;
@@ -5810,7 +5822,12 @@ export default function App() {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const normalized = gallerySearch.toLowerCase().trim();
-                            if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                            if (
+                              normalized === 'newen.araoz.ar/horario' || 
+                              normalized === 'newen.araoz.ar/horarios' ||
+                              normalized === '/horario' ||
+                              normalized === '/horarios'
+                            ) {
                               window.location.href = 'https://newen.araoz.ar/horario';
                               setGallerySearch('');
                             }
@@ -6682,8 +6699,8 @@ export default function App() {
       
       {/* Exercise Overlay */}
       <AnimatePresence>
-        {showGeoGuide && <GeographyGuide onClose={() => setShowGeoGuide(false)} />}
-        {showMathGuide && <MathGuide onClose={() => setShowMathGuide(false)} />}
+        {showGeoGuide && <GeographyGuide theme={theme} onClose={() => setShowGeoGuide(false)} />}
+        {showMathGuide && <MathGuide theme={theme} onClose={() => setShowMathGuide(false)} />}
         {activeExercise && (activeExercise.subjectId === 'shared' || selectedSubject) && exerciseState.shuffled.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}

@@ -24,7 +24,7 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
     <motion.div 
       initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`aero-glass rounded-[2rem] p-4 md:p-6 overflow-hidden relative border transition-all duration-300 ${themeClasses} ${className}`}
+      className={`aero-glass rounded-[2rem] p-3 md:p-6 overflow-hidden relative border transition-all duration-300 ${themeClasses} ${className}`}
     >
       <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
       <div className="glossy-overlay opacity-20" />
@@ -37,7 +37,7 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
           {extra && <div className="flex-shrink-0">{extra}</div>}
         </div>
       )}
-      <div className={`relative z-10 ${contentClasses} transition-colors duration-500`}>
+      <div className={`relative z-10 ${contentClasses} transition-colors duration-500 ${className.includes('flex') ? 'flex-1 flex flex-col min-h-0' : ''}`}>
         {children}
       </div>
     </motion.div>

@@ -94,6 +94,30 @@ export const SUBJECTS: Subject[] = [
         ]
       },
       {
+        title: 'Prepositions of Place',
+        description: 'Common prepositions used to describe spatial relationships.',
+        difficulty: 'Baja',
+        explanation: 'Las preposiciones de lugar nos indican dónde se encuentra algo. Comúnmente usamos "on" (sobre una superficie), "in front of" (delante de), "beside" (al lado de), "behind" (detrás), "under" (debajo/cubierto) y "between" (en medio de dos objetos).',
+        meanings: [
+          { term: 'On', definition: 'Sobre una superficie (ej: on my desk).' },
+          { term: 'Beside', definition: 'Al lado de / junto a (ej: beside Tara).' },
+          { term: 'In front of', definition: 'Delante de (ej: in front of the house).' },
+          { term: 'Behind', definition: 'Detrás de (ej: behind his back).' },
+          { term: 'Under', definition: 'Debajo de / cubierto por (ej: under the doormat).' },
+          { term: 'Above', definition: 'Por encima de (sin contacto físico, ej: above the house).' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: 'The helicopter hovered ____ the house.', options: ['under', 'above', 'on', 'beside'], correct: 1 },
+          { type: 'writing', question: 'Ram sat ____ Tara in the cinema (next to).', options: [], correct: 'beside', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'Anthony put his hands ____ his back.', options: ['behind', 'in front of', 'under', 'on'], correct: 0 },
+          { type: 'writing', question: 'He put the key ____ the doormat.', options: [], correct: 'under', placeholder: 'Preposition...' },
+          { type: 'true-false', question: '"In front of" means the same as "Behind".', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'Please leave the report ____ my desk.', options: ['on', 'between', 'above', 'behind'], correct: 0 },
+          { type: 'writing', question: 'There is a strange car ____ the house (delante).', options: [], correct: 'in front of', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'A small stream runs ____ that bridge (debajo).', options: ['above', 'on', 'below', 'behind'], correct: 2 }
+        ]
+      },
+      {
         title: 'Present Perfect Simple & Continuous',
         description: 'Acciones que comenzaron en el pasado y continúen o tienen relevancia hoy.',
         difficulty: 'Media',
@@ -136,27 +160,6 @@ export const SUBJECTS: Subject[] = [
         ]
       },
       {
-        title: 'Grammar Review: Sentence Structure',
-        description: 'Orden de las palabras y corrección de errores comunes.',
-        difficulty: 'Alta',
-        explanation: 'En inglés, el orden de las palabras es fundamental: Sujeto + Adverbio + Verbo + Complemento. Es importante recordar el uso de la partícula "to" con "going" y no confundir modales con auxiliares.',
-        meanings: [
-          { term: 'Word Order', definition: 'La estructura correcta de una oración (Sujeto+Verbo+Objeto).' },
-          { term: 'Correction', definition: 'Identificar y arreglar errores gramaticales comunes.' },
-          { term: 'Phrasal verbs', definition: 'Verbos compuestos como "settle down" o "touch down".' }
-        ],
-        exercises: [
-          { question: 'Order: tennis / on / I / Saturdays / play / usually', options: ['I play tennis usually on Saturdays.', 'I usually play tennis on Saturdays.', 'Usually play I tennis on Saturdays.', 'Saturdays I play usually tennis.'], correct: 1 },
-          { question: 'Correct the mistake: "I\'m going travel around the world."', options: ['I go to travel...', 'I am going to travel...', 'I will going travel...', 'I going travel...'], correct: 1 },
-          { question: 'Correct: "The plane is going touching down in Paris."', options: ['The plane is going touch down...', 'The plane is going to touch down...', 'The plane will touching down...', 'The plane goes to touch down...'], correct: 1 },
-          { question: 'Correct: "She won\'t got here in time."', options: ['She won\'t get here...', 'She won\'t to get here...', 'She doesn\'t got here...', 'She is not get here...'], correct: 0 },
-          { question: 'Order: never / to / They\'ve / England / been', options: ['They\'ve been to England never.', 'Never they\'ve been to England.', 'They\'ve never been to England.', 'They never been to England.'], correct: 2 },
-          { question: 'Correct: "He always is happy."', options: ['He always happy is.', 'He is happy always.', 'He is always happy.', 'Always he is happy.'], correct: 2 },
-          { question: 'Question order: like / you / do / pizza / ?', options: ['Do you like pizza?', 'You like pizza do?', 'Like you do pizza?', 'Do pizza like you?'], correct: 0 },
-          { question: 'Correct: "I am going to the park yesterday."', options: ['I go to the park yesterday.', 'I went to the park yesterday.', 'I am go to the park yesterday.', 'I will go to the park yesterday.'], correct: 1 }
-        ]
-      },
-      {
         title: 'TH!NK 3: Unit 1 - Life Choices',
         description: 'Vocabulary related to life decisions, hobbies, work and changes.',
         difficulty: 'Media',
@@ -177,30 +180,6 @@ export const SUBJECTS: Subject[] = [
           { type: 'writing', question: 'Pasa a inglés: "Empezar un nuevo hobby"', options: [], correct: 'Take up a new hobby', placeholder: 'Take up...' },
           { type: 'multiple-choice', question: 'If you "run out of" milk, it means:', options: ['You have a lot of milk', 'You have no milk left', 'You are running with milk', 'You buy milk'], correct: 1 },
           { type: 'true-false', question: 'A "gap year" is a year of very hard study at a university.', options: ['Verdadero', 'Falso'], correct: 1 }
-        ]
-      },
-      {
-        title: 'Prepositions of Place',
-        description: 'Common prepositions used to describe spatial relationships.',
-        difficulty: 'Baja',
-        explanation: 'Las preposiciones de lugar nos indican dónde se encuentra algo. Comúnmente usamos "on" (sobre una superficie), "in front of" (delante de), "beside" (al lado de), "behind" (detrás), "under" (debajo/cubierto) y "between" (en medio de dos objetos).',
-        meanings: [
-          { term: 'On', definition: 'Sobre una superficie (ej: on my desk).' },
-          { term: 'Beside', definition: 'Al lado de / junto a (ej: beside Tara).' },
-          { term: 'In front of', definition: 'Delante de (ej: in front of the house).' },
-          { term: 'Behind', definition: 'Detrás de (ej: behind his back).' },
-          { term: 'Under', definition: 'Debajo de / cubierto por (ej: under the doormat).' },
-          { term: 'Above', definition: 'Por encima de (sin contacto físico, ej: above the house).' }
-        ],
-        exercises: [
-          { type: 'multiple-choice', question: 'The helicopter hovered ____ the house.', options: ['under', 'above', 'on', 'beside'], correct: 1 },
-          { type: 'writing', question: 'Ram sat ____ Tara in the cinema (next to).', options: [], correct: 'beside', placeholder: 'Preposition...' },
-          { type: 'multiple-choice', question: 'Anthony put his hands ____ his back.', options: ['behind', 'in front of', 'under', 'on'], correct: 0 },
-          { type: 'writing', question: 'He put the key ____ the doormat.', options: [], correct: 'under', placeholder: 'Preposition...' },
-          { type: 'true-false', question: '"In front of" means the same as "Behind".', options: ['Verdadero', 'Falso'], correct: 1 },
-          { type: 'multiple-choice', question: 'Please leave the report ____ my desk.', options: ['on', 'between', 'above', 'behind'], correct: 0 },
-          { type: 'writing', question: 'There is a strange car ____ the house (delante).', options: [], correct: 'in front of', placeholder: 'Preposition...' },
-          { type: 'multiple-choice', question: 'A small stream runs ____ that bridge (debajo).', options: ['above', 'on', 'below', 'behind'], correct: 2 }
         ]
       },
       {
@@ -247,6 +226,27 @@ export const SUBJECTS: Subject[] = [
           { type: 'multiple-choice', question: 'Mr Brown has worked in a bank ____ 2007.', options: ['during', 'since', 'within', 'beyond'], correct: 1 },
           { type: 'writing', question: 'There is a modem ____ the computer (dentro de).', options: [], correct: 'within', placeholder: 'Preposition...' },
           { type: 'multiple-choice', question: 'The meeting continued ____ midnight.', options: ['during', 'beyond', 'within', 'since'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Grammar Review: Sentence Structure',
+        description: 'Orden de las palabras y corrección de errores comunes.',
+        difficulty: 'Alta',
+        explanation: 'En inglés, el orden de las palabras es fundamental: Sujeto + Adverbio + Verbo + Complemento. Es importante recordar el uso de la partícula "to" con "going" y no confundir modales con auxiliares.',
+        meanings: [
+          { term: 'Word Order', definition: 'La estructura correcta de una oración (Sujeto+Verbo+Objeto).' },
+          { term: 'Correction', definition: 'Identificar y arreglar errores gramaticales comunes.' },
+          { term: 'Phrasal verbs', definition: 'Verbos compuestos como "settle down" o "touch down".' }
+        ],
+        exercises: [
+          { question: 'Order: tennis / on / I / Saturdays / play / usually', options: ['I play tennis usually on Saturdays.', 'I usually play tennis on Saturdays.', 'Usually play I tennis on Saturdays.', 'Saturdays I play usually tennis.'], correct: 1 },
+          { question: 'Correct the mistake: "I\'m going travel around the world."', options: ['I go to travel...', 'I am going to travel...', 'I will going travel...', 'I going travel...'], correct: 1 },
+          { question: 'Correct: "The plane is going touching down in Paris."', options: ['The plane is going touch down...', 'The plane is going to touch down...', 'The plane will touching down...', 'The plane goes to touch down...'], correct: 1 },
+          { question: 'Correct: "She won\'t got here in time."', options: ['She won\'t get here...', 'She won\'t to get here...', 'She doesn\'t got here...', 'She is not get here...'], correct: 0 },
+          { question: 'Order: never / to / They\'ve / England / been', options: ['They\'ve been to England never.', 'Never they\'ve been to England.', 'They\'ve never been to England.', 'They never been to England.'], correct: 2 },
+          { question: 'Correct: "He always is happy."', options: ['He always happy is.', 'He is happy always.', 'He is always happy.', 'Always he is happy.'], correct: 2 },
+          { question: 'Question order: like / you / do / pizza / ?', options: ['Do you like pizza?', 'You like pizza do?', 'Like you do pizza?', 'Do pizza like you?'], correct: 0 },
+          { question: 'Correct: "I am going to the park yesterday."', options: ['I go to the park yesterday.', 'I went to the park yesterday.', 'I am go to the park yesterday.', 'I will go to the park yesterday.'], correct: 1 }
         ]
       },
       {
@@ -695,7 +695,7 @@ export const SUBJECTS: Subject[] = [
         ]
       },
       {
-        title: 'Potencias y Orde de Prioridad',
+        title: 'Potencias y Orden de Prioridad',
         description: 'Propiedades de las potencias y el orden correcto para resolver operaciones combinadas.',
         difficulty: 'Media',
         explanation: 'Una potencia es multiplicar la base por sí misma tantas veces como diga el exponente. Para resolver una cuenta larga (operación combinada), el orden es sagrado: 1° Paréntesis, 2° Potencias/Raíces, 3° Multiplicación/División, 4° Suma/Resta.',
@@ -713,6 +713,41 @@ export const SUBJECTS: Subject[] = [
           { question: 'Resuelve: 2 + 3 · 4', options: ['20', '14', '12', '9'], correct: 1 },
           { question: '¿Cuánto es 5³?', options: ['15', '25', '125', '50'], correct: 2 },
           { question: 'Al dividir potencias de igual base, los exponentes se:', options: ['Suman', 'Multiplican', 'Restan', 'Dividen'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Divisibilidad y Números Primos',
+        description: 'Conceptos de múltiplos y divisores. Criterios para saber si un número es divisible por otro.',
+        difficulty: 'Media',
+        explanation: 'Un número es divisor de otro si lo divide exactamente (resto 0). Los números primos solo tienen dos divisores: el 1 y ellos mismos. Los criterios de divisibilidad nos permiten saber si un número es divisible sin hacer la cuenta.',
+        meanings: [
+          { term: 'Múltiplo', definition: 'Número que contiene a otro una cantidad exacta de veces.' },
+          { term: 'Divisor', definition: 'Número que divide a otro exactamente.' },
+          { term: 'Número Primo', definition: 'Número con exactamente dos divisores (1 y sí mismo).' }
+        ],
+        exercises: [
+          { question: '¿Cuál es el único número primo par?', options: ['0', '2', '4', '6'], correct: 1 },
+          { question: '¿Un número es divisible por 3 si?', options: ['Termina en 3', 'Es impar', 'La suma de sus cifras es múltiplo de 3', 'Termina en 0'], correct: 2 },
+          { question: '¿Cuál de estos es un número primo?', options: ['9', '15', '17', '21'], correct: 2 },
+          { question: '¿Qué número es múltiplo de todos los números?', options: ['1', '0', '10', 'No existe'], correct: 1 },
+          { question: '¿Cuál es el criterio de divisibilidad por 5?', options: ['Termina en número par', 'Suma de cifras es 5', 'Termina en 0 o 5', 'Es mayor a 5'], correct: 2 }
+        ]
+      },
+      {
+        title: 'MCD y mcm',
+        description: 'Cálculo del Máximo Común Divisor y el mínimo común múltiplo mediante factorización.',
+        difficulty: 'Alta',
+        explanation: 'El mcm es el múltiplo más pequeño que comparten dos números. El MCD es el divisor más grande que comparten. Se calculan descomponiendo los números en sus factores primos.',
+        meanings: [
+           { term: 'Factorización', definition: 'Expresar un número como producto de sus factores primos.' },
+           { term: 'mcm', definition: 'Mínimo común múltiplo.' },
+           { term: 'MCD', definition: 'Máximo común divisor.' }
+        ],
+        exercises: [
+          { question: '¿Cuál es el mcm de 4 y 6?', options: ['2', '12', '24', '10'], correct: 1 },
+          { question: '¿Cuál es el MCD de 12 y 18?', options: ['2', '3', '6', '36'], correct: 2 },
+          { question: 'Para el mcm usamos factores comunes y no comunes con exponente...', options: ['Menor', 'Mayor', 'Igual', 'Cero'], correct: 1 },
+          { question: 'Si dos números son primos entre sí, su MCD es:', options: ['0', '1', 'Su producto', 'No tienen'], correct: 1 }
         ]
       }
     ]
