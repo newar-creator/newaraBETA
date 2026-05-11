@@ -75,6 +75,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Present Simple & Continuous',
         description: 'Diferencia entre hábitos y acciones en progreso (Unit 1 Basic Grammar).',
+        difficulty: 'Baja',
         explanation: 'El Present Simple se usa para rutinas y verdades universales (The Earth goes around the Sun). El Present Continuous se usa para acciones que ocurren ahora mismo (I am doing my homework).',
         meanings: [
           { term: 'Present Simple', definition: 'Para hábitos, rutinas y hechos permanentes.' },
@@ -94,7 +95,8 @@ export const SUBJECTS: Subject[] = [
       },
       {
         title: 'Present Perfect Simple & Continuous',
-        description: 'Acciones que comenzaron en el pasado y continúan o tienen relevancia hoy.',
+        description: 'Acciones que comenzaron en el pasado y continúen o tienen relevancia hoy.',
+        difficulty: 'Media',
         explanation: 'El Present Perfect Simple (have + participio) se usa para resultados o experiencias. El Present Perfect Continuous (have been + ing) se usa para enfatizar la duración de una actividad que comenzó en el pasado.',
         meanings: [
           { term: 'For / Since', definition: 'Usados para indicar duración o punto de partida.' },
@@ -115,6 +117,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Future Tenses: Will vs Going to',
         description: 'Predicciones, planes, intenciones y arreglos futuros.',
+        difficulty: 'Media',
         explanation: 'Usamos "will" para predicciones o decisiones espontáneas. Usamos "going to" para planes e intenciones previas. El Present Continuous también puede usarse para arreglos fijos (citas o reuniones confirmadas).',
         meanings: [
           { term: 'Will', definition: 'Futuro para predicciones, promesas o decisiones rápidas.' },
@@ -135,6 +138,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Grammar Review: Sentence Structure',
         description: 'Orden de las palabras y corrección de errores comunes.',
+        difficulty: 'Alta',
         explanation: 'En inglés, el orden de las palabras es fundamental: Sujeto + Adverbio + Verbo + Complemento. Es importante recordar el uso de la partícula "to" con "going" y no confundir modales con auxiliares.',
         meanings: [
           { term: 'Word Order', definition: 'La estructura correcta de una oración (Sujeto+Verbo+Objeto).' },
@@ -155,6 +159,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'TH!NK 3: Unit 1 - Life Choices',
         description: 'Vocabulary related to life decisions, hobbies, work and changes.',
+        difficulty: 'Media',
         explanation: 'This unit focuses on common expressions for personal development and future plans. Learning these phrasal verbs and collocations will help you sound more natural when talking about your life experiences and goals, such as starting a business or taking up a new hobby.',
         meanings: [
           { term: 'Go into business', definition: 'To start a company or a commercial activity.' },
@@ -279,6 +284,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'El Método del Historiador',
         description: 'La Historia como ciencia social. Hechos, fuentes primarias/secundarias y líneas de tiempo.',
+        difficulty: 'Baja',
         explanation: 'El historiador no inventa, reconstruye. Interroga fuentes (cartas, diarios, restos arqueológicos) para entender por qué las cosas sucedieron. Las líneas de tiempo ayudan a ver procesos y cambios a través de los siglos.',
         meanings: [
           { term: 'Fuente Primaria', definition: 'Documento o resto de la época estudiada.' },
@@ -299,6 +305,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Poblamiento de América',
         description: 'Teorías sobre el origen del hombre americano: Asiática (Bering), Oceánica y Australiana.',
+        difficulty: 'Media',
         explanation: 'América fue el último continente en poblarse. La teoría más robusta es la Asiática (cruce por Bering). Los primeros americanos eran nómades, cazadores de megafauna y recolectores que se adaptaron a climas extremos.',
         meanings: [
           { term: 'Nómade', definition: 'Que no vive en un lugar fijo.' },
@@ -319,6 +326,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Civilización Caral',
         description: 'La civilización más antigua de América (3000 a.C.). Urbanismo planificado y quipus.',
+        difficulty: 'Media',
         explanation: 'En el valle de Supe surgió Caral. Sin murallas defensivas, parece haber sido un centro de paz y comercio. Usaban algodón para redes de pesca y quipus para registrar contabilidad mucho antes que los Incas.',
         meanings: [
           { term: 'Urbanismo', definition: 'Planificación de ciudades y edificios.' },
@@ -339,6 +347,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Egipto y Grecia',
         description: 'Primeros estados, escritura, religión politeísta y el origen de la democracia en Atenas.',
+        difficulty: 'Alta',
         explanation: 'Egipto floreció junto al Nilo con faraones y pirámides. Grecia nos dio la Polis y la Democracia. Atenas fue la primera ciudad donde los ciudadanos debatían y votaban leyes en la plaza pública (Ágora).',
         meanings: [
           { term: 'Polis', definition: 'Ciudad-Estado griega independiente.' },
@@ -359,6 +368,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Roma e Invasiones',
         description: 'De la Monarquía a la República y el Imperio. La caída de Roma y las sociedades medievales.',
+        difficulty: 'Alta',
         explanation: 'Roma pasó de aldea a imperio mundial. Su arquitectura y derecho son la base de Occidente. El imperio cayó ante la presión de pueblos germanos y hunos, dando inicio a la fragmentación de Europa (Edad Media).',
         meanings: [
           { term: 'República', definition: 'Cosa pública, sistema con magistrados y senado.' },
@@ -388,6 +398,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Concepto de Sistema',
         description: 'Sistemas aislados (sin intercambio), cerrados (solo energía) y abiertos (materia y energía).',
+        difficulty: 'Baja',
         explanation: 'En biología, un sistema es un conjunto de componentes que interactúan entre sí. Los seres vivos son sistemas abiertos porque intercambian constantemente materia (nutrientes, agua) y energía (calor, luz) con su entorno. Esta capacidad es vital para mantener el equilibrio interno u homeostasis.',
         meanings: [
           { term: 'Sistema Abierto', definition: 'Aquel que intercambia materia y energía con el ambiente.' },
@@ -408,6 +419,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Biomoléculas: Lípidos y Proteínas',
         description: 'Funciones energéticas, estructurales y reguladoras de las moléculas de la vida.',
+        difficulty: 'Media',
         explanation: 'Las biomoléculas son los ladrillos de la vida. Los lípidos no solo almacenan energía a largo plazo, sino que también actúan como aislantes térmicos. Las proteínas, por otro lado, son máquinas moleculares: transportan oxígeno (hemoglobina), defienden el cuerpo (anticuerpos) y forman estructuras (colágeno).',
         meanings: [
           { term: 'Aminoácidos', definition: 'Unidades básicas que forman las proteínas.' },
@@ -428,6 +440,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Hidratos de Carbono y ADN',
         description: 'Glúcidos para energía rápida y ácidos nucleicos para la herencia genética.',
+        difficulty: 'Alta',
         explanation: 'Los glúcidos o hidratos de carbono son el combustible inmediato de la célula (glucosa). El ADN es el manual de instrucciones; contiene la secuencia de genes que determina desde el color de ojos hasta cómo fabricar proteínas específicas.',
         meanings: [
           { term: 'Glucosa', definition: 'Azúcar simple de uso energético inmediato.' },
@@ -519,6 +532,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Geografía y su Objeto de Estudio',
         description: 'El espacio geográfico como producto social en permanente transformación.',
+        difficulty: 'Baja',
         explanation: 'El espacio geográfico no es solo la naturaleza, sino cómo la sociedad la organiza y transforma. Conceptos como Paisaje (lo que vemos), Ambiente (relación sociedad-naturaleza) y Territorio (espacio con poder) son claves para entender nuestro mundo.',
         meanings: [
           { term: 'Espacio Geográfico', definition: 'Construcción social a partir de la naturaleza.' },
@@ -539,6 +553,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Esfera Terrestre y Líneas Imaginarias',
         description: 'Eje terrestre (23° 27\'), Paralelos (Ecuador) y Meridianos (Greenwich).',
+        difficulty: 'Media',
         explanation: 'La Tierra no es una esfera perfecta (es un geoide). El eje terrestre está inclinado, lo que genera las estaciones. Los paralelos miden la latitud (Norte-Sur) y los meridianos la longitud (Este-Oeste).',
         meanings: [
           { term: 'Ecuador', definition: 'Paralelo 0° que divide la Tierra en Hemisferio N y S.' },
@@ -559,6 +574,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Orientación y Coordenadas',
         description: 'Localización absoluta mediante Latitud (distancia al Ecuador) y Longitud (distancia a Greenwich).',
+        difficulty: 'Media',
         explanation: 'Para encontrar un punto exacto usamos las coordenadas geográficas. La Latitud es la separación respecto al Ecuador y la Longitud respecto a Greenwich. Si sabemos ambas, tenemos una localización absoluta.',
         meanings: [
           { term: 'Localización Absoluta', definition: 'Ubicación exacta mediante coordenadas.' },
@@ -588,6 +604,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Libertad y Dignidad',
         description: 'La libertad individual y social. La dignidad humana como cualidad inherente.',
+        difficulty: 'Baja',
         explanation: 'Ser digno significa ser valioso por sí mismo. La libertad nos permite ser dueños de nuestras acciones, pero tiene límites: no podemos violar los derechos de los demás. La libertad social depende de que todos tengan sus necesidades básicas cubiertas.',
         meanings: [
           { term: 'Dignidad Humana', definition: 'Valor supremo de la persona por ser humana.' },
@@ -608,6 +625,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Las Normas',
         description: 'Reglas para la convivencia. Tipos: sociales, morales, culturales y jurídicas.',
+        difficulty: 'Media',
         explanation: 'Para vivir juntos necesitamos reglas. Las sociales son costumbres (saludar). Las morales son lo que nuestra conciencia dicta. Las jurídicas son las leyes: están escritas, son obligatorias y tienen sanciones si no se cumplen.',
         meanings: [
           { term: 'Ley', definition: 'Norma jurídica obligatoria dictada por autoridad.' },
@@ -628,6 +646,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'La Constitución Nacional',
         description: 'Ley Suprema de Argentina. Derechos, deberes y garantías fundamentales.',
+        difficulty: 'Alta',
         explanation: 'Es la "madre" de todas las leyes. Establece la forma de gobierno (Representativa, Republicana y Federal) y protege nuestros derechos fundamentales. Ninguna ley puede ir en contra de ella (Supremacía).',
         meanings: [
           { term: 'Preámbulo', definition: 'Introducción que indica los objetivos del país.' },
@@ -657,6 +676,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Números Naturales y Operaciones',
         description: 'Definición de números naturales. Propiedades de la suma y multiplicación.',
+        difficulty: 'Baja',
         explanation: 'Los números naturales son los que usamos para contar objetos reales. La suma y la multiplicación son operaciones fundamentales. Tienen propiedades como la Conmutativa (5+2 = 2+5) y la Asociativa ((1+2)+3 = 1+(2+3)).',
         meanings: [
           { term: 'Cociente', definition: 'El resultado de una división.' },
@@ -677,6 +697,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Potencias y Orde de Prioridad',
         description: 'Propiedades de las potencias y el orden correcto para resolver operaciones combinadas.',
+        difficulty: 'Media',
         explanation: 'Una potencia es multiplicar la base por sí misma tantas veces como diga el exponente. Para resolver una cuenta larga (operación combinada), el orden es sagrado: 1° Paréntesis, 2° Potencias/Raíces, 3° Multiplicación/División, 4° Suma/Resta.',
         meanings: [
           { term: 'Base', definition: 'El número que se multiplica repetidamente.' },
@@ -706,6 +727,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Narradores en 1ª y 2ª Persona',
         description: 'El narrador participa en los hechos o se dirige directamente al lector.',
+        difficulty: 'Baja',
         explanation: 'El narrador es la voz que cuenta la historia. En 1ª persona, el narrador participa de los acontecimientos: puede ser el Protagonista (cuenta su propia historia) o un Testigo (relata lo que observa). El monólogo interior es cuando el personaje reflexiona para sí mismo. El narrador en 2ª persona se dirige directamente al lector, creando intimidad.',
         meanings: [
           { term: 'Protagonista', definition: 'Personaje principal que narra su propia historia.' },
@@ -723,6 +745,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'El Narrador en 3ª Persona',
         description: 'Narradores que no participan de los acontecimientos: Omnisciente, Equisciente y Deficiente.',
+        difficulty: 'Media',
         explanation: 'Los narradores en 3ª persona están fuera de la historia. El Omnisciente lo sabe todo (pensamientos, futuro, hechos). El Equisciente sabe lo mismo que el protagonista. El Deficiente tiene menos información que los personajes y relata de forma limitada.',
         meanings: [
           { term: 'Omnisciente', definition: 'Conoce todo: pensamientos, emociones y hechos.' },
@@ -740,6 +763,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Práctica Integrada de Narración',
         description: 'Repaso general de todos los tipos de narradores y sus características.',
+        difficulty: 'Alta',
         explanation: 'Para identificar el narrador debemos preguntarnos: ¿Participa en la historia? ¿Qué sabe? ¿A quién se dirige? Distinguir entre 1ª, 2ª y 3ª persona es clave para entender la perspectiva literaria.',
         meanings: [
           { term: 'Narrador', definition: 'Voz que cuenta la historia (no es el autor).' },
