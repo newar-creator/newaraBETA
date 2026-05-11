@@ -3784,13 +3784,21 @@ export default function App() {
                 value={gallerySearch}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
+                  const isSchedule = val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios';
+                  
+                  if (isSchedule) {
                     window.open('https://newen.araoz.ar/horario', '_blank');
                     setGallerySearch('');
                     return;
                   }
+
                   setGallerySearch(val);
-                  if (currentView !== 'gallery' && val) navigateTo('gallery');
+                  if (currentView !== 'gallery' && val.trim() !== '') {
+                    // Solo navegamos si no es un intento de escribir la URL (heurística básica: si tiene puntos es probable que sea una URL)
+                    if (!val.includes('.')) {
+                      navigateTo('gallery');
+                    }
+                  }
                 }}
                 placeholder="Buscar actividades..."
                 className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
@@ -5752,7 +5760,7 @@ export default function App() {
                         onChange={(e) => {
                           const val = e.target.value;
                           if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
-                            window.open('https://newen.araoz.ar/horario', '_blank');
+                            setTimeout(() => window.open('https://newen.araoz.ar/horario', '_blank'), 100);
                             setGallerySearch('');
                             return;
                           }
@@ -6507,7 +6515,7 @@ export default function App() {
                             onChange={(e) => {
                               const val = e.target.value;
                               if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
-                                window.open('https://newen.araoz.ar/horario', '_blank');
+                                setTimeout(() => window.open('https://newen.araoz.ar/horario', '_blank'), 100);
                                 setUnitSearch('');
                                 return;
                               }
