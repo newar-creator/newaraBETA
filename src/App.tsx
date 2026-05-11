@@ -3783,8 +3783,14 @@ export default function App() {
                 type="text"
                 value={gallerySearch}
                 onChange={(e) => {
-                  setGallerySearch(e.target.value);
-                  if (currentView !== 'gallery') navigateTo('gallery');
+                  const val = e.target.value;
+                  if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
+                    window.open('https://newen.araoz.ar/horario', '_blank');
+                    setGallerySearch('');
+                    return;
+                  }
+                  setGallerySearch(val);
+                  if (currentView !== 'gallery' && val) navigateTo('gallery');
                 }}
                 placeholder="Buscar actividades..."
                 className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
@@ -5743,7 +5749,15 @@ export default function App() {
                         type="text"
                         placeholder="Buscar por nombre, autor, código..."
                         value={gallerySearch}
-                        onChange={(e) => setGallerySearch(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
+                            window.open('https://newen.araoz.ar/horario', '_blank');
+                            setGallerySearch('');
+                            return;
+                          }
+                          setGallerySearch(val);
+                        }}
                         className={`w-full pl-12 pr-4 py-3 rounded-2xl border-2 transition-all outline-none font-bold text-sm ${
                           theme === 'black'
                             ? 'bg-white/5 border-white/10 text-white focus:border-white/30'
@@ -6490,7 +6504,15 @@ export default function App() {
                           <input 
                             type="text"
                             value={unitSearch}
-                            onChange={(e) => setUnitSearch(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
+                                window.open('https://newen.araoz.ar/horario', '_blank');
+                                setUnitSearch('');
+                                return;
+                              }
+                              setUnitSearch(val);
+                            }}
                             placeholder={t('buscarTemas')}
                             className={`w-full pl-12 pr-4 py-4 rounded-3xl text-sm font-bold transition-all duration-300 outline-none border-2 bg-white/10 ${
                               theme === 'black' 
