@@ -3788,7 +3788,7 @@ export default function App() {
                   const secret = 'newen.araoz.ar/horario';
                   const secretAlt = 'newen.araoz.ar/horarios';
                   
-                  // Check for exact match
+                  // Solo redirigir si es el match exacto
                   if (normalized === secret || normalized === secretAlt) {
                     window.location.href = 'https://newen.araoz.ar/horario';
                     setGallerySearch('');
@@ -3797,12 +3797,10 @@ export default function App() {
 
                   setGallerySearch(val);
                   
-                  // Only navigate to gallery if it's NOT a partial match for our secret URL
+                  // Siempre navegar a la galería al escribir algo (incluyendo la URL secreta) 
+                  // para evitar quedarnos trabados en "Inicio"
                   if (currentView !== 'gallery' && val.trim() !== '') {
-                    const isPartialSecret = secret.startsWith(normalized) || secretAlt.startsWith(normalized);
-                    if (!isPartialSecret) {
-                      navigateTo('gallery');
-                    }
+                    navigateTo('gallery');
                   }
                 }}
                 onKeyDown={(e) => {
