@@ -1561,6 +1561,7 @@ export default function App() {
   const [newActivityCode, setNewActivityCode] = useState('');
   // Security: Ensure isModerator requires isLoggedIn
   const isModerator = isLoggedIn && MODERATORS.includes((userName || '').trim()) && isModAuthorized;
+  const isClaudia = isLoggedIn && (userName || '').trim().toLowerCase() === 'claudia';
   
   // History State
   const [activityHistory, setActivityHistory] = useState<{code: string, name: string, date: number}[]>(() => {
@@ -3902,6 +3903,15 @@ export default function App() {
                 badge={reports.length > 0 ? reports.length.toString() : undefined}
               />
             )}
+            {isClaudia && (
+              <NavButton 
+                active={false} 
+                onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
+                icon={<Calendar size={22} />} 
+                label="Horarios" 
+                theme={theme}
+              />
+            )}
 
             <div className="w-full h-px bg-white/10 my-2" />
 
@@ -4052,6 +4062,15 @@ export default function App() {
                       label={t('denunciados')} 
                       theme={theme}
                       badge={reports.length > 0 ? reports.length.toString() : undefined}
+                    />
+                  )}
+                  {isClaudia && (
+                    <MobileMenuButton 
+                      active={false} 
+                      onClick={() => { window.location.href = 'https://newen.araoz.ar/horario'; setShowMoreMobileMenu(false); }} 
+                      icon={<Calendar size={20} />} 
+                      label="Horarios" 
+                      theme={theme}
                     />
                   )}
 
@@ -4399,6 +4418,15 @@ export default function App() {
                     color="bg-slate-500" 
                     theme={theme} 
                   />
+                  {isClaudia && (
+                    <HomeShortcut 
+                      icon={<Calendar size={18} />} 
+                      label="Horarios" 
+                      onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
+                      color="bg-emerald-500" 
+                      theme={theme} 
+                    />
+                  )}
                 </div>
               </header>
 
