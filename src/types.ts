@@ -173,6 +173,99 @@ export const SUBJECTS: Subject[] = [
           { type: 'multiple-choice', question: 'If you "run out of" milk, it means:', options: ['You have a lot of milk', 'You have no milk left', 'You are running with milk', 'You buy milk'], correct: 1 },
           { type: 'true-false', question: 'A "gap year" is a year of very hard study at a university.', options: ['Verdadero', 'Falso'], correct: 1 }
         ]
+      },
+      {
+        title: 'Prepositions of Place',
+        description: 'Common prepositions used to describe spatial relationships.',
+        difficulty: 'Baja',
+        explanation: 'Las preposiciones de lugar nos indican dónde se encuentra algo. Comúnmente usamos "on" (sobre una superficie), "in front of" (delante de), "beside" (al lado de), "behind" (detrás), "under" (debajo/cubierto) y "between" (en medio de dos objetos).',
+        meanings: [
+          { term: 'On', definition: 'Sobre una superficie (ej: on my desk).' },
+          { term: 'Beside', definition: 'Al lado de / junto a (ej: beside Tara).' },
+          { term: 'In front of', definition: 'Delante de (ej: in front of the house).' },
+          { term: 'Behind', definition: 'Detrás de (ej: behind his back).' },
+          { term: 'Under', definition: 'Debajo de / cubierto por (ej: under the doormat).' },
+          { term: 'Above', definition: 'Por encima de (sin contacto físico, ej: above the house).' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: 'The helicopter hovered ____ the house.', options: ['under', 'above', 'on', 'beside'], correct: 1 },
+          { type: 'writing', question: 'Ram sat ____ Tara in the cinema (next to).', options: [], correct: 'beside', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'Anthony put his hands ____ his back.', options: ['behind', 'in front of', 'under', 'on'], correct: 0 },
+          { type: 'writing', question: 'He put the key ____ the doormat.', options: [], correct: 'under', placeholder: 'Preposition...' },
+          { type: 'true-false', question: '"In front of" means the same as "Behind".', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'Please leave the report ____ my desk.', options: ['on', 'between', 'above', 'behind'], correct: 0 },
+          { type: 'writing', question: 'There is a strange car ____ the house (delante).', options: [], correct: 'in front of', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'A small stream runs ____ that bridge (debajo).', options: ['above', 'on', 'below', 'behind'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Common One-word Prepositions',
+        description: 'Essential prepositions for movement and relationships.',
+        difficulty: 'Media',
+        explanation: 'En inglés, preposiciones como "about", "across", "against", "along" y "among" son vitales para describir movimientos, posiciones o relaciones más complejas entre objetos y personas.',
+        meanings: [
+          { term: 'About', definition: 'Acerca de o alrededor de.' },
+          { term: 'Across', definition: 'De un lado al otro (cruzar).' },
+          { term: 'Against', definition: 'En contra de o apoyado en una superficie.' },
+          { term: 'Along', definition: 'A lo largo de.' },
+          { term: 'Among', definition: 'En medio de un grupo (3 o más).' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: 'We drove ____ the desert.', options: ['along', 'across', 'about', 'against'], correct: 1 },
+          { type: 'writing', question: 'Is there a doctor ____ us? (among / between)', options: [], correct: 'among', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'He put his bicycle ____ the wall.', options: ['against', 'along', 'across', 'above'], correct: 0 },
+          { type: 'writing', question: 'We walked ____ the beach for two miles.', options: [], correct: 'along', placeholder: 'Preposition...' },
+          { type: 'true-false', question: '"About" can mean "concerning" (acerca de).', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'multiple-choice', question: 'Let\'s talk ____ something different.', options: ['along', 'across', 'about', 'among'], correct: 2 },
+          { type: 'writing', question: 'The dog ran ____ the road (cruzar).', options: [], correct: 'across', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'There were many trees ____ the road.', options: ['against', 'along', 'among', 'above'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Advanced Prepositions',
+        description: 'Prepositions for time, limits, and abstract relationships.',
+        difficulty: 'Media',
+        explanation: 'Preposiciones avanzadas como "during", "beyond", "within" y "despite" permiten precisar límites de tiempo, distancia o condiciones abstractas.',
+        meanings: [
+          { term: 'During', definition: 'Durante un periodo de tiempo.' },
+          { term: 'Beyond', definition: 'Más allá de / del otro lado de.' },
+          { term: 'Within', definition: 'Dentro de los límites (tiempo o distancia).' },
+          { term: 'Despite', definition: 'A pesar de.' },
+          { term: 'Since', definition: 'Desde un punto en el tiempo.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: 'He fell asleep ____ the meeting.', options: ['within', 'during', 'beyond', 'since'], correct: 1 },
+          { type: 'writing', question: 'This is too difficult. It\'s ____ me (más allá).', options: [], correct: 'beyond', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'I will finish ____ 30 minutes.', options: ['within', 'during', 'beyond', 'despite'], correct: 0 },
+          { type: 'writing', question: 'We went swimming ____ the cold water (a pesar de).', options: [], correct: 'despite', placeholder: 'Preposition...' },
+          { type: 'true-false', question: '"Since" is used to indicate a duration (like "for").', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'Mr Brown has worked in a bank ____ 2007.', options: ['during', 'since', 'within', 'beyond'], correct: 1 },
+          { type: 'writing', question: 'There is a modem ____ the computer (dentro de).', options: [], correct: 'within', placeholder: 'Preposition...' },
+          { type: 'multiple-choice', question: 'The meeting continued ____ midnight.', options: ['during', 'beyond', 'within', 'since'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Complex Prepositions',
+        description: 'Prepositions composed of two or more words.',
+        difficulty: 'Alta',
+        explanation: 'Las preposiciones compuestas funcionan como una sola unidad de significado. Ejemplos comunes son "according to" (según), "in spite of" (a pesar de), "due to" (debido a) e "instead of" (en vez de).',
+        meanings: [
+          { term: 'According to', definition: 'Según / De acuerdo a lo dicho por alguien.' },
+          { term: 'In spite of', definition: 'A pesar de.' },
+          { term: 'Due to', definition: 'Debido a / A causa de.' },
+          { term: 'Instead of', definition: 'En vez de.' },
+          { term: 'As well as', definition: 'Además de / Así como.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '____ John, Mary was late.', options: ['Instead of', 'Due to', 'According to', 'In spite of'], correct: 2 },
+          { type: 'writing', question: 'We went swimming ____ the cold water (a pesar de).', options: [], correct: 'in spite of', placeholder: 'Phrase...' },
+          { type: 'multiple-choice', question: 'The cancellation was ____ the rain.', options: ['instead of', 'due to', 'according to', 'as well as'], correct: 1 },
+          { type: 'writing', question: 'Would you like coffee ____ tea? (en vez de)', options: [], correct: 'instead of', placeholder: 'Phrase...' },
+          { type: 'true-false', question: '"According to" means "Because of".', options: ['Verdadero', 'Falso'], correct: 1 },
+          { type: 'multiple-choice', question: 'You should telephone ____ write.', options: ['instead of', 'due to', 'as well as', 'according to'], correct: 2 },
+          { type: 'writing', question: 'There were two people ____ me (además de).', options: [], correct: 'in addition to', placeholder: 'Phrase...' },
+          { type: 'multiple-choice', question: 'He is sitting ____ me in the plane (delante de).', options: ['ahead of', 'forward of', 'instead of', 'due to'], correct: 1 }
+        ]
       }
     ]
   },
