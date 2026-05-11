@@ -3785,20 +3785,32 @@ export default function App() {
                 onChange={(e) => {
                   const val = e.target.value;
                   const normalized = val.toLowerCase().trim();
-                  const isSchedule = normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios';
+                  const secret = 'newen.araoz.ar/horario';
+                  const secretAlt = 'newen.araoz.ar/horarios';
                   
-                  if (isSchedule) {
+                  // Check for exact match
+                  if (normalized === secret || normalized === secretAlt) {
                     window.open('https://newen.araoz.ar/horario', '_blank');
                     setGallerySearch('');
                     return;
                   }
 
                   setGallerySearch(val);
+                  
+                  // Only navigate to gallery if it's NOT a partial match for our secret URL
                   if (currentView !== 'gallery' && val.trim() !== '') {
-                    // Solo navegamos si no es un intento de escribir la URL o el comando secreto
-                    const secretBase = 'newen.araoz.ar/horario';
-                    if (!secretBase.startsWith(normalized) && !'newen.araoz.ar/horarios'.startsWith(normalized)) {
+                    const isPartialSecret = secret.startsWith(normalized) || secretAlt.startsWith(normalized);
+                    if (!isPartialSecret) {
                       navigateTo('gallery');
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const normalized = gallerySearch.toLowerCase().trim();
+                    if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                      window.open('https://newen.araoz.ar/horario', '_blank');
+                      setGallerySearch('');
                     }
                   }
                 }}
@@ -5769,6 +5781,15 @@ export default function App() {
                           }
                           setGallerySearch(val);
                         }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const normalized = gallerySearch.toLowerCase().trim();
+                            if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                              window.open('https://newen.araoz.ar/horario', '_blank');
+                              setGallerySearch('');
+                            }
+                          }
+                        }}
                         className={`w-full pl-12 pr-4 py-3 rounded-2xl border-2 transition-all outline-none font-bold text-sm ${
                           theme === 'black'
                             ? 'bg-white/5 border-white/10 text-white focus:border-white/30'
@@ -6524,6 +6545,15 @@ export default function App() {
                                 return;
                               }
                               setUnitSearch(val);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const normalized = unitSearch.toLowerCase().trim();
+                                if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                                  window.open('https://newen.araoz.ar/horario', '_blank');
+                                  setUnitSearch('');
+                                }
+                              }
                             }}
                             placeholder={t('buscarTemas')}
                             className={`w-full pl-12 pr-4 py-4 rounded-3xl text-sm font-bold transition-all duration-300 outline-none border-2 bg-white/10 ${
