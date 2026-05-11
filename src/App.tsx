@@ -3784,7 +3784,8 @@ export default function App() {
                 value={gallerySearch}
                 onChange={(e) => {
                   const val = e.target.value;
-                  const isSchedule = val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios';
+                  const normalized = val.toLowerCase().trim();
+                  const isSchedule = normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios';
                   
                   if (isSchedule) {
                     window.open('https://newen.araoz.ar/horario', '_blank');
@@ -3794,8 +3795,9 @@ export default function App() {
 
                   setGallerySearch(val);
                   if (currentView !== 'gallery' && val.trim() !== '') {
-                    // Solo navegamos si no es un intento de escribir la URL (heurística básica: si tiene puntos es probable que sea una URL)
-                    if (!val.includes('.')) {
+                    // Solo navegamos si no es un intento de escribir la URL o el comando secreto
+                    const secretBase = 'newen.araoz.ar/horario';
+                    if (!secretBase.startsWith(normalized) && !'newen.araoz.ar/horarios'.startsWith(normalized)) {
                       navigateTo('gallery');
                     }
                   }
@@ -5759,8 +5761,9 @@ export default function App() {
                         value={gallerySearch}
                         onChange={(e) => {
                           const val = e.target.value;
-                          if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
-                            setTimeout(() => window.open('https://newen.araoz.ar/horario', '_blank'), 100);
+                          const normalized = val.toLowerCase().trim();
+                          if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                            window.open('https://newen.araoz.ar/horario', '_blank');
                             setGallerySearch('');
                             return;
                           }
@@ -6514,8 +6517,9 @@ export default function App() {
                             value={unitSearch}
                             onChange={(e) => {
                               const val = e.target.value;
-                              if (val.toLowerCase().trim() === 'newen.araoz.ar/horario' || val.toLowerCase().trim() === 'newen.araoz.ar/horarios') {
-                                setTimeout(() => window.open('https://newen.araoz.ar/horario', '_blank'), 100);
+                              const normalized = val.toLowerCase().trim();
+                              if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
+                                window.open('https://newen.araoz.ar/horario', '_blank');
                                 setUnitSearch('');
                                 return;
                               }
