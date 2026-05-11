@@ -2,6 +2,9 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { playExternalBubble } from '../lib/sounds';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import { getOptimizationFlags } from '../lib/optimization';
+
+const flags = getOptimizationFlags();
 
 interface AeroCardProps {
   children: React.ReactNode;
@@ -13,21 +16,35 @@ interface AeroCardProps {
 
 export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, extra, theme = 'white' }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  // Optimización: Eliminar sombras pesadas en dispositivos legacy
+  const shadowClass = flags.simplifyShadows ? "shadow-md" : (theme === 'black' 
+    ? "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]" 
+    : "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]");
+
   const themeClasses = theme === 'black' 
-    ? "bg-black/60 border-white/20 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]" 
-    : "bg-white/40 border-t-white/80 border-l-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]";
+    ? `bg-black/80 border-white/20 ${shadowClass}` 
+    : `bg-white/60 border-t-white/80 border-l-white/60 ${shadowClass}`;
 
   const titleClasses = theme === 'black' ? "text-white/90" : "text-sky-900";
   const contentClasses = theme === 'black' ? "text-white/80" : "text-sky-950";
 
+  // Efecto glass simplificado para TVs
+  const glassEffect = flags.disableBlur ? "" : "backdrop-blur-md";
+
+  const Component = flags.reduceAnimations ? 'div' : motion.div;
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`aero-glass rounded-[2rem] p-3 md:p-6 overflow-hidden relative border transition-all duration-300 ${themeClasses} ${className}`}
+    // @ts-ignore - Dynamic motion component
+    <Component 
+      {...(flags.reduceAnimations ? {} : {
+        initial: { opacity: 0, y: isMobile ? 10 : 20 },
+        animate: { opacity: 1, y: 0 }
+      })}
+      className={`aero-glass rounded-[2rem] p-3 md:p-6 overflow-hidden relative border transition-all duration-300 ${glassEffect} ${themeClasses} ${className}`}
     >
       <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
-      <div className="glossy-overlay opacity-20" />
+      {!flags.isLegacy && <div className="glossy-overlay opacity-20" />}
       {title && (
         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
           <h3 className={`text-xl font-black ${titleClasses} flex items-center gap-2 transition-colors duration-500`}>
@@ -40,7 +57,7 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
       <div className={`relative z-10 ${contentClasses} transition-colors duration-500 ${className.includes('flex') ? 'flex-1 flex flex-col min-h-0' : ''}`}>
         {children}
       </div>
-    </motion.div>
+    </Component>
   );
 };
 

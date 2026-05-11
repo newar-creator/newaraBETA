@@ -78,6 +78,7 @@ import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 're
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getOptimizationFlags } from './lib/optimization';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton, GlossyInput, AeroAuthAlert } from './components/AeroUI';
@@ -444,8 +445,16 @@ export default function App() {
   const [showMobileSubjects, setShowMobileSubjects] = useState(false);
   const [showMoreMobileMenu, setShowMoreMobileMenu] = useState(false);
   const [disableAnimations, setDisableAnimations] = useState(() => {
-    return localStorage.getItem('newara_disable_animations') === 'true';
+    const legacy = getOptimizationFlags().reduceAnimations;
+    return legacy || localStorage.getItem('newara_disable_animations') === 'true';
   });
+  
+  useEffect(() => {
+    if (getOptimizationFlags().isLegacy) {
+      document.documentElement.classList.add('legacy-mode');
+    }
+  }, []);
+
   useEffect(() => {
     if (disableAnimations) {
       document.body.classList.add('no-animations');

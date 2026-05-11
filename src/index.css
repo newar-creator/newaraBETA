@@ -190,6 +190,23 @@
   }
 }
 
+.legacy-mode *, 
+.legacy-mode {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.legacy-mode .aero-glass {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.legacy-mode .bg-black\/60,
+.legacy-mode .bg-black\/80 {
+  background: rgba(0, 0, 0, 0.9) !important;
+}
+
 .no-animations * {
   transition: none !important;
   animation: none !important;

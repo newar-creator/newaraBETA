@@ -1,5 +1,8 @@
 import { motion } from 'motion/react';
 import React from 'react';
+import { getOptimizationFlags } from '../lib/optimization';
+
+const flags = getOptimizationFlags();
 
 const Bubble: React.FC<{ 
   size: number; 
@@ -9,6 +12,9 @@ const Bubble: React.FC<{
   delay: number;
   color: string;
 }> = ({ size, initialX, initialY, duration, delay, color }) => {
+  // En modo legacy, usamos una versión estática o sin animaciones complejas
+  if (flags.reduceAnimations) return null;
+
   return (
     <motion.div
       initial={{ y: '110vh', opacity: 0, scale: 0 }}
@@ -48,13 +54,15 @@ const Bubble: React.FC<{
 export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' }> = ({ theme = 'white' }) => {
   // Balanced set of bubbles for performance
   const bubbles = React.useMemo(() => {
+    if (flags.isLegacy) return []; // Desactivar burbujas en TVs escolares para máximo rendimiento
+
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const count = isMobile ? 6 : 10; // Significantly reduced for mobile performance
+    const count = isMobile ? 6 : 10;
     return Array.from({ length: count }).map((_, i) => ({
       size: 60 + Math.random() * 140,
       x: Math.random() * 100,
       y: 110,
-      duration: 18 + Math.random() * 25, // Slower is better for performance
+      duration: 18 + Math.random() * 25,
       delay: Math.random() * 10,
       color: theme === 'white' 
         ? ['#4ca5ff', '#67c23a', '#00f2ff', '#ffec3d'][i % 4]
