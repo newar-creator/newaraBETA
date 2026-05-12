@@ -4443,7 +4443,7 @@ export default function App() {
                     icon={<Calendar size={18} />} 
                     label="Horarios" 
                     onClick={() => navigateTo('horario')} 
-                    color="bg-emerald-500" 
+                    color="bg-[#ff2696]" 
                     theme={theme} 
                   />
                 </div>
