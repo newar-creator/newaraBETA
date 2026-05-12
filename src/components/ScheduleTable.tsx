@@ -99,22 +99,22 @@ export const ScheduleTable: React.FC<{ theme?: 'white' | 'black' }> = ({ theme =
       {/* Selector de días para móvil */}
       <div className="flex md:hidden gap-2 overflow-x-auto pb-2 custom-scrollbar">
         {DAYS.map((day, i) => (
-          <button
-            key={day}
-            onClick={() => setSelectedDay(i)}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all shrink-0 border ${
-              selectedDay === i 
-                ? (theme === 'black' ? 'bg-white text-black border-white' : 'bg-sky-950 text-white border-sky-950')
-                : (theme === 'black' ? 'bg-white/5 text-white/50 border-white/10' : 'bg-white/40 text-sky-950/50 border-white/20')
-            }`}
-          >
-            {day}
-          </button>
+            <button
+              key={day}
+              onClick={() => setSelectedDay(i)}
+              className={`px-6 py-2.5 rounded-2xl text-[11px] font-black tracking-widest transition-all shrink-0 border-2 shadow-sm ${
+                selectedDay === i 
+                  ? (theme === 'black' ? 'bg-white text-black border-white scale-105' : 'bg-sky-600 text-white border-sky-600 scale-105')
+                  : (theme === 'black' ? 'bg-white/5 text-white/40 border-white/5' : 'bg-white/60 text-sky-950/40 border-white/10')
+              }`}
+            >
+              {day}
+            </button>
         ))}
       </div>
 
       {/* Grid de Horarios */}
-      <div className="grid grid-cols-1 md:grid-cols-[auto_repeat(5,1fr)] gap-2 md:gap-4 overflow-hidden">
+      <div className="grid grid-cols-[auto_1fr] md:grid-cols-[auto_repeat(5,1fr)] gap-2 md:gap-4 items-stretch">
         {/* Header - Solo Desktop */}
         <div className="hidden md:block" />
         {DAYS.map((day, i) => (
@@ -126,55 +126,62 @@ export const ScheduleTable: React.FC<{ theme?: 'white' | 'black' }> = ({ theme =
         ))}
 
         {/* Filas de tiempo */}
-        {TIMES.map((time) => (
-          <React.Fragment key={time.id}>
-            <div className={`p-2 md:p-3 rounded-2xl border flex flex-col items-center justify-center min-w-[70px] ${
-              theme === 'black' ? 'bg-zinc-900 border-white/5' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <span className="text-[10px] font-black opacity-40">{time.id}</span>
-              <span className={`text-xs font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{time.start}</span>
-              <span className="text-[10px] font-bold opacity-30">{time.end}</span>
-            </div>
+        {TIMES.map((time) => {
+          const dayIdx = selectedDay;
+          const slot = SCHEDULE_DATA[time.id][dayIdx];
+          const hasContent = slot && slot.subject !== '';
 
-            {/* Desktop: Mostrar todos los días. Mobile: Solo seleccionado */}
-            {DAYS.map((day, dayIdx) => {
-              const slot = SCHEDULE_DATA[time.id][dayIdx];
-              const isVisible = dayIdx === selectedDay;
-              
-              if (!slot || slot.subject === '') {
+          return (
+            <React.Fragment key={time.id}>
+              {/* Indicador de tiempo - Estilo responsivo */}
+              <div className={`p-2 md:p-3 rounded-2xl border flex flex-col items-center justify-center min-w-[70px] md:min-w-[80px] self-center md:self-stretch ${
+                theme === 'black' ? 'bg-zinc-900 border-white/5' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <span className="text-[9px] md:text-[10px] font-black opacity-30 uppercase">{time.id}</span>
+                <span className={`text-xs md:text-sm font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{time.start}</span>
+                <span className="text-[9px] md:text-[10px] font-bold opacity-30">{time.end}</span>
+              </div>
+
+              {/* Desktop: Mostrar todos los días. Mobile: Solo seleccionado */}
+              {DAYS.map((day, dayIdxLoop) => {
+                const currentSlot = SCHEDULE_DATA[time.id][dayIdxLoop];
+                const isVisible = dayIdxLoop === selectedDay;
+                
+                if (!currentSlot || currentSlot.subject === '') {
+                  return (
+                    <div 
+                      key={`${time.id}-${day}`} 
+                      className={`${isVisible ? 'flex' : 'hidden'} md:flex items-center justify-center rounded-2xl border border-dashed opacity-5 min-h-[60px] ${
+                        theme === 'black' ? 'border-white' : 'border-sky-900'
+                      }`}
+                    />
+                  );
+                }
+
                 return (
                   <div 
-                    key={`${time.id}-${day}`} 
-                    className={`${isVisible ? 'flex' : 'hidden'} md:flex items-center justify-center rounded-2xl border border-dashed opacity-10 ${
-                      theme === 'black' ? 'border-white' : 'border-sky-900'
-                    }`}
-                  />
-                );
-              }
-
-              return (
-                <div 
-                  key={`${time.id}-${day}`}
-                  className={`${isVisible ? 'flex' : 'hidden'} md:flex flex-col p-3 rounded-2xl border shadow-sm transition-transform active:scale-95 group relative overflow-hidden`}
-                  style={{ 
-                    backgroundColor: theme === 'black' ? `${slot.color}33` : `${slot.color}22`,
-                    borderColor: slot.color,
-                  }}
-                >
-                  <div className="absolute top-0 left-0 w-1 h-full" style={{ background: slot.color }} />
-                  <span className={`text-xs font-black leading-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    {slot.subject}
-                  </span>
-                  {slot.teacher && (
-                    <span className={`text-[10px] font-bold opacity-60 mt-1 uppercase truncate ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                      {slot.teacher}
+                    key={`${time.id}-${day}`}
+                    className={`${isVisible ? 'flex' : 'hidden'} md:flex flex-col p-3 md:p-4 rounded-2xl border shadow-sm transition-transform active:scale-95 group relative overflow-hidden min-h-[60px] justify-center`}
+                    style={{ 
+                      backgroundColor: theme === 'black' ? `${currentSlot.color}33` : `${currentSlot.color}22`,
+                      borderColor: currentSlot.color,
+                    }}
+                  >
+                    <div className="absolute top-0 left-0 w-1 md:w-1.5 h-full" style={{ background: currentSlot.color }} />
+                    <span className={`text-[11px] md:text-sm font-black leading-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                      {currentSlot.subject}
                     </span>
-                  )}
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
+                    {currentSlot.teacher && (
+                      <span className={`text-[9px] md:text-[11px] font-bold opacity-60 mt-0.5 md:mt-1 uppercase truncate ${theme === 'black' ? 'text-zinc-400' : 'text-sky-900/60'}`}>
+                        {currentSlot.teacher}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <div className={`flex items-center gap-6 p-4 rounded-3xl border border-dashed mt-8 ${

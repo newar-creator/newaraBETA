@@ -5797,19 +5797,20 @@ export default function App() {
               key="horario"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-8 max-w-5xl mx-auto"
+              className="space-y-4 md:space-y-8 max-w-5xl mx-auto"
             >
                <header className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <button 
                       onClick={() => navigateTo('home')}
-                      className="p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10"
+                      className="p-2.5 md:p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10"
                     >
-                      <ArrowLeft size={24} />
+                      <ArrowLeft size={20} className="md:w-6 md:h-6" />
                     </button>
                     <div>
-                      <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Horarios Escolares</h1>
-                      <p className="text-xs md:text-sm font-bold opacity-60">Consulta tu cronograma semanal de clases.</p>
+                      <h1 className={`text-xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Horarios Escolares</h1>
+                      <p className="hidden md:block text-xs md:text-sm font-bold opacity-60">Consulta tu cronograma semanal de clases.</p>
+                      <p className="md:hidden text-[10px] font-bold opacity-60">Tu cronograma semanal.</p>
                     </div>
                   </div>
                   <a 
@@ -5822,7 +5823,7 @@ export default function App() {
                   </a>
                </header>
                
-               <AeroCard theme={theme} className="p-4 md:p-8">
+               <AeroCard theme={theme} className="p-3 md:p-8">
                   <ScheduleTable theme={theme} />
                </AeroCard>
 
