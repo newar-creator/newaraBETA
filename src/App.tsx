@@ -373,7 +373,7 @@ export default function App() {
       if (currentView !== 'class-detail') setCurrentView('class-detail');
     } else {
       // Catch-all: if we have a path that doesn't match, go to inicio
-      if (location.pathname !== '/inicio' && location.pathname !== '/') {
+      if (location.pathname !== '/inicio' && location.pathname !== '/' && !location.pathname.includes('horario')) {
          navigate('/inicio', { replace: true });
       }
     }
@@ -4434,15 +4434,13 @@ export default function App() {
                     color="bg-slate-500" 
                     theme={theme} 
                   />
-                  {isClaudia && (
-                    <HomeShortcut 
-                      icon={<Calendar size={18} />} 
-                      label="Horarios" 
-                      onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
-                      color="bg-emerald-500" 
-                      theme={theme} 
-                    />
-                  )}
+                  <HomeShortcut 
+                    icon={<Calendar size={18} />} 
+                    label="Horarios" 
+                    onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
+                    color="bg-emerald-500" 
+                    theme={theme} 
+                  />
                 </div>
               </header>
 
