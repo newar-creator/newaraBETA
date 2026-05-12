@@ -71,7 +71,8 @@ import {
   ShieldAlert,
   Send,
   XCircle,
-  Library
+  Library,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -82,6 +83,7 @@ import { getOptimizationFlags } from './lib/optimization';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton, GlossyInput, AeroAuthAlert } from './components/AeroUI';
+import { ScheduleTable } from './components/ScheduleTable';
 import { NewAraLogo } from './components/NewAraLogo';
 import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
@@ -164,7 +166,7 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 };
 
-type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames';
+type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario';
 
 type NotificationType = 'assignment' | 'announcement' | 'moderation' | 'update';
 
@@ -293,6 +295,7 @@ export default function App() {
     if (path === 'materia') return 'subject';
     if (path === 'clase') return 'class-detail';
     if (path === 'inicio') return 'home';
+    if (path === 'horario') return 'horario';
     return (localStorage.getItem('newara_view') as View) || 'home';
   });
 
@@ -340,7 +343,8 @@ export default function App() {
       'reports': 'reports',
       'minijuegos': 'minigames',
       'create-activity': 'create-activity',
-      'play-activity': 'play-activity'
+      'play-activity': 'play-activity',
+      'horario': 'horario'
     };
 
     if (viewMap[firstSegment]) {
@@ -373,7 +377,7 @@ export default function App() {
       if (currentView !== 'class-detail') setCurrentView('class-detail');
     } else {
       // Catch-all: if we have a path that doesn't match, go to inicio
-      if (location.pathname !== '/inicio' && location.pathname !== '/' && !location.pathname.includes('horario')) {
+      if (location.pathname !== '/inicio' && location.pathname !== '/' && !location.pathname.startsWith('/horario')) {
          navigate('/inicio', { replace: true });
       }
     }
@@ -412,6 +416,7 @@ export default function App() {
       case 'reports': path = '/reports'; break;
       case 'create-activity': path = '/create-activity'; break;
       case 'play-activity': path = '/play-activity'; break;
+      case 'horario': path = '/horario'; break;
       case 'subject': 
         if (sId) path = `/materia/${sId}`;
         break;
@@ -3802,7 +3807,7 @@ export default function App() {
                   
                   // Solo redirigir si es el match exacto
                   if (normalized === secret || normalized === secretAlt || normalized === secretShort || normalized === secretShortAlt) {
-                    window.location.href = 'https://newen.araoz.ar/horario';
+                    navigateTo('horario');
                     setGallerySearch('');
                     return;
                   }
@@ -3824,7 +3829,7 @@ export default function App() {
                       normalized === '/horario' ||
                       normalized === '/horarios'
                     ) {
-                      window.location.href = 'https://newen.araoz.ar/horario';
+                      navigateTo('horario');
                       setGallerySearch('');
                     }
                   }
@@ -3921,8 +3926,8 @@ export default function App() {
             )}
             {isClaudia && (
               <NavButton 
-                active={false} 
-                onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
+                active={currentView === 'horario'} 
+                onClick={() => navigateTo('horario')} 
                 icon={<Calendar size={22} />} 
                 label="Horarios" 
                 theme={theme}
@@ -4082,8 +4087,8 @@ export default function App() {
                   )}
                   {isClaudia && (
                     <MobileMenuButton 
-                      active={false} 
-                      onClick={() => { window.location.href = 'https://newen.araoz.ar/horario'; setShowMoreMobileMenu(false); }} 
+                      active={currentView === 'horario'} 
+                      onClick={() => { navigateTo('horario'); setShowMoreMobileMenu(false); }} 
                       icon={<Calendar size={20} />} 
                       label="Horarios" 
                       theme={theme}
@@ -4437,7 +4442,7 @@ export default function App() {
                   <HomeShortcut 
                     icon={<Calendar size={18} />} 
                     label="Horarios" 
-                    onClick={() => window.location.href = 'https://newen.araoz.ar/horario'} 
+                    onClick={() => navigateTo('horario')} 
                     color="bg-emerald-500" 
                     theme={theme} 
                   />
@@ -5787,6 +5792,53 @@ export default function App() {
             </motion.div>
           )}
 
+          {currentView === 'horario' && (
+            <motion.div 
+              key="horario"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8 max-w-5xl mx-auto"
+            >
+               <header className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => navigateTo('home')}
+                      className="p-3 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10"
+                    >
+                      <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                      <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Horarios Escolares</h1>
+                      <p className="text-xs md:text-sm font-bold opacity-60">Consulta tu cronograma semanal de clases.</p>
+                    </div>
+                  </div>
+                  <a 
+                      href="https://newen.araoz.ar/horario-static" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hidden md:flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25"
+                    >
+                      <ExternalLink size={14} /> Fuente Original
+                  </a>
+               </header>
+               
+               <AeroCard theme={theme} className="p-4 md:p-8">
+                  <ScheduleTable theme={theme} />
+               </AeroCard>
+
+               <div className="md:hidden flex justify-center">
+                  <a 
+                    href="https://newen.araoz.ar/horario-static" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all"
+                  >
+                    <ExternalLink size={14} /> Abrir Fuente Original
+                  </a>
+               </div>
+            </motion.div>
+          )}
+
           {currentView === 'gallery' && (
             <motion.div 
               key="gallery"
@@ -5820,7 +5872,7 @@ export default function App() {
                             normalized === '/horario' ||
                             normalized === '/horarios'
                           ) {
-                            window.location.href = 'https://newen.araoz.ar/horario';
+                            navigateTo('horario');
                             setGallerySearch('');
                             return;
                           }
@@ -5835,7 +5887,7 @@ export default function App() {
                               normalized === '/horario' ||
                               normalized === '/horarios'
                             ) {
-                              window.location.href = 'https://newen.araoz.ar/horario';
+                              navigateTo('horario');
                               setGallerySearch('');
                             }
                           }
@@ -6590,7 +6642,7 @@ export default function App() {
                               const val = e.target.value;
                               const normalized = val.toLowerCase().trim();
                               if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
-                                window.location.href = 'https://newen.araoz.ar/horario';
+                                navigateTo('horario');
                                 setUnitSearch('');
                                 return;
                               }
@@ -6600,7 +6652,7 @@ export default function App() {
                               if (e.key === 'Enter') {
                                 const normalized = unitSearch.toLowerCase().trim();
                                 if (normalized === 'newen.araoz.ar/horario' || normalized === 'newen.araoz.ar/horarios') {
-                                  window.location.href = 'https://newen.araoz.ar/horario';
+                                  navigateTo('horario');
                                   setUnitSearch('');
                                 }
                               }
