@@ -3827,23 +3827,23 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-[100px] md:relative md:h-auto md:w-64 aero-glass m-2 md:m-4 rounded-[32px] md:rounded-[40px] flex flex-col items-center justify-start md:justify-start py-1 md:py-8 gap-0 md:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 h-[80px] lg:relative lg:h-auto lg:w-64 aero-glass m-2 lg:m-4 rounded-[24px] lg:rounded-[40px] flex flex-row lg:flex-col items-center justify-between lg:justify-start py-2 lg:py-8 px-4 lg:px-0 gap-0 lg:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Now visible on mobile too */}
-        <div className="flex flex-col items-center gap-0 md:gap-2 mb-0 md:mb-1 px-4 scale-90 md:scale-100">
-           <div className="md:hidden">
+        <div className="hidden lg:flex flex-col items-center gap-0 lg:gap-2 mb-0 lg:mb-1 px-4 scale-90 lg:scale-100">
+           <div className="lg:hidden">
              <NewAraLogo size="sm" theme={theme} onClick={() => playExternalBubble()} />
            </div>
-           <div className="hidden md:block">
+           <div className="hidden lg:block">
              <NewAraLogo size="lg" theme={theme} onClick={() => playExternalBubble()} />
            </div>
           
-          <div className="hidden md:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+          <div className="hidden lg:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
         </div>
 
         {/* PC Offline Status - Positioned between logo and user profile */}
-        <div className="hidden md:block mb-2">
+        <div className="hidden lg:block mb-2">
           <AnimatePresence>
             {isOffline && (
               <motion.div 
@@ -3873,7 +3873,7 @@ export default function App() {
           </button>
         </div>
 
-        <div className="hidden md:flex flex-col items-center gap-2 mb-4">
+        <div className="hidden lg:flex flex-col items-center gap-2 mb-4">
           <div className="w-14 h-14 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden group">
             {userAvatar ? (
               <img 
@@ -3888,15 +3888,15 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="flex flex-col items-center">
-            <span className={`hidden md:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
-            <span className={`hidden md:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{userRole}</span>
+          <div className="hidden lg:flex flex-col items-center">
+            <span className={`hidden lg:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
+            <span className={`hidden lg:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{userRole}</span>
           </div>
         </div>
 
-        <div className="flex-1 w-full md:px-4 md:overflow-y-auto md:custom-scrollbar flex md:flex-col flex-row justify-around md:justify-start items-center gap-1 md:gap-8">
+        <div className="flex-1 w-full lg:px-4 lg:overflow-y-auto lg:custom-scrollbar flex lg:flex-col flex-row justify-around lg:justify-start items-center gap-1 lg:gap-8">
           {/* Desktop Search Bar */}
-          <div className="hidden md:flex w-full mb-2">
+          <div className="hidden lg:flex w-full mb-2">
             <div className="relative w-full group">
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${theme === 'black' ? 'text-white/30 group-focus-within:text-blue-400' : 'text-sky-900/40 group-focus-within:text-blue-500'}`} size={16} />
               <input 
@@ -3940,7 +3940,7 @@ export default function App() {
                   }
                 }}
                 placeholder="Buscar actividades..."
-                className={`w-full pl-10 pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
+                className={`w-full lg:pl-10 lg:pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
                   theme === 'black' 
                     ? 'bg-zinc-900/50 border-white/5 focus:border-blue-500/50 text-white placeholder:text-white/20' 
                     : 'bg-white border-slate-100 focus:border-blue-500 shadow-sm text-sky-950 placeholder:text-sky-900/30'
@@ -3958,7 +3958,7 @@ export default function App() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex flex-col gap-4 w-full items-center">
+          <div className="hidden lg:flex flex-col gap-4 w-full items-center">
             <NavButton 
               id="nav-home"
               active={currentView === 'home'} 
@@ -4054,7 +4054,7 @@ export default function App() {
             />
 
             <div className="flex flex-col gap-2 w-full pb-8 pt-4 border-t border-white/10 mt-4">
-              <p className="hidden md:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
+              <p className="hidden lg:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
               {SUBJECTS.map(s => (
                 <button 
                   key={s.id}
@@ -4063,12 +4063,13 @@ export default function App() {
                     setSelectedSubject(s);
                     navigateTo('subject', { subjectId: s.id });
                   }}
-                  className={`flex items-center gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
+                  className={`flex items-center justify-center lg:justify-start gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
+                  title={s.name}
                 >
                   <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
                     {getIcon(s.icon, 16)}
                   </div>
-                  <span className={`text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
+                  <span className={`hidden lg:block text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
                 </button>
               ))}
             </div>
@@ -4076,7 +4077,7 @@ export default function App() {
 
           {/* Mobile Navigation */}
           {!minigameSessionId && (
-            <div className="flex md:hidden justify-around items-center w-full px-2 mt-auto">
+            <div className="flex lg:hidden justify-around items-center w-full px-2 mt-auto">
               <NavButton 
                 id="mobile-nav-home"
                 active={currentView === 'home'} 
@@ -4279,7 +4280,7 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className={`md:hidden flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
+      <div className={`lg:hidden flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
         <div className="absolute left-6 top-1/2 -translate-y-1/2">
            <div 
              className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
@@ -4326,7 +4327,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-52 md:p-8 relative">
+      <main className="flex-1 overflow-y-auto p-4 pb-32 lg:p-8 relative">
         <AnimatePresence>
           {isOffline && (
             <motion.div 
@@ -4494,7 +4495,7 @@ export default function App() {
               animate={disableAnimations ? { opacity: 1 } : { opacity: 1, x: 0 }}
               exit={disableAnimations ? { opacity: 1 } : { opacity: 0, scale: 0.9, y: 30 }}
               transition={disableAnimations ? { duration: 0 } : { duration: 0.4 }}
-              className="space-y-8"
+              className="space-y-8 max-w-7xl mx-auto"
             >
               <div className="flex items-center gap-3 p-4 bg-red-500/10 border-2 border-red-500/20 rounded-[28px] overflow-hidden relative group">
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
@@ -4554,7 +4555,7 @@ export default function App() {
                 </div>
               </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                 <AeroCard title="Minijuegos en Vivo" theme={theme} className="bg-gradient-to-br from-amber-400/10 to-orange-500/10">
                   <div className="space-y-4">
                     <p className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Unirse a una Partida</p>
@@ -4662,7 +4663,7 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 md:col-span-2 lg:col-span-1">
+                <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 lg:col-span-2 xl:col-span-1">
                     <div className="space-y-4">
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {galleryActivities
@@ -4727,7 +4728,7 @@ export default function App() {
                 </AeroCard>
 
                 {isLoggedIn && (
-                  <AeroCard title="Tareas Pendientes" theme={theme} className="bg-gradient-to-br from-rose-400/10 to-orange-500/10 col-span-1 md:col-span-2">
+                  <AeroCard title="Tareas Pendientes" theme={theme} className="bg-gradient-to-br from-rose-400/10 to-orange-500/10 col-span-1 lg:col-span-2">
                      <div className="space-y-4">
                         {isPendingTasksLoading ? (
                           <div className="flex flex-col items-center justify-center py-10 gap-3">
@@ -4735,7 +4736,7 @@ export default function App() {
                             <p className="text-[10px] font-black uppercase opacity-40">Buscando tareas pendientes...</p>
                           </div>
                         ) : pendingTasks.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {pendingTasks.map(task => (
                               <div 
                                 key={task.id} 
@@ -4840,8 +4841,8 @@ export default function App() {
                   </div>
                 </AeroCard>
 
-                <AeroCard title={t('materias')} theme={theme}>
-                  <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                <AeroCard title={t('materias')} theme={theme} className="lg:col-span-2 xl:col-span-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                     {SUBJECTS.map(s => (
                       <button 
                         key={s.id} 
@@ -6747,15 +6748,15 @@ export default function App() {
                transition={disableAnimations ? { duration: 0 } : { type: "spring", damping: 25, stiffness: 120 }}
                className="space-y-6"
              >
-              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 max-w-7xl mx-auto">
                 <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 text-white shadow-xl flex-shrink-0">
                   {getIcon(selectedSubject.icon, 24)}
                 </div>
                 <h1 className={`text-3xl md:text-5xl font-black tracking-tighter text-center md:text-left transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h1>
               </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                  <div className="xl:col-span-2 space-y-6">
                     <AeroCard title={t('unidadesYTemas')} theme={theme}>
                       <div className="flex flex-col gap-6">
                         {/* Unit Search Bar */}
@@ -6822,7 +6823,7 @@ export default function App() {
                     </AeroCard>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6">
                     <AeroCard title={t('informacion')} theme={theme}>
                       <p className={`font-medium leading-relaxed italic text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         "{selectedSubject.description}"
@@ -6852,7 +6853,7 @@ export default function App() {
                         setSelectedProgramSubject(selectedSubject);
                         setShowProgramModal(true);
                       }}
-                      className="w-full py-3 text-sm gap-2 border-2 border-white/40 active:scale-95 transition-all"
+                      className="w-fit px-6 py-2.5 text-xs gap-2 border-2 border-white/40 active:scale-95 transition-all mx-auto"
                     >
                       <BookOpen size={16} /> {t('verProgramas')}
                     </GlossyButton>
@@ -7701,7 +7702,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97, y: 0 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      className={`flex-1 md:w-full flex md:flex-row flex-col items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
+      className={`flex-1 lg:w-full flex lg:flex-row flex-col items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 xl:p-4 rounded-xl lg:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
       style={{ willChange: 'transform' }}
     >
       {active && <div className="glossy-overlay opacity-30" />}
@@ -7712,7 +7713,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       >
         {icon}
       </motion.div>
-      <span className={`text-[10px] md:text-sm font-bold tracking-tight`}>{label}</span>
+      <span className={`text-[10px] lg:text-sm font-bold tracking-tight hidden lg:block`}>{label}</span>
       
       {badge && (
         <span className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
@@ -7723,7 +7724,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       {active && (
         <motion.div 
           layoutId="nav-indicator"
-          className="hidden md:block absolute right-2 w-1.5 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]"
+          className="hidden lg:block absolute right-2 w-1.5 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 32 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -7775,7 +7776,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
         <div className={`absolute inset-0 rounded-full border-2 scale-135 opacity-10 group-hover:opacity-60 group-hover:scale-160 transition-all duration-1000 blur-[4px] ${theme === 'black' ? 'border-sky-300' : 'border-sky-400'}`} />
         
         {/* Main Button Body - Sphere Effect */}
-        <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600' : getColorClasses(color)} flex items-center justify-center text-white text-3xl md:text-4xl font-black shadow-[0_12px_24px_-8px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3),inset_0_4px_10px_rgba(255,255,255,0.5)] border-4 border-white relative overflow-hidden active:translate-y-1 transition-all`}>
+        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600' : getColorClasses(color)} flex items-center justify-center text-white text-4xl md:text-5xl font-black shadow-[0_12px_24px_-8px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3),inset_0_4px_10px_rgba(255,255,255,0.5)] border-4 border-white relative overflow-hidden active:translate-y-1 transition-all`}>
            {/* Top Gloss Flare */}
            <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
            {/* Center Light Reflection */}
@@ -7850,7 +7851,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
   };
 
   return (
-    <div className="flex flex-col items-center py-10 md:py-16 gap-12 md:gap-20 relative w-full overflow-visible">
+    <div className="flex flex-col items-center py-12 md:py-24 gap-20 md:gap-32 relative w-full overflow-visible">
       {/* Background Decorative Elements for Aero feel */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden select-none">
         <div className="absolute top-[10%] -left-10 w-40 h-40 bg-blue-400/5 rounded-full blur-3xl" />
@@ -7860,7 +7861,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
 
       {units.map((unit, i) => {
         const displayIndex = unit.originalIndex !== undefined ? unit.originalIndex : i;
-        const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 100;
+        const offsetMultiplier = typeof window !== 'undefined' && window.innerWidth < 1024 ? 30 : 100;
         const offset = Math.sin(i * 1.4) * offsetMultiplier;
         const isCompleted = completedUnits.includes(`${subjectId}-${displayIndex}`);
         
@@ -7883,7 +7884,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
             {/* Connector dots - Styled more like organic "water drops" */}
             {i < units.length - 1 && (
               <div 
-                className="absolute left-1/2 -translate-x-1/2 top-24 md:top-32 h-12 md:h-16 flex flex-col gap-3 items-center opacity-60"
+                className="absolute left-1/2 -translate-x-1/2 top-28 md:top-40 h-16 md:h-24 flex flex-col gap-4 items-center opacity-60"
                 style={{
                    transform: `translateX(${-offset/1.5}px) rotate(${offset > 0 ? '-20deg' : '20deg'})`
                 }}
@@ -7896,9 +7897,9 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
             )}
             
             {/* Unit Title Inline (Desktop Only) */}
-            <div className={`hidden lg:block absolute top-[20%] ${offset > 0 ? 'right-[120%]' : 'left-[120%]'} w-48 text-left ${offset > 0 ? 'text-right' : 'text-left'} transition-all group-hover:scale-105 pointer-events-none`}>
-               <h4 className={`text-sm font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-950/60'}`}>{unit.title}</h4>
-               <p className={`text-[10px] font-bold opacity-40 line-clamp-1 italic ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>{unit.description}</p>
+            <div className={`hidden lg:block absolute top-[20%] ${offset > 0 ? 'right-[115%]' : 'left-[115%]'} w-48 lg:w-64 text-left ${offset > 0 ? 'text-right' : 'text-left'} transition-all group-hover:scale-105 pointer-events-none`}>
+               <h4 className={`text-[10px] lg:text-sm font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-950/60'}`}>{unit.title}</h4>
+               <p className={`hidden lg:block text-[10px] font-bold opacity-40 line-clamp-1 italic ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>{unit.description}</p>
             </div>
           </div>
         );
@@ -7937,16 +7938,16 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
       transition={disableAnimations ? { duration: 0 } : { type: "spring", damping: 22, stiffness: 100 }}
       className="max-w-4xl mx-auto space-y-8"
     >
-      <header className="flex items-center gap-4 md:gap-6 sticky top-0 z-30 pt-2 pb-4 backdrop-blur-md">
+      <header className="flex items-center gap-4 lg:gap-6 sticky top-0 z-30 pt-2 pb-4 backdrop-blur-md">
         <button 
           onClick={onBack}
-          className={`p-3 md:p-4 rounded-3xl aero-glass transition-all active:scale-95 shadow-xl ${theme === 'black' ? 'hover:bg-white/10 text-white border-white/20' : 'hover:bg-white/80 text-sky-900 border-white/60'}`}
+          className={`p-2 lg:p-4 rounded-3xl aero-glass transition-all active:scale-95 shadow-xl ${theme === 'black' ? 'hover:bg-white/10 text-white border-white/20' : 'hover:bg-white/80 text-sky-900 border-white/60'}`}
         >
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className={`text-2xl md:text-5xl font-black tracking-tighter leading-tight transition-colors duration-500 truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+            <h2 className={`text-xl lg:text-5xl font-black tracking-tighter leading-tight transition-colors duration-500 truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{unit.title}</h2>
             {unit.difficulty && (
               <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm transition-all ${
                 unit.difficulty === 'Baja' ? 'bg-green-500/20 border-green-500/30 text-green-500' :
