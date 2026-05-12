@@ -73,7 +73,9 @@ import {
   XCircle,
   Library,
   ExternalLink,
-  Server
+  Server,
+  GraduationCap,
+  Presentation
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -308,6 +310,7 @@ export default function App() {
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [userRole, setUserRole] = useState<'Estudiante' | 'Profesor'>(() => (localStorage.getItem('newara_user_role') as any) || 'Estudiante');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   useEffect(() => {
     const hasVisited = localStorage.getItem('newara_visited');
@@ -983,6 +986,11 @@ export default function App() {
           setUserBio(userData.bio || 'Explorador del conocimiento en NewAra.');
           setUserRole(userData.role || 'Estudiante');
           setUserAvatar(userData.avatar || '');
+          
+          if (!userData.role) {
+            setShowRoleSelection(true);
+          }
+
           localStorage.setItem('newara_user_name', loginUserName.trim());
           localStorage.setItem('newara_user_password', loginPassword);
           localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
@@ -1039,7 +1047,7 @@ export default function App() {
           name: loginUserName.trim(),
           password: hashedPassword,
           bio: userBio.slice(0, 300),
-          role: userRole,
+          role: null, // Force selection on first login/right after register
           avatar: safeAvatar,
           createdAt: serverTimestamp()
         });
@@ -1049,6 +1057,7 @@ export default function App() {
         setIsLoggedIn(true);
         setIsRegistering(false);
         setShowWelcome(false);
+        setShowRoleSelection(true); // Trigger selection
         localStorage.setItem('newara_visited', 'true');
         localStorage.setItem('newara_user_name', loginUserName.trim());
         localStorage.setItem('newara_user_password', loginPassword);
@@ -1057,6 +1066,27 @@ export default function App() {
     } catch (error) {
       console.error("Register error:", error);
       setAuthError("Error al crear la cuenta.");
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleSelectRole = async (role: 'Estudiante' | 'Profesor') => {
+    if (!isLoggedIn || !userName) return;
+    setIsAuthLoading(true);
+    try {
+      const userRef = doc(db, 'users', userName.trim());
+      await updateDoc(userRef, { 
+        role,
+        roleSelectedAt: serverTimestamp()
+      });
+      setUserRole(role);
+      localStorage.setItem('newara_user_role', role);
+      setShowRoleSelection(false);
+      playSuccessSound();
+    } catch (error) {
+       console.error("Error setting role:", error);
+       handleFirestoreError(error, OperationType.UPDATE, `users/${userName}`);
     } finally {
       setIsAuthLoading(false);
     }
@@ -3082,6 +3112,80 @@ export default function App() {
           }}
         />
       )}
+
+      <AnimatePresence>
+        {showRoleSelection && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="absolute inset-0 bg-sky-950/40 backdrop-blur-3xl"
+            />
+            <motion.div
+               initial={{ scale: 0.9, y: 30, opacity: 0 }}
+               animate={{ scale: 1, y: 0, opacity: 1 }}
+               exit={{ scale: 0.9, y: 30, opacity: 0 }}
+               className={`relative w-full max-w-lg rounded-[48px] border-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] p-10 flex flex-col items-center gap-8 ${
+                 theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+               }`}
+            >
+               <div className="text-center space-y-2">
+                 <h2 className="text-4xl font-black tracking-tighter uppercase leading-none">¡Bienvenido!</h2>
+                 <p className="text-xs font-black uppercase tracking-[0.2em] opacity-40">Personaliza tu experiencia</p>
+               </div>
+
+               <div className="w-full space-y-4">
+                 <p className="text-center text-sm font-medium opacity-60 px-4">
+                   Para empezar, dinos cuál es tu rol en <span className="font-logo font-bold">NewAra</span>.
+                 </p>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => handleSelectRole('Estudiante')}
+                      disabled={isAuthLoading}
+                      className={`group relative p-6 rounded-[32px] bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-xl shadow-blue-500/20 active:scale-95 transition-all overflow-hidden ${isAuthLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/20 pointer-events-none" />
+                      <div className="relative z-10 flex flex-col items-center gap-3">
+                        <div className="p-4 rounded-2xl bg-white/20 group-hover:bg-white/30 transition-colors">
+                          {isAuthLoading ? (
+                            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <GraduationCap size={32} />
+                          )}
+                        </div>
+                        <span className="font-black text-sm uppercase tracking-widest text-center">Estudiante</span>
+                      </div>
+                    </button>
+
+                    <button 
+                      onClick={() => handleSelectRole('Profesor')}
+                      disabled={isAuthLoading}
+                      className={`group relative p-6 rounded-[32px] bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-xl shadow-orange-500/20 active:scale-95 transition-all overflow-hidden ${isAuthLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/20 pointer-events-none" />
+                      <div className="relative z-10 flex flex-col items-center gap-3">
+                        <div className="p-4 rounded-2xl bg-white/20 group-hover:bg-white/30 transition-colors">
+                          {isAuthLoading ? (
+                            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <Presentation size={32} />
+                          )}
+                        </div>
+                        <span className="font-black text-sm uppercase tracking-widest text-center">Profesor</span>
+                      </div>
+                    </button>
+                 </div>
+               </div>
+               
+               <p className="text-[10px] font-black uppercase tracking-widest opacity-20 text-center">
+                 Podrás cambiar esto más tarde en los ajustes.
+               </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Notifications Modal */}
       <AnimatePresence>
