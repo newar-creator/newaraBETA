@@ -72,7 +72,8 @@ import {
   Send,
   XCircle,
   Library,
-  ExternalLink
+  ExternalLink,
+  Server
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -4475,6 +4476,22 @@ export default function App() {
                     <div className={`p-3 rounded-2xl bg-white/5 border border-amber-500/10 text-[9px] font-medium leading-tight opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
                       Puntos por respuesta correcta: <span className="font-black text-amber-500">+450</span>
                     </div>
+
+                    {userRole === 'Profesor' && (
+                      <div className="pt-4 border-t border-white/10 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-[1px] flex-1 bg-white/10" />
+                          <span className="text-[9px] font-black opacity-30 uppercase tracking-tighter">O crear un servidor</span>
+                          <div className="h-[1px] flex-1 bg-white/10" />
+                        </div>
+                        <button 
+                          onClick={() => navigateTo('minigames')}
+                          className="w-full py-3 rounded-2xl bg-orange-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Server size={16} /> Panel de Control
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </AeroCard>
 
@@ -5226,12 +5243,16 @@ export default function App() {
                    Volver al inicio
                  </button>
                  {userRole === 'Profesor' && (
-                   <button 
-                     onClick={() => navigateTo('gallery')}
-                     className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 hover:text-amber-400 transition-colors"
-                   >
-                     Crear un servidor desde la Galería
-                   </button>
+                   <div className="flex flex-col items-center gap-2 pt-4">
+                     <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">O crear un servidor</span>
+                     <button 
+                       onClick={() => navigateTo('gallery')}
+                       className="px-10 py-5 rounded-3xl bg-orange-500 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                     >
+                       <Server size={18} className="group-hover:rotate-12 transition-transform" /> 
+                       <span>Crear Servidor</span>
+                     </button>
+                   </div>
                  )}
                </div>
             </motion.div>
