@@ -6853,7 +6853,7 @@ export default function App() {
                         setSelectedProgramSubject(selectedSubject);
                         setShowProgramModal(true);
                       }}
-                      className="w-fit px-6 py-2.5 text-xs gap-2 border-2 border-white/40 active:scale-95 transition-all mx-auto"
+                      className="h-[59.25px] w-[266.031px] text-sm gap-3 border-2 border-white/40 active:scale-95 transition-all mx-auto"
                     >
                       <BookOpen size={16} /> {t('verProgramas')}
                     </GlossyButton>
