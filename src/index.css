@@ -11,12 +11,39 @@
 }
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  html {
+    /* Prevent oversized document scrolling on some mobile browsers */
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+  }
+
   body {
-    @apply min-h-screen text-slate-800 antialiased;
+    @apply min-h-screen text-slate-800 antialiased overflow-y-auto;
+    height: 100%;
+    width: 100%;
+    overscroll-behavior-y: none;
     /* Hardware acceleration hints */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Prevent selection on UI elements by default */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Standardized way to handle mobile height */
+    min-height: 100dvh;
+  }
+
+  /* Re-enable selection for inputs and areas that need it */
+  input, textarea, [contenteditable="true"], .select-all {
+    user-select: text;
+    -webkit-user-select: text;
   }
 }
 
