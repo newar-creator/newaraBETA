@@ -43,6 +43,7 @@ import {
   X,
   AlertTriangle,
   Search,
+  SearchX,
   Trash2,
   Flag,
   AlertCircle,
@@ -6157,118 +6158,158 @@ export default function App() {
                       activity.id?.toLowerCase().includes(search) ||
                       date.includes(search)
                     );
-                  }).map((activity) => {
-                    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                    const dateStr = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : 'Desconocida';
-                    return (
-                      <motion.div
-                        layout={!isMobile}
-                        key={activity.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={!isMobile ? { y: -5 } : {}}
-                      className={`group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-52 md:h-64 overflow-hidden shadow-sm hover:shadow-2xl ${
-                        theme === 'black' 
-                          ? 'bg-white/5 border-white/10 hover:bg-white/10' 
-                          : 'bg-white/60 border-white/40 hover:bg-white/80'
-                      }`}
-                    >
-                      <div className="glossy-overlay opacity-10 group-hover:opacity-30 transition-opacity" />
-                      
-                      <div className="space-y-2 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
-                            {activity.id}
-                          </span>
-                          <div className="flex gap-1">
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); reportAbuse('activity', activity.id, activity.name, activity.creatorName); }}
-                              className="aero-icon-button text-amber-500 bg-amber-500/10"
-                              title="Denunciar Abuso"
-                            >
-                              <Flag size={14} />
-                            </button>
-                            {(isModerator || 
-                                activity.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
-                                activity.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
-                              ) && (
-                              <>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleEditActivity(activity, e); }}
-                                  className="aero-icon-button text-blue-500 bg-blue-500/10"
-                                  title="Editar Actividad"
-                                >
-                                  <Edit3 size={14} />
-                                </button>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title, activity.creatorId); }}
-                                  className="aero-icon-button text-red-500 bg-red-500/10"
-                                  title="Eliminar Actividad"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div onClick={async () => {
-                      // Fetch if the creator is a helper for the "Ver más" modal
-                      let creatorIsHelper = false;
-                      try {
-                        const userDoc = await getDoc(doc(db, 'users', String(activity.creatorId || activity.creatorName)));
-                        if (userDoc.exists()) {
-                          creatorIsHelper = userDoc.data().isHelper || false;
-                        }
-                      } catch (e) {}
-                      
-                      setSelectedActivityDetail({ ...activity, creatorIsHelper });
-                    }}>
-                          <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                            {activity.name && activity.name.length > 35 ? activity.name.substring(0, 35) + '...' : activity.name}
-                          </h3>
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              handleViewProfile(activity.creatorId, activity.creatorName, activity); 
-                            }}
-                            className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 hover:opacity-100 hover:text-blue-500 transition-all ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
-                          >
-                            Por {activity.creatorName || 'Anónimo'}
-                          </button>
-                        </div>
+                  }).length === 0 && gallerySearch.trim() !== '' ? (
+                    <div className="col-span-full py-20 text-center space-y-6">
+                      <div className="relative inline-block">
+                         <SearchX size={80} className={`mx-auto opacity-10 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
+                         <motion.div 
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                         >
+                            <AlertTriangle size={40} className="text-red-500/20" />
+                         </motion.div>
                       </div>
-
-                      <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
-                        <div className="flex flex-col gap-2">
-                           <div className="flex gap-2">
-                              <GlossyButton 
-                                onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
-                                variant="gray"
-                                className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
+                      <div className="space-y-2">
+                         <h2 className={`text-2xl md:text-5xl font-black uppercase tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡NO HAY NADA!</h2>
+                         <p className={`text-xs md:text-sm font-bold opacity-40 uppercase tracking-widest px-8 md:px-12 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>No se encontró ninguna actividad que coincida con "{gallerySearch}"</p>
+                      </div>
+                      <GlossyButton 
+                        onClick={() => {
+                          playExternalBubble();
+                          navigateTo('create-activity');
+                        }}
+                        className="px-8 md:px-12 py-3 md:py-4 text-[10px] md:text-xs font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group mx-auto"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+                          CREAR ACTIVIDAD
+                        </div>
+                      </GlossyButton>
+                    </div>
+                  ) : (
+                    galleryActivities.filter(activity => {
+                      const search = gallerySearch.toLowerCase();
+                      const date = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : '';
+                      return (
+                        activity.name?.toLowerCase().includes(search) ||
+                        activity.creatorName?.toLowerCase().includes(search) ||
+                        activity.id?.toLowerCase().includes(search) ||
+                        date.includes(search)
+                      );
+                    }).map((activity) => {
+                      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                      const dateStr = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : 'Desconocida';
+                      return (
+                        <motion.div
+                          layout={!isMobile}
+                          key={activity.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          whileHover={!isMobile ? { y: -5 } : {}}
+                          className={`group relative p-3 md:p-6 rounded-[24px] md:rounded-[32px] border transition-all duration-500 flex flex-col justify-between h-52 md:h-64 overflow-hidden shadow-sm hover:shadow-2xl ${
+                            theme === 'black' 
+                              ? 'bg-white/5 border-white/10 hover:bg-white/10' 
+                              : 'bg-white/60 border-white/40 hover:bg-white/80'
+                          }`}
+                        >
+                          <div className="glossy-overlay opacity-10 group-hover:opacity-30 transition-opacity" />
+                          
+                          <div className="space-y-2 relative z-10">
+                            <div className="flex items-center justify-between">
+                              <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
+                                {activity.id}
+                              </span>
+                              <div className="flex gap-1">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); reportAbuse('activity', activity.id, activity.name, activity.creatorName); }}
+                                  className="aero-icon-button text-amber-500 bg-amber-500/10"
+                                  title="Denunciar Abuso"
+                                >
+                                  <Flag size={14} />
+                                </button>
+                                {(isModerator || 
+                                    activity.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
+                                    activity.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
+                                  ) && (
+                                  <>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleEditActivity(activity, e); }}
+                                      className="aero-icon-button text-blue-500 bg-blue-500/10"
+                                      title="Editar Actividad"
+                                    >
+                                      <Edit3 size={14} />
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title, activity.creatorId); }}
+                                      className="aero-icon-button text-red-500 bg-red-500/10"
+                                      title="Eliminar Actividad"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div onClick={async () => {
+                              // Fetch if the creator is a helper for the "Ver más" modal
+                              let creatorIsHelper = false;
+                              try {
+                                const userDoc = await getDoc(doc(db, 'users', String(activity.creatorId || activity.creatorName)));
+                                if (userDoc.exists()) {
+                                  creatorIsHelper = userDoc.data().isHelper || false;
+                                }
+                              } catch (e) {}
+                              
+                              setSelectedActivityDetail({ ...activity, creatorIsHelper });
+                            }}>
+                              <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                                {activity.name && activity.name.length > 35 ? activity.name.substring(0, 35) + '...' : activity.name}
+                              </h3>
+                              <button 
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  handleViewProfile(activity.creatorId, activity.creatorName, activity); 
+                                }}
+                                className={`text-[8px] md:text-[10px] font-bold mt-1 opacity-50 hover:opacity-100 hover:text-blue-500 transition-all ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
                               >
-                                Ver más
-                              </GlossyButton>
-                              {userRole === 'Profesor' && (
-                                <GlossyButton 
-                                  onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
-                                  className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px] bg-gradient-to-br from-amber-400 to-orange-500"
-                                >
-                                  MINIJUEGO <Gamepad2 size={12} />
-                                </GlossyButton>
-                              )}
-                           </div>
-                           <GlossyButton 
-                             onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
-                             loading={isLoadingActivity && !currentSharedActivity}
-                             className="w-full py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
-                           >
-                             JUGAR <Play size={10} fill="currentColor" />
-                           </GlossyButton>
-                        </div>
-                      </div>
-                    </motion.div>
-                    );
-                  })}
+                                Por {activity.creatorName || 'Anónimo'}
+                              </button>
+                            </div>
+                          </div>
+    
+                          <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
+                            <div className="flex flex-col gap-2">
+                               <div className="flex gap-2">
+                                  <GlossyButton 
+                                    onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
+                                    variant="gray"
+                                    className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
+                                  >
+                                    Ver más
+                                  </GlossyButton>
+                                  {userRole === 'Profesor' && (
+                                    <GlossyButton 
+                                      onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
+                                      className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px] bg-gradient-to-br from-amber-400 to-orange-500"
+                                    >
+                                      MINIJUEGO <Gamepad2 size={12} />
+                                    </GlossyButton>
+                                  )}
+                               </div>
+                               <GlossyButton 
+                                 onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
+                                 loading={isLoadingActivity && !currentSharedActivity}
+                                 className="w-full py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
+                               >
+                                 JUGAR <Play size={10} fill="currentColor" />
+                               </GlossyButton>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )
+                    })
+                  )}
                 </div>
               )}
               
