@@ -4005,6 +4005,17 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
+              id="nav-classes"
+              active={currentView === 'classes' || currentView === 'class-detail'} 
+              onClick={() => {
+                navigateTo('classes');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<Users size={22} />} 
+              label="Clases" 
+              theme={theme}
+            />
+            <NavButton 
               id="nav-settings"
               active={currentView === 'settings'} 
               onClick={() => {
@@ -4038,20 +4049,6 @@ export default function App() {
                 theme={theme}
               />
             )}
-
-            <div className="w-full h-px bg-white/10 my-2" />
-
-            <NavButton 
-              id="nav-classes"
-              active={currentView === 'classes' || currentView === 'class-detail'} 
-              onClick={() => {
-                navigateTo('classes');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Users size={22} />} 
-              label="Clases" 
-              theme={theme}
-            />
 
             <div className="flex flex-col gap-2 w-full pb-8 pt-4 border-t border-white/10 mt-4">
               <p className="hidden lg:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
