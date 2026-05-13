@@ -4832,7 +4832,7 @@ export default function App() {
                               if (nextUnit) break;
                             }
                             return nextUnit 
-                              ? `Estudiar ${nextUnit.unit.title} (${nextUnit.subject.name})` 
+                              ? `Estudiar ${nextUnit.unit.title.length > 25 ? nextUnit.unit.title.slice(0, 25) + "..." : nextUnit.unit.title} (${nextUnit.subject.name})` 
                               : "¡Todo completado! Repasa tus apuntes.";
                           })()}
                         </p>
@@ -6755,8 +6755,8 @@ export default function App() {
                 <h1 className={`text-3xl md:text-5xl font-black tracking-tighter text-center md:text-left transition-colors duration-500 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{selectedSubject.name}</h1>
               </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                  <div className="xl:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                  <div className="lg:col-span-2 space-y-6">
                     <AeroCard title={t('unidadesYTemas')} theme={theme}>
                       <div className="flex flex-col gap-6">
                         {/* Unit Search Bar */}
@@ -6823,8 +6823,8 @@ export default function App() {
                     </AeroCard>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6">
-                    <AeroCard title={t('informacion')} theme={theme}>
+                  <div className="flex flex-col gap-6">
+                    <AeroCard title={t('informacion')} theme={theme} className="h-fit">
                       <p className={`font-medium leading-relaxed italic text-sm transition-colors duration-500 ${theme === 'black' ? 'text-white/70' : 'text-sky-900'}`}>
                         "{selectedSubject.description}"
                       </p>
@@ -6833,18 +6833,18 @@ export default function App() {
                     {selectedSubject.id === 'geografia' && (
                        <GlossyButton 
                         onClick={() => setShowGeoGuide(true)}
-                        className="w-full py-3 text-sm gap-2 border-2 border-white/40"
+                        className="w-full max-w-[280px] py-4 text-sm gap-2 border-2 border-white/40 mx-auto"
                        >
-                         <div className="flex items-center gap-2">📖 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
+                         <div className="flex items-center gap-2 whitespace-nowrap">📖 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(.HTML)</span></div>
                        </GlossyButton>
                     )}
 
                     {selectedSubject.id === 'matematica' && (
                        <GlossyButton 
                         onClick={() => setShowMathGuide(true)}
-                        className="w-full py-3 text-sm gap-2 border-2 border-white/40"
+                        className="w-full max-w-[280px] py-4 text-sm gap-2 border-2 border-white/40 mx-auto"
                        >
-                         <div className="flex items-center gap-2">🔢 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(PDF)</span></div>
+                         <div className="flex items-center gap-2 whitespace-nowrap">🔢 {t('guiaVisual')} <span className="text-[9px] opacity-50 font-black">(PDF)</span></div>
                         </GlossyButton>
                     )}
                     
@@ -6853,7 +6853,7 @@ export default function App() {
                         setSelectedProgramSubject(selectedSubject);
                         setShowProgramModal(true);
                       }}
-                      className="h-[59.25px] w-[266.031px] text-sm gap-3 border-2 border-white/40 active:scale-95 transition-all mx-auto"
+                      className="w-full max-w-[280px] py-4 text-sm gap-3 border-2 border-white/40 active:scale-95 transition-all mx-auto"
                     >
                       <BookOpen size={16} /> {t('verProgramas')}
                     </GlossyButton>
@@ -7326,7 +7326,9 @@ export default function App() {
                                 {idx + 1}
                               </div>
                               <div className="flex-1">
-                                <h4 className="font-black uppercase tracking-tight text-[11px] md:text-sm mb-0.5 md:mb-1">{unit.title}</h4>
+                                <h4 className="font-black uppercase tracking-tight text-[11px] md:text-sm mb-0.5 md:mb-1">
+                                  {unit.title.length > 30 ? `${unit.title.slice(0, 30)}...` : unit.title}
+                                </h4>
                                 <p className={`text-[10px] md:text-xs opacity-50 font-medium transition-all ${isExpanded ? '' : 'line-clamp-2'}`}>
                                   {unit.description}
                                 </p>
@@ -7776,7 +7778,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
         <div className={`absolute inset-0 rounded-full border-2 scale-135 opacity-10 group-hover:opacity-60 group-hover:scale-160 transition-all duration-1000 blur-[4px] ${theme === 'black' ? 'border-sky-300' : 'border-sky-400'}`} />
         
         {/* Main Button Body - Sphere Effect */}
-        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600' : getColorClasses(color)} flex items-center justify-center text-white text-4xl md:text-5xl font-black shadow-[0_12px_24px_-8px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3),inset_0_4px_10px_rgba(255,255,255,0.5)] border-4 border-white relative overflow-hidden active:translate-y-1 transition-all`}>
+        <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-b ${isCompleted ? 'from-green-400 to-green-600' : getColorClasses(color)} flex items-center justify-center text-white text-3xl md:text-4xl font-black shadow-[0_12px_24px_-8px_rgba(0,0,0,0.5),inset_0_-4px_10px_rgba(0,0,0,0.3),inset_0_4px_10px_rgba(255,255,255,0.5)] border-4 border-white relative overflow-hidden active:translate-y-1 transition-all`}>
            {/* Top Gloss Flare */}
            <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
            {/* Center Light Reflection */}
@@ -7797,7 +7799,9 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
             : 'bg-white/80 border-white/60 text-sky-950'
         }`}>
           <div className="glossy-overlay opacity-20 rounded-[24px]" />
-          <span className="text-xs md:text-sm font-black uppercase tracking-tight">{isCompleted ? '¡Completado!' : title}</span>
+          <span className="text-xs md:text-sm font-black uppercase tracking-tight">
+            {isCompleted ? '¡Completado!' : (title.length > 25 ? `${title.slice(0, 25)}...` : title)}
+          </span>
           {difficulty && (
             <div className="flex items-center gap-1.5">
               <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full bg-black/5 ${getDifficultyColor(difficulty)}`}>
@@ -7851,7 +7855,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
   };
 
   return (
-    <div className="flex flex-col items-center py-12 md:py-24 gap-20 md:gap-32 relative w-full overflow-visible">
+    <div className="flex flex-col items-center py-8 md:py-16 gap-16 md:gap-24 relative w-full overflow-visible">
       {/* Background Decorative Elements for Aero feel */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden select-none">
         <div className="absolute top-[10%] -left-10 w-40 h-40 bg-blue-400/5 rounded-full blur-3xl" />
@@ -7884,7 +7888,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
             {/* Connector dots - Styled more like organic "water drops" */}
             {i < units.length - 1 && (
               <div 
-                className="absolute left-1/2 -translate-x-1/2 top-28 md:top-40 h-16 md:h-24 flex flex-col gap-4 items-center opacity-60"
+                className="absolute left-1/2 -translate-x-1/2 top-24 md:top-36 h-12 md:h-20 flex flex-col gap-4 items-center opacity-60"
                 style={{
                    transform: `translateX(${-offset/1.5}px) rotate(${offset > 0 ? '-20deg' : '20deg'})`
                 }}
@@ -7898,7 +7902,9 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
             
             {/* Unit Title Inline (Desktop Only) */}
             <div className={`hidden lg:block absolute top-[20%] ${offset > 0 ? 'right-[115%]' : 'left-[115%]'} w-48 lg:w-64 text-left ${offset > 0 ? 'text-right' : 'text-left'} transition-all group-hover:scale-105 pointer-events-none`}>
-               <h4 className={`text-[10px] lg:text-sm font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-950/60'}`}>{unit.title}</h4>
+               <h4 className={`text-[10px] lg:text-sm font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-950/60'}`}>
+                 {unit.title.length > 22 ? `${unit.title.slice(0, 22)}...` : unit.title}
+               </h4>
                <p className={`hidden lg:block text-[10px] font-bold opacity-40 line-clamp-1 italic ${theme === 'black' ? 'text-white/40' : 'text-sky-900/40'}`}>{unit.description}</p>
             </div>
           </div>
