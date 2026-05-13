@@ -4744,12 +4744,40 @@ export default function App() {
                 <AeroCard title="Tus Actividades" theme={theme} className="bg-gradient-to-br from-blue-400/10 to-indigo-500/10 col-span-1 lg:col-span-2 xl:col-span-1">
                     <div className="space-y-4">
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                        {galleryActivities
-                          .filter(a => (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && a.creatorName)
-                          .length > 0 ? (
-                            galleryActivities
-                              .filter(a => (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && a.creatorName)
-                              .map(activity => (
+                        {(() => {
+                          const myActivities = galleryActivities.filter(a => 
+                            (a.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() || 
+                             a.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()) && 
+                            a.creatorName
+                          );
+                          
+                          if (myActivities.length === 0) {
+                            return (
+                              <div className="py-8 text-center space-y-4">
+                                <div className="relative inline-block mb-2">
+                                  <Library size={48} className="mx-auto opacity-10" />
+                                  <Plus className="absolute -top-1 -right-1 text-blue-500 opacity-50" size={20} />
+                                </div>
+                                <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-6 leading-relaxed">No tienes actividades creadas todavía</p>
+                                <GlossyButton 
+                                  onClick={() => {
+                                    playExternalBubble();
+                                    navigateTo('create-activity');
+                                  }}
+                                  className="w-full py-4 text-[10px] font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group"
+                                >
+                                  <div className="flex items-center justify-center gap-2">
+                                    <PlusCircle size={16} className="group-hover:scale-110 transition-transform" />
+                                    Crear mi primera actividad
+                                  </div>
+                                </GlossyButton>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <>
+                              {myActivities.map(activity => (
                                 <div key={activity.id} className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/60'}`}>
                                   <div className="overflow-hidden">
                                     <p className={`text-xs font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{activity.name}</p>
@@ -4763,28 +4791,26 @@ export default function App() {
                                     <Gamepad2 size={16} />
                                   </button>
                                 </div>
-                              ))
-                          ) : (
-                            <div className="py-8 text-center space-y-4">
-                              <div className="relative inline-block mb-2">
-                                <Library size={48} className="mx-auto opacity-10" />
-                                <Plus className="absolute -top-1 -right-1 text-blue-500 opacity-50" size={20} />
+                              ))}
+                              <div className="pt-2">
+                                <button
+                                  onClick={() => {
+                                    playExternalBubble();
+                                    navigateTo('create-activity');
+                                  }}
+                                  className={`w-full py-3 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 transition-all active:scale-95 group ${
+                                    theme === 'black' 
+                                      ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white' 
+                                      : 'bg-white/20 border-blue-500/30 hover:border-blue-500/60 text-blue-600/60 hover:text-blue-600'
+                                  }`}
+                                >
+                                  <PlusCircle size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Crear Nueva Actividad</span>
+                                </button>
                               </div>
-                              <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-6 leading-relaxed">No tienes actividades creadas todavía</p>
-                              <GlossyButton 
-                                onClick={() => {
-                                  playExternalBubble();
-                                  navigateTo('create-activity');
-                                }}
-                                className="w-full py-4 text-[10px] font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group"
-                              >
-                                <div className="flex items-center justify-center gap-2">
-                                  <PlusCircle size={16} className="group-hover:scale-110 transition-transform" />
-                                  Crear mi primera actividad
-                                </div>
-                              </GlossyButton>
-                            </div>
-                          )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </AeroCard>
