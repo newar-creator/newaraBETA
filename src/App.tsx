@@ -4196,6 +4196,14 @@ export default function App() {
                     badge="BETA"
                   />
                   <MobileMenuButton 
+                    id="nav-leaderboard"
+                    active={currentView === 'leaderboard'} 
+                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
+                    icon={<Trophy size={20} />} 
+                    label={t('leaderboard')} 
+                    theme={theme}
+                  />
+                  <MobileMenuButton 
                     active={showNotifications} 
                     onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
                     icon={<Bell size={20} />} 
@@ -4211,6 +4219,16 @@ export default function App() {
                     label={t('ajustes')} 
                     theme={theme}
                   />
+                  {isModerator && (
+                    <MobileMenuButton 
+                      id="nav-users"
+                      active={currentView === 'users'} 
+                      onClick={() => { navigateTo('users'); setShowMoreMobileMenu(false); }} 
+                      icon={<Users2 size={20} />} 
+                      label="Usuarios" 
+                      theme={theme}
+                    />
+                  )}
                   {isModerator && (
                     <MobileMenuButton 
                       id="nav-reports"
@@ -4239,14 +4257,6 @@ export default function App() {
                     onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
                     icon={<Book size={20} />} 
                     label={t('materias')} 
-                    theme={theme}
-                  />
-                  <MobileMenuButton 
-                    id="nav-classes"
-                    active={currentView === 'classes' || currentView === 'class-detail'} 
-                    onClick={() => { navigateTo('classes'); setShowMoreMobileMenu(false); }} 
-                    icon={<Users size={20} />} 
-                    label="Clases" 
                     theme={theme}
                   />
                 </div>
@@ -6223,6 +6233,7 @@ export default function App() {
               <UsersManager 
                 theme={theme} 
                 onViewProfile={handleViewProfile} 
+                onClose={() => navigateTo('home')}
               />
             </motion.div>
           )}
@@ -8128,7 +8139,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
   );
 }
 
-function UsersManager({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
+function UsersManager({ theme, onViewProfile, onClose }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void, onClose: () => void }) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -8159,6 +8170,10 @@ function UsersManager({ theme, onViewProfile }: { theme: 'white' | 'black', onVi
       await deleteDoc(doc(db, 'users', userId));
       setUsers(prev => prev.filter(u => u.id !== userId));
       playSuccessSound();
+      // Exit user management as requested
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (e) {
       console.error(e);
       playErrorSound();
