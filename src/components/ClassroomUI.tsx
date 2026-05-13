@@ -1150,7 +1150,14 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                     {members.filter(m => m.role === 'Profesor').map(m => (
                       <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
                         <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
-                        <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                        <div className="flex items-center gap-2">
+                           <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                           {m.isHelper && (
+                             <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
+                                <Sparkles size={10} /> AYUDANTE
+                             </div>
+                           )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1172,7 +1179,14 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                       members.filter(m => m.role === 'Estudiante').map(m => (
                         <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
                           <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
-                          <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                          <div className="flex items-center gap-2">
+                             <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                             {m.isHelper && (
+                               <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
+                                  <Sparkles size={10} /> AYUDANTE
+                               </div>
+                             )}
+                          </div>
                         </div>
                       ))
                     )}

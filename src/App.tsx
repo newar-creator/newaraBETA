@@ -169,7 +169,7 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 };
 
-type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario';
+type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario' | 'users';
 
 type NotificationType = 'assignment' | 'announcement' | 'moderation' | 'update';
 
@@ -292,6 +292,7 @@ export default function App() {
     if (path === 'leaderboard') return 'leaderboard';
     if (path === 'gallery') return 'gallery';
     if (path === 'clases') return 'classes';
+    if (path === 'usuarios') return 'users';
     if (path === 'ajustes') return 'settings';
     if (path === 'reports') return 'reports';
     if (path === 'minijuegos') return 'minigames';
@@ -342,6 +343,7 @@ export default function App() {
       'materias': 'materias',
       'leaderboard': 'leaderboard',
       'gallery': 'gallery',
+      'usuarios': 'users',
       'clases': 'classes',
       'ajustes': 'settings',
       'reports': 'reports',
@@ -421,6 +423,7 @@ export default function App() {
       case 'create-activity': path = '/create-activity'; break;
       case 'play-activity': path = '/play-activity'; break;
       case 'horario': path = '/horario'; break;
+      case 'users': path = '/usuarios'; break;
       case 'subject': 
         if (sId) path = `/materia/${sId}`;
         break;
@@ -1783,6 +1786,7 @@ export default function App() {
         const fallbackBio = activityFallback?.creatorBio || localStorage.getItem('newara_user_bio') || "Este usuario aún no ha configurado su biografía.";
         const fallbackAvatar = activityFallback?.creatorAvatar || "";
         const fallbackRole = activityFallback?.creatorRole || "Usuario de NewAra";
+        const fallbackIsHelper = activityFallback?.creatorIsHelper || false;
         
         userData = {
           id: creatorId || creatorName || 'explorador',
@@ -1790,6 +1794,7 @@ export default function App() {
           bio: fallbackBio,
           avatar: fallbackAvatar,
           role: fallbackRole,
+          isHelper: fallbackIsHelper,
           stats: {
             totalViews: activities.reduce((acc, curr) => acc + (curr.views || 0), 0),
             totalLikes: activities.reduce((acc, curr) => acc + (curr.likes?.length || 0), 0),
@@ -2470,12 +2475,12 @@ export default function App() {
       const memSnap = await getDocs(collection(db, 'classes', classId, 'members'));
       const members = memSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       
-      // Fetch full profiles for avatars
+      // Fetch full profiles for avatars and helper status
       const membersWithProfiles = await Promise.all(members.map(async (m: any) => {
         const userDoc = await getDoc(doc(db, 'users', m.id));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          return { ...m, avatar: userData.avatar || null };
+          return { ...m, avatar: userData.avatar || null, isHelper: userData.isHelper || false };
         }
         return m;
       }));
@@ -3591,7 +3596,15 @@ export default function App() {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black uppercase opacity-40">Creador</span>
-                        <span className="text-sm font-bold truncate max-w-[120px] group-hover:text-blue-400 transition-colors">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold truncate max-w-[120px] group-hover:text-blue-400 transition-colors uppercase tracking-tight">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
+                          {selectedActivityDetail.creatorIsHelper && (
+                             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-500" title="AYUDANTE">
+                                <Sparkles size={10} />
+                                <span className="text-[8px] font-black">AYUDANTE</span>
+                             </div>
+                          )}
+                        </div>
                       </div>
                       <ChevronRight size={14} className="opacity-0 group-hover:opacity-60 transition-opacity ml-auto" />
                     </button>
@@ -3725,9 +3738,17 @@ export default function App() {
                         </div>
                       </div>
                       <div className="space-y-1 md:space-y-2">
-                        <h2 className="text-2xl md:text-5xl font-black tracking-tight leading-tight">
-                          {viewingProfile.name || viewingProfile.id}
-                        </h2>
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-2">
+                          <h2 className="text-2xl md:text-5xl font-black tracking-tight leading-tight">
+                            {viewingProfile.name || viewingProfile.id}
+                          </h2>
+                          {viewingProfile.isHelper && (
+                             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10 mb-2 md:mb-0 md:mt-2">
+                                <Sparkles size={12} className="animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.1em]">AYUDANTE</span>
+                             </div>
+                          )}
+                        </div>
                         <div className="flex gap-2 items-center justify-center md:justify-start opacity-60">
                           <ShieldCheck size={14} className="text-blue-500" />
                           <span className="text-[10px] font-bold uppercase tracking-widest">{viewingProfile.role || 'Usuario de NewAra'}</span>
@@ -4026,6 +4047,19 @@ export default function App() {
               label={t('ajustes')} 
               theme={theme}
             />
+            {isModerator && (
+              <NavButton 
+                id="nav-users"
+                active={currentView === 'users'} 
+                onClick={() => {
+                  navigateTo('users');
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Users2 size={22} />} 
+                label="Usuarios" 
+                theme={theme}
+              />
+            )}
             {isModerator && (
               <NavButton 
                 id="nav-reports"
@@ -6104,7 +6138,18 @@ export default function App() {
                             )}
                           </div>
                         </div>
-                        <div onClick={() => setSelectedActivityDetail(activity)}>
+                        <div onClick={async () => {
+                      // Fetch if the creator is a helper for the "Ver más" modal
+                      let creatorIsHelper = false;
+                      try {
+                        const userDoc = await getDoc(doc(db, 'users', String(activity.creatorId || activity.creatorName)));
+                        if (userDoc.exists()) {
+                          creatorIsHelper = userDoc.data().isHelper || false;
+                        }
+                      } catch (e) {}
+                      
+                      setSelectedActivityDetail({ ...activity, creatorIsHelper });
+                    }}>
                           <h3 className={`text-sm md:text-xl font-black leading-tight group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                             {activity.name && activity.name.length > 35 ? activity.name.substring(0, 35) + '...' : activity.name}
                           </h3>
@@ -6164,6 +6209,21 @@ export default function App() {
                 </div>
               )}
 
+            </motion.div>
+          )}
+
+          {currentView === 'users' && isModerator && (
+            <motion.div
+              key="users"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-7xl mx-auto"
+            >
+              <UsersManager 
+                theme={theme} 
+                onViewProfile={handleViewProfile} 
+              />
             </motion.div>
           )}
 
@@ -8068,6 +8128,160 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
   );
 }
 
+function UsersManager({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isTogglingHelper, setIsTogglingHelper] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const deleteUser = async (userId: string) => {
+    if (!window.confirm(`¿Seguro que quieres borrar a ${userId}? Esta acción es irreversible.`)) return;
+    setIsDeleting(userId);
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      playSuccessSound();
+    } catch (e) {
+      console.error(e);
+      playErrorSound();
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const toggleHelper = async (userId: string, currentStatus: boolean) => {
+    setIsTogglingHelper(userId);
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        isHelper: !currentStatus
+      });
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, isHelper: !currentStatus } : u));
+      playSuccessSound();
+    } catch (e) {
+      console.error(e);
+      playErrorSound();
+    } finally {
+      setIsTogglingHelper(null);
+    }
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.id.toLowerCase().includes(search.toLowerCase()) || 
+    (u.name && u.name.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h2 className={`text-2xl font-black uppercase tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Gestión de Usuarios</h2>
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" size={16} />
+          <input 
+            type="text" 
+            placeholder="Buscar por ID o nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2 rounded-xl border text-sm font-bold outline-none transition-all ${
+              theme === 'black' ? 'bg-white/5 border-white/10 text-white focus:border-blue-500' : 'bg-white border-slate-200 text-sky-950 focus:border-blue-500'
+            }`}
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center py-20 gap-4">
+           <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+           <p className="text-xs font-black uppercase tracking-widest opacity-40">Cargando base de datos...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 lg:pb-0">
+          {filteredUsers.map(user => (
+            <div key={user.id} className={`p-4 rounded-3xl border flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 transition-all hover:scale-[1.02] ${
+              theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white border-slate-100 shadow-sm'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-blue-500/10 flex items-center justify-center shrink-0">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.id} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User size={24} className="opacity-40" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className={`text-sm font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.name || user.id}</p>
+                    {user.isHelper && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[8px] font-black uppercase tracking-tighter shrink-0 flex items-center gap-1">
+                        <Award size={10} /> AYUDANTE
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] font-bold opacity-40 truncate">{user.id}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => onViewProfile(user.id, user.name)}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${
+                    theme === 'black' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-100 hover:bg-slate-200 text-sky-950'
+                  }`}
+                >
+                  <User size={14} /> Perfil
+                </button>
+                <button 
+                  disabled={isTogglingHelper === user.id}
+                  onClick={() => toggleHelper(user.id, !!user.isHelper)}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${
+                    user.isHelper 
+                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' 
+                      : theme === 'black' ? 'bg-white/5 text-white/40 border border-white/10' : 'bg-slate-50 text-slate-400 border border-slate-100'
+                  }`}
+                >
+                  {isTogglingHelper === user.id ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Award size={14} />} 
+                  {user.isHelper ? 'Quitar Ayudante' : 'Dar Ayudante'}
+                </button>
+              </div>
+
+              <button 
+                disabled={isDeleting === user.id}
+                onClick={() => deleteUser(user.id)}
+                className="w-full py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all active:scale-95 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+              >
+                {isDeleting === user.id ? (
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 size={14} /> Borrar Usuario
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
   const [filter, setFilter] = useState<'views' | 'likes' | 'correct'>('correct');
   const [users, setUsers] = useState<any[]>([]);
@@ -8210,7 +8424,14 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-slate-300 border-2 border-white flex items-center justify-center font-black text-slate-600 shadow-lg text-xs">2</div>
                 </div>
                 <div className="text-center w-24">
-                  <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].name || top3[1].id}</p>
+                  <div className="flex flex-col items-center gap-1">
+                    <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors w-full ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[1].name || top3[1].id}</p>
+                    {top3[1].isHelper && (
+                      <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[7px] font-black uppercase tracking-tighter flex items-center gap-0.5 border border-emerald-500/20">
+                         <Sparkles size={8} /> AYUDANTE
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase">
                     {getStatValue(top3[1])} {getMetricLabel()}
                   </div>
@@ -8240,7 +8461,14 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-yellow-500 border-4 border-white flex items-center justify-center font-black text-white shadow-xl text-lg min-w-[3rem]">1st</div>
                 </div>
                 <div className="text-center w-36 pt-2">
-                  <p className={`text-sm font-black truncate group-hover:text-amber-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].name || top3[0].id}</p>
+                  <div className="flex flex-col items-center gap-1 mb-1">
+                    <p className={`text-sm font-black truncate group-hover:text-amber-500 transition-colors w-full ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[0].name || top3[0].id}</p>
+                    {top3[0].isHelper && (
+                      <div className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-widest flex items-center gap-1 border border-emerald-500/20">
+                         <Sparkles size={10} /> AYUDANTE
+                      </div>
+                    )}
+                  </div>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 text-xs font-black text-amber-600 mt-1">
                     {getMetricIcon(12)}
                     {getStatValue(top3[0])}
@@ -8271,7 +8499,14 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-orange-300 border-2 border-white flex items-center justify-center font-black text-orange-700 shadow-lg text-xs">3</div>
                 </div>
                 <div className="text-center w-24">
-                  <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].name || top3[2].id}</p>
+                  <div className="flex flex-col items-center gap-1">
+                    <p className={`text-[11px] font-black truncate group-hover:text-blue-500 transition-colors w-full ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{top3[2].name || top3[2].id}</p>
+                    {top3[2].isHelper && (
+                      <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[7px] font-black uppercase tracking-tighter flex items-center gap-0.5 border border-emerald-500/20">
+                         <Sparkles size={8} /> AYUDANTE
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-center gap-1 text-[9px] font-black text-orange-500 uppercase">
                     {getStatValue(top3[2])} {getMetricLabel()}
                   </div>
@@ -8304,7 +8539,14 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
                           )}
                         </div>
                         <div>
-                          <p className={`text-xs font-black group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.name || user.id}</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`text-xs font-black group-hover:text-blue-500 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{user.name || user.id}</p>
+                            {user.isHelper && (
+                              <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[7px] font-black uppercase tracking-tighter flex items-center gap-0.5">
+                                 <Sparkles size={8} /> AYUDANTE
+                              </div>
+                            )}
+                          </div>
                           <p className="text-[9px] font-black opacity-30 uppercase tracking-widest">{user.role || 'Explorador'}</p>
                         </div>
                       </div>
