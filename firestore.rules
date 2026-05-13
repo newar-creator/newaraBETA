@@ -58,6 +58,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    match /banned_users/{userId} {
+      allow read: if true;
+      allow write: if true; // Keeping it consistent with other permissive rules for now
+    }
+
     match /notifications/{notificationId} {
       allow read, write: if true;
     }

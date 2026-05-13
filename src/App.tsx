@@ -815,6 +815,13 @@ export default function App() {
     const syncProfile = async () => {
       if (isLoggedIn && userName && userName !== 'Estudiante') {
         try {
+          const bannedSnap = await getDoc(doc(db, 'banned_users', userName.trim()));
+          if (bannedSnap.exists()) {
+            console.error("This account has been banned/deleted.");
+            logout();
+            return;
+          }
+
           const userRef = doc(db, 'users', userName.trim());
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
@@ -890,9 +897,17 @@ export default function App() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      const uId = (user.displayName || user.uid).trim();
+
+      const bannedSnap = await getDoc(doc(db, 'banned_users', uId));
+      if (bannedSnap.exists()) {
+        setAuthError("Esta cuenta ha sido eliminada por un moderador.");
+        setIsAuthLoading(false);
+        return;
+      }
       
       // Check if user exists in our Firestore 'users' collection
-      const userDoc = await getDoc(doc(db, 'users', user.displayName || user.uid));
+      const userDoc = await getDoc(doc(db, 'users', uId));
       
       if (!userDoc.exists()) {
         // Create user record if new
@@ -958,7 +973,14 @@ export default function App() {
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', loginUserName.trim()));
+      const uTrim = loginUserName.trim();
+      const bannedSnap = await getDoc(doc(db, 'banned_users', uTrim));
+      if (bannedSnap.exists()) {
+        setAuthError("Esta cuenta ha sido eliminada por un moderador.");
+        setIsAuthLoading(false);
+        return;
+      }
+      const userDoc = await getDoc(doc(db, 'users', uTrim));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const hashedPassword = await hashPassword(loginPassword);
@@ -1039,7 +1061,14 @@ export default function App() {
     setIsAuthLoading(true);
     setAuthError(null);
     try {
-      const userDoc = await getDoc(doc(db, 'users', loginUserName.trim()));
+      const uTrim = loginUserName.trim();
+      const bannedSnap = await getDoc(doc(db, 'banned_users', uTrim));
+      if (bannedSnap.exists()) {
+        setAuthError("Esta cuenta ha sido eliminada por un moderador.");
+        setIsAuthLoading(false);
+        return;
+      }
+      const userDoc = await getDoc(doc(db, 'users', uTrim));
       if (userDoc.exists()) {
         setAuthError("¡Esta cuenta ya existe!");
         playErrorSound();
@@ -1916,7 +1945,15 @@ export default function App() {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setIsTakingAction(true);
         try {
+          // 1. Add to blacklist
+          await setDoc(doc(db, 'banned_users', creatorToDelete), {
+            bannedAt: serverTimestamp(),
+            bannedBy: userName
+          });
+
+          // 2. Delete the user document
           await deleteDoc(doc(db, 'users', creatorToDelete));
+          
           if (targetId) {
             if (report.contentType === 'activity') {
               await deleteDoc(doc(db, 'activities', targetId));
@@ -6234,6 +6271,7 @@ export default function App() {
                 theme={theme} 
                 onViewProfile={handleViewProfile} 
                 onClose={() => navigateTo('home')}
+                currentUserName={userName}
               />
             </motion.div>
           )}
@@ -8139,7 +8177,7 @@ function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', 
   );
 }
 
-function UsersManager({ theme, onViewProfile, onClose }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void, onClose: () => void }) {
+function UsersManager({ theme, onViewProfile, onClose, currentUserName }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void, onClose: () => void, currentUserName: string }) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -8167,9 +8205,23 @@ function UsersManager({ theme, onViewProfile, onClose }: { theme: 'white' | 'bla
     if (!window.confirm(`¿Seguro que quieres borrar a ${userId}? Esta acción es irreversible.`)) return;
     setIsDeleting(userId);
     try {
+      // 1. Add to blacklist
+      await setDoc(doc(db, 'banned_users', userId), {
+        bannedAt: serverTimestamp(),
+        bannedBy: currentUserName
+      });
+
+      // 2. Delete the user document
       await deleteDoc(doc(db, 'users', userId));
+      
       setUsers(prev => prev.filter(u => u.id !== userId));
       playSuccessSound();
+      
+      // If we deleted ourselves (unlikely in this UI but good to handle)
+      if (userId === currentUserName) {
+        onClose(); // Just close, the syncProfile will handle logout on next tick
+      }
+
       // Exit user management as requested
       setTimeout(() => {
         onClose();
