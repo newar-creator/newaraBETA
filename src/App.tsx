@@ -3908,7 +3908,7 @@ export default function App() {
       <nav className={`fixed bottom-0 left-0 right-0 h-[70px] lg:h-auto lg:relative z-[100] transition-all duration-500 ${
         theme === 'black' ? 'bg-black/90 border-white/10' : theme === 'aero' ? 'theme-aero-card !bg-white/85 !border-white/80' : 'bg-white/95 border-white'
       } lg:rounded-[40px] border-t shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-2xl flex flex-row lg:flex-col items-center justify-between lg:justify-start py-1 lg:py-8 px-2 lg:px-0 gap-0 lg:gap-6 ${
-        (minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
+        (showWelcome || minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
           ? 'translate-y-[120%] lg:translate-y-0 opacity-0 pointer-events-none scale-95 origin-bottom lg:origin-center lg:w-0 lg:m-0 lg:border-0 lg:p-0 lg:overflow-hidden' 
           : 'translate-y-0 opacity-100 lg:w-64 lg:m-4 lg:border-4'
       }`}>
