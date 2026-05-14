@@ -4205,17 +4205,7 @@ export default function App() {
               theme={theme}
               badge="BETA"
             />
-            <NavButton 
-              id="nav-leaderboard"
-              active={currentView === 'leaderboard'} 
-              onClick={() => {
-                navigateTo('leaderboard');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<Trophy size={22} />} 
-              label={t('leaderboard')} 
-              theme={theme}
-            />
+
             <NavButton 
               id="nav-classes"
               active={currentView === 'classes' || currentView === 'class-detail'} 
@@ -4390,14 +4380,7 @@ export default function App() {
                     theme={theme}
                     badge="BETA"
                   />
-                  <MobileMenuButton 
-                    id="nav-leaderboard"
-                    active={currentView === 'leaderboard'} 
-                    onClick={() => { navigateTo('leaderboard'); setShowMoreMobileMenu(false); }} 
-                    icon={<Trophy size={20} />} 
-                    label={t('leaderboard')} 
-                    theme={theme}
-                  />
+
                   <MobileMenuButton 
                     active={showNotifications} 
                     onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
