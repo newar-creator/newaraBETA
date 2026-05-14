@@ -24,6 +24,7 @@ import {
   Home,
   ChevronRight,
   User,
+  UserX,
   Sparkles,
   TrendingUp,
   Book,
@@ -4872,8 +4873,18 @@ export default function App() {
                    </div>
                 </AeroCard>
 
-                {isLoggedIn && (
-                  <AeroCard title="Tareas Pendientes" theme={theme} className="bg-gradient-to-br from-rose-400/10 to-orange-500/10 col-span-1 lg:col-span-2">
+                <AeroCard title="Tareas Pendientes" theme={theme} className="bg-gradient-to-br from-rose-400/10 to-orange-500/10 col-span-1 lg:col-span-2">
+                   {!isLoggedIn ? (
+                     <div className="py-12 text-center space-y-4">
+                       <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+                          <UserX size={32} className="text-rose-500 opacity-60 transition-all" />
+                       </div>
+                       <div className="space-y-2">
+                          <h2 className={`text-2xl font-black uppercase tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>NO TIENES CUENTA!</h2>
+                          <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">Inicia sesión para ver tus tareas.</p>
+                       </div>
+                     </div>
+                   ) : (
                      <div className="space-y-4">
                         {isPendingTasksLoading ? (
                           <div className="flex flex-col items-center justify-center py-10 gap-3">
@@ -4934,8 +4945,8 @@ export default function App() {
                           </div>
                         )}
                      </div>
+                     )}
                   </AeroCard>
-                )}
               </div>
 
               <AeroCard title="Estado NewAra" theme={theme}>
