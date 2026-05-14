@@ -1465,6 +1465,7 @@ export default function App() {
       // Auto-join as player
       await setDoc(doc(db, 'gameSessions', sessionId, 'players', userName), {
         name: userName,
+        avatar: userAvatar || null,
         score: 0,
         joinedAt: serverTimestamp()
       });
