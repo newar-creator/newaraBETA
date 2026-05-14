@@ -1094,6 +1094,35 @@ export default function App() {
       setAuthError("La contraseña debe tener al menos 4 caracteres.");
       return;
     }
+
+    const uTrimValidation = loginUserName.trim();
+    
+    // Username Length Validation
+    if (uTrimValidation.length < 3) {
+      setAuthError("El nombre de usuario es demasiado corto (mínimo 3).");
+      return;
+    }
+    if (uTrimValidation.length > 20) {
+      setAuthError("El nombre de usuario es demasiado largo (máximo 20).");
+      return;
+    }
+
+    // Symbol Validation (Alphanumeric and underscores only)
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(uTrimValidation)) {
+      setAuthError("No se permiten símbolos. Usa solo letras, números y '_'.");
+      return;
+    }
+
+    // Inappropriate Words Validation
+    const FORBIDDEN_WORDS = ['pto', 'oto', 'pendejo', 'puto', 'mierda', 'carajo', 'culiao', 'hdp', 'orto'];
+    const lowerUsername = uTrimValidation.toLowerCase();
+    const isBadWord = FORBIDDEN_WORDS.some(word => lowerUsername.includes(word));
+    if (isBadWord) {
+      setAuthError("Ese nombre de usuario no está permitido.");
+      return;
+    }
+
     setIsAuthLoading(true);
     setAuthError(null);
     try {
