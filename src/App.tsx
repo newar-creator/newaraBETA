@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { 
   Leaf, 
   Globe, 
@@ -963,6 +964,13 @@ export default function App() {
       localStorage.setItem('newara_user_avatar', userData.avatar || user.photoURL || '');
       localStorage.setItem('newara_logged_in', 'true');
       
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+      });
+
       playSuccessSound();
     } catch (error: any) {
       console.error("Google Login Error:", error);
@@ -1041,6 +1049,12 @@ export default function App() {
           localStorage.setItem('newara_user_password', loginPassword);
           localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
           localStorage.setItem('newara_logged_in', 'true');
+
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
         } else {
           setAuthError("Contraseña incorrecta.");
           playErrorSound();
@@ -1115,6 +1129,13 @@ export default function App() {
         localStorage.setItem('newara_user_name', loginUserName.trim());
         localStorage.setItem('newara_user_password', loginPassword);
         localStorage.setItem('newara_logged_in', 'true');
+
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          scalar: 1.2
+        });
       }
     } catch (error) {
       console.error("Register error:", error);
