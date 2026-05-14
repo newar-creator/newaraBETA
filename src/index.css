@@ -14,17 +14,6 @@
   .theme-aero {
     --color-aero-blue: #0080ff;
     --color-aero-green: #32cd32;
-    background: url('https://w0.peakpx.com/wallpaper/434/418/HD-wallpaper-frutiger-aero-landscape-flora-glare.jpg') no-repeat center center fixed;
-    background-size: cover;
-  }
-  
-  .theme-aero::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 100%);
-    pointer-events: none;
-    z-index: 1;
   }
 }
 

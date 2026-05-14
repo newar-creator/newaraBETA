@@ -6768,27 +6768,27 @@ export default function App() {
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('white'); }}
-                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : theme === 'aero' ? 'bg-white/90 border-white/80 hover:bg-white' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : theme === 'aero' ? 'bg-white/90 border-white/80 hover:bg-white text-sky-950' : 'bg-white/40 border-white/60 hover:bg-white/60 text-white/70'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-100 to-white shadow-inner border border-sky-100" />
-                          <span className="text-sm font-bold text-sky-950">{t('blanco')}</span>
+                          <span className={`text-sm font-bold ${theme === 'white' ? 'text-sky-950' : theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{t('blanco')}</span>
                         </button>
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('black'); }}
-                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105' : theme === 'aero' ? 'bg-black/40 border-white/20 hover:bg-black/60' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105 text-sky-950' : theme === 'aero' ? 'bg-black/40 border-white/20 hover:bg-black/60 text-white' : 'bg-white/40 border-white/60 hover:bg-white/60 text-white/70'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 to-black shadow-inner border border-slate-800" />
-                          <span className="text-sm font-bold text-sky-950">{t('negro')}</span>
+                          <span className={`text-sm font-bold ${theme === 'black' ? 'text-sky-950' : theme === 'black' ? 'text-white' : theme === 'white' ? 'text-sky-900' : 'text-white'}`}>{t('negro')}</span>
                         </button>
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('aero'); }}
-                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'aero' ? 'bg-blue-500 border-blue-200 shadow-xl scale-105' : 'bg-blue-400/20 border-white/60 hover:bg-blue-400/30'}`}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'aero' ? 'bg-blue-500 border-blue-200 shadow-xl scale-105 text-white' : theme === 'black' ? 'bg-blue-900/40 border-blue-500/30 hover:bg-blue-900/60 text-white' : 'bg-blue-400/20 border-white/60 hover:bg-blue-400/30 text-sky-950'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 via-green-400 to-blue-200 shadow-xl border border-white/40 overflow-hidden relative">
-                            <BubbleBackground theme="aero" />
+                            <BubbleBackground theme="aero" preview={true} />
                           </div>
                           <div className="flex flex-col items-center">
-                            <span className={`text-sm font-bold ${theme === 'aero' ? 'text-white' : 'text-sky-950'}`}>{t('aeroBeta')}</span>
+                            <span className="text-sm font-bold">{t('aeroBeta')}</span>
                             <span className={`text-[8px] font-black uppercase tracking-widest ${theme === 'aero' ? 'text-white/60' : 'text-blue-600/60'}`}>Beta</span>
                           </div>
                         </button>
