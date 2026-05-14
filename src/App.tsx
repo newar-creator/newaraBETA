@@ -5611,37 +5611,30 @@ export default function App() {
               )}
 
               {minigameSession.status === 'playing' && (
-                <div className="flex-1 flex flex-col gap-6">
-                   {/* Top Bar: Question (Common for both but central for teacher) */}
-                   {isMinigameHost && (
-                     <div className={`p-10 md:p-20 rounded-[40px] md:rounded-[60px] border-8 text-center relative overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.2)] mb-8 ${
-                       theme === 'black' ? 'bg-zinc-900 border-white/5' : 'bg-white border-white'
-                     }`}>
-                        <div className="glossy-overlay opacity-5" />
-                        <h2 className="text-3xl md:text-6xl font-black tracking-tight leading-tight relative z-10 px-8 drop-shadow-sm">
-                          {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
-                        </h2>
-                     </div>
-                   )}
-
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
                    {isMinigameHost ? (
-                     /* TEACHER VIEW (Big Screen) */
-                     <div className="flex-1 flex flex-col gap-6">
-                        {/* Middle Content Row */}
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                           {/* Timer Circle */}
-                           <div className="flex justify-center">
-                              <div className="relative w-32 h-32 md:w-48 md:h-48">
+                     /* TEACHER VIEW (Big Screen - Kahoot-Inspired Compact Layout) */
+                     <div className="flex-1 flex flex-col gap-4 py-2">
+                        {/* Question Area - Large and centered */}
+                        <div className={`p-6 md:p-8 rounded-[32px] md:rounded-[48px] border-4 text-center relative overflow-hidden shadow-2xl ${
+                          theme === 'black' ? 'bg-zinc-900 border-white/5' : 'bg-white border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)]'
+                        }`}>
+                           <div className="glossy-overlay opacity-5" />
+                           <h2 className={`text-2xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight relative z-10 px-4 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                             {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
+                           </h2>
+                        </div>
+                        {/* Middle Section: Timer | Content | Responses */}
+                        <div className="flex-1 min-h-0 flex items-center justify-between gap-4 md:gap-8 px-4">
+                           {/* Left: Timer */}
+                           <div className="w-[15%] md:w-1/5 flex flex-col items-center">
+                              <div className="relative w-20 h-20 md:w-40 md:h-40 lg:w-48 lg:h-48">
                                  <svg className="w-full h-full -rotate-90">
-                                    <circle
-                                      cx="50%" cy="50%" r="45%"
-                                      className="stroke-white/10 fill-none"
-                                      strokeWidth="10"
-                                    />
+                                    <circle cx="50%" cy="50%" r="45%" className="stroke-white/10 fill-none" strokeWidth="12" />
                                     <motion.circle
                                       cx="50%" cy="50%" r="45%"
                                       className={`fill-none ${minigameTimer <= 5 ? 'stroke-red-500' : 'stroke-purple-500'}`}
-                                      strokeWidth="10"
+                                      strokeWidth="12"
                                       strokeLinecap="round"
                                       initial={{ pathLength: 1 }}
                                       animate={{ pathLength: minigameTimer / 15 }}
@@ -5649,56 +5642,59 @@ export default function App() {
                                     />
                                  </svg>
                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className={`text-4xl md:text-7xl font-black ${minigameTimer <= 5 ? 'text-red-500 animate-pulse' : 'text-purple-500'}`}>
+                                    <span className={`text-3xl md:text-6xl lg:text-7xl font-black ${minigameTimer <= 5 ? 'text-red-500 animate-pulse' : 'text-purple-500'}`}>
                                        {minigameTimer}
                                     </span>
                                  </div>
                               </div>
+                              <p className="mt-2 text-[10px] font-black uppercase tracking-widest opacity-20">Segundos</p>
                            </div>
 
-                           {/* Center Image Placeholder */}
-                           <div className="hidden md:flex justify-center h-full max-h-64">
-                              <div className="w-full bg-white/5 border-2 border-dashed border-white/10 rounded-3xl flex items-center justify-center p-4">
-                                 <motion.div 
-                                   animate={{ scale: [1, 1.05, 1] }} 
-                                   transition={{ duration: 4, repeat: Infinity }}
-                                   className="text-center opacity-30"
-                                 >
-                                    <Gamepad2 size={64} className="mx-auto mb-2" />
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em]">
-                                       {minigameSession.activity.name}
-                                    </p>
+                           {/* Center: Interactive Area (Image Placeholder or Status) */}
+                           <div className="flex-1 h-full max-h-[40vh] flex items-center justify-center">
+                              <div className="w-full h-full max-w-2xl bg-white/5 border-4 border-dashed border-white/10 rounded-[40px] flex flex-col items-center justify-center p-6 relative overflow-hidden group">
+                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-30" />
+                                 <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity }} className="relative z-10 text-center">
+                                    <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
+                                       <Gamepad2 size={48} className="text-white opacity-20" />
+                                    </div>
+                                    <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.4em] opacity-30 mt-2">{minigameSession.activity.name}</p>
                                  </motion.div>
                               </div>
                            </div>
 
-                           {/* Answers Stats & Skip */}
-                           <div className="flex flex-col items-center gap-6">
-                              <div className="text-center">
-                                 <p className="text-4xl md:text-7xl font-black text-blue-500">
+                           {/* Right: Response count & Skip */}
+                           <div className="w-[15%] md:w-1/5 flex flex-col items-center justify-center gap-6">
+                              <div className="text-center group">
+                                 <motion.p 
+                                   key={minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length}
+                                   initial={{ scale: 0.5, opacity: 0 }}
+                                   animate={{ scale: 1, opacity: 1 }}
+                                   className="text-4xl md:text-7xl font-black text-blue-500 drop-shadow-lg"
+                                 >
                                     {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).length}
-                                 </p>
-                                 <p className="text-xs md:text-xl font-black uppercase tracking-widest opacity-40">Respuestas</p>
+                                 </motion.p>
+                                 <p className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-40 mt-1">Respuestas</p>
                               </div>
                               <GlossyButton 
                                 onClick={showMinigameResults}
-                                className="px-8 py-3 bg-blue-500 text-white font-black text-sm uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl hover:scale-105 transition-all"
                               >
-                                SALTEAR <ChevronRight size={18} />
+                                SALTEAR <ChevronRight size={14} className="ml-1" />
                               </GlossyButton>
                            </div>
                         </div>
 
-                        {/* Bottom Row: Options with Labels */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-auto md:h-1/3">
+                        {/* Bottom Section: Options Grid (2x2) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-2 min-h-[25vh]">
                            { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
-                             <div className="col-span-full flex flex-wrap justify-center gap-3">
+                             <div className="col-span-full flex flex-wrap justify-center items-center gap-3 p-4">
                                 <AnimatePresence>
                                   {minigamePlayers
                                     .filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex)
                                     .map((p, i) => (
                                       <motion.div
-                                        key={p.id || i}
+                                        key={p.name + i}
                                         initial={{ opacity: 0, scale: 0.8, y: 20 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         className="px-6 py-4 rounded-full bg-white/10 border-2 border-white/10 text-white font-black shadow-xl"
@@ -5711,12 +5707,15 @@ export default function App() {
                            ) : (
                              (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((option: string, idx: number) => {
                                const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
+                               const shadows = ['shadow-red-500/10', 'shadow-blue-500/10', 'shadow-amber-500/10', 'shadow-emerald-500/10'];
                                const shapes = ['▲', '◆', '●', '■'];
                                return (
-                                 <div key={idx} className={`flex items-center gap-4 p-4 md:p-6 rounded-2xl md:rounded-3xl ${colors[idx]} text-white shadow-lg relative overflow-hidden`}>
+                                 <div key={idx} className={`flex items-center gap-4 p-4 md:p-6 rounded-[24px] md:rounded-[32px] ${colors[idx]} ${shadows[idx]} text-white shadow-xl relative overflow-hidden transition-all hover:brightness-110`}>
                                     <div className="glossy-overlay opacity-20" />
-                                    <span className="text-3xl md:text-5xl font-black relative z-10">{shapes[idx]}</span>
-                                    <span className="text-lg md:text-3xl font-black relative z-10 break-words line-clamp-none">{option}</span>
+                                    <div className="w-10 h-10 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-2xl bg-white/15 flex items-center justify-center text-xl md:text-3xl lg:text-4xl font-black relative z-10 shrink-0">
+                                       {shapes[idx]}
+                                    </div>
+                                    <span className="text-lg md:text-2xl lg:text-3xl font-black relative z-10 break-words line-clamp-2 leading-tight">{option}</span>
                                  </div>
                                );
                              })
