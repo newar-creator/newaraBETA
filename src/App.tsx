@@ -6162,13 +6162,6 @@ export default function App() {
                     <div className="col-span-full py-20 text-center space-y-6">
                       <div className="relative inline-block">
                          <SearchX size={80} className={`mx-auto opacity-10 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
-                         <motion.div 
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                         >
-                            <AlertTriangle size={40} className="text-red-500/20" />
-                         </motion.div>
                       </div>
                       <div className="space-y-2">
                          <h2 className={`text-2xl md:text-5xl font-black uppercase tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡NO HAY NADA!</h2>
