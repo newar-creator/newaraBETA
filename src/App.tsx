@@ -308,6 +308,7 @@ export default function App() {
 
   const [lastView, setLastView] = useState<View>('home');
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showGalleryTutorial, setShowGalleryTutorial] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [expandedNotificationId, setExpandedNotificationId] = useState<string | null>(null);
@@ -3228,6 +3229,79 @@ export default function App() {
       )}
 
       <AnimatePresence>
+        {showGalleryTutorial && (
+          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowGalleryTutorial(false)}
+              className="absolute inset-0 bg-sky-950/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ scale: 0.9, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 30, opacity: 0 }}
+              className={`relative w-full max-w-2xl rounded-[40px] md:rounded-[48px] border-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] p-6 md:p-12 overflow-hidden ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white shadow-blue-500/10' : 'bg-white border-white text-sky-950 shadow-blue-500/10'
+              }`}
+            >
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl opacity-50" />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl home-orb opacity-50" />
+              
+              <div className="relative z-10 text-center space-y-6 md:space-y-10">
+                <div className="space-y-2">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-500/20 text-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 border-2 border-orange-500/30 transform -rotate-6">
+                    <Server size={32} className="md:w-10 md:h-10" />
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none">Guía de Servidores</h2>
+                  <p className="text-[9px] md:text-xs font-black uppercase tracking-[0.3em] opacity-40">¡Tu clase, tus reglas!</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-left">
+                  <div className="p-4 md:p-5 rounded-3xl md:rounded-[32px] bg-white/5 border border-white/10 flex items-start gap-3 md:gap-4 hover:bg-white/10 transition-colors">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-black shrink-0 border border-blue-500/20 shadow-lg text-sm">1</div>
+                    <div>
+                      <p className="font-black text-[10px] md:text-[11px] uppercase tracking-wider mb-0.5 md:mb-1">Explora la Galería</p>
+                      <p className="text-[9px] md:text-[10px] font-bold opacity-40 leading-relaxed">Busca una actividad en la biblioteca de NewAra.</p>
+                    </div>
+                  </div>
+                  <div className="p-4 md:p-5 rounded-3xl md:rounded-[32px] bg-white/5 border border-white/10 flex items-start gap-3 md:gap-4 hover:bg-white/10 transition-colors">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-black shrink-0 border border-purple-500/20 shadow-lg text-sm">2</div>
+                    <div>
+                      <p className="font-black text-[10px] md:text-[11px] uppercase tracking-wider mb-0.5 md:mb-1">Crea el Servidor</p>
+                      <p className="text-[9px] md:text-[10px] font-bold opacity-40 leading-relaxed">Toca el botón naranja <span className="text-orange-500">"HOST"</span> dentro de la actividad.</p>
+                    </div>
+                  </div>
+                  <div className="p-4 md:p-5 rounded-3xl md:rounded-[32px] bg-white/5 border border-white/10 flex items-start gap-3 md:gap-4 hover:bg-white/10 transition-colors">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-black shrink-0 border border-emerald-500/20 shadow-lg text-sm">3</div>
+                    <div>
+                      <p className="font-black text-[10px] md:text-[11px] uppercase tracking-wider mb-0.5 md:mb-1">Invita Estudiantes</p>
+                      <p className="text-[9px] md:text-[10px] font-bold opacity-40 leading-relaxed">Comparte el código de 5 letras que aparecerá.</p>
+                    </div>
+                  </div>
+                  <div className="p-4 md:p-5 rounded-3xl md:rounded-[32px] bg-white/5 border border-white/10 flex items-start gap-3 md:gap-4 hover:bg-white/10 transition-colors">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-black shrink-0 border border-amber-500/20 shadow-lg text-sm">4</div>
+                    <div>
+                      <p className="font-black text-[10px] md:text-[11px] uppercase tracking-wider mb-0.5 md:mb-1">¡Que empiece el juego!</p>
+                      <p className="text-[9px] md:text-[10px] font-bold opacity-40 leading-relaxed">Cuando todos estén listos, presiona "Empezar".</p>
+                    </div>
+                  </div>
+                </div>
+
+                <GlossyButton 
+                  onClick={() => setShowGalleryTutorial(false)}
+                  className="w-full py-5 md:py-6 text-xs md:text-sm font-black tracking-[0.3em] bg-blue-500 shadow-2xl shadow-blue-500/30 active:scale-[0.98]"
+                >
+                  ¡VAMOS A LA GALERÍA!
+                </GlossyButton>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showRoleSelection && (
           <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
             <motion.div 
@@ -3778,7 +3852,7 @@ export default function App() {
                         onClick={() => createMinigameSession(selectedActivityDetail)}
                         className="flex-1 py-4 text-[10px] md:text-sm font-black tracking-[0.2em] gap-3 bg-gradient-to-br from-amber-400 to-orange-500"
                       >
-                        MINIJUEGO <Gamepad2 size={20} />
+                        HOST <Gamepad2 size={20} />
                       </GlossyButton>
                     )}
                 </div>
@@ -5537,7 +5611,10 @@ export default function App() {
                    <div className="flex flex-col items-center gap-2 pt-4">
                      <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">O crear un servidor</span>
                      <button 
-                       onClick={() => navigateTo('gallery')}
+                       onClick={() => {
+                         setShowGalleryTutorial(true);
+                         navigateTo('gallery');
+                       }}
                        className="px-10 py-5 rounded-3xl bg-orange-500 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                      >
                        <Server size={18} className="group-hover:rotate-12 transition-transform" /> 
@@ -6424,7 +6501,7 @@ export default function App() {
                                       onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
                                       className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px] bg-gradient-to-br from-amber-400 to-orange-500"
                                     >
-                                      MINIJUEGO <Gamepad2 size={12} />
+                                      HOST <Gamepad2 size={12} />
                                     </GlossyButton>
                                   )}
                                </div>
