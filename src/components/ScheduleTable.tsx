@@ -91,7 +91,7 @@ const SCHEDULE_DATA: Record<string, (ScheduleSlot | null)[]> = {
   ],
 };
 
-export const ScheduleTable: React.FC<{ theme?: 'white' | 'black' }> = ({ theme = 'white' }) => {
+export const ScheduleTable: React.FC<{ theme?: 'white' | 'black' | 'aero' }> = ({ theme = 'white' }) => {
   const [selectedDay, setSelectedDay] = React.useState(new Date().getDay() > 0 && new Date().getDay() <= 5 ? new Date().getDay() - 1 : 0);
 
   return (

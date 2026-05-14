@@ -5,7 +5,7 @@ import { ChevronRight, ChevronLeft, Globe, MapPin, Navigation, Compass, LayoutGr
 import { playExternalBubble } from '../lib/sounds';
 
 interface GeographyGuideProps {
-  theme: 'white' | 'black';
+  theme: 'white' | 'black' | 'aero';
   onClose: () => void;
 }
 

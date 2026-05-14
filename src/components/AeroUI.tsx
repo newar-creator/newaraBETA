@@ -11,7 +11,7 @@ interface AeroCardProps {
   className?: string;
   title?: string;
   extra?: React.ReactNode;
-  theme?: 'white' | 'black';
+  theme?: 'white' | 'black' | 'aero';
 }
 
 export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, extra, theme = 'white' }) => {
@@ -20,14 +20,18 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
   // Optimización: Eliminar sombras pesadas en dispositivos legacy
   const shadowClass = flags.simplifyShadows ? "shadow-md" : (theme === 'black' 
     ? "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]" 
-    : "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]");
+    : theme === 'aero'
+      ? "shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]"
+      : "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]");
 
   const themeClasses = theme === 'black' 
     ? `bg-black/80 border-white/20 ${shadowClass}` 
-    : `bg-white/60 border-t-white/80 border-l-white/60 ${shadowClass}`;
+    : theme === 'aero'
+      ? `theme-aero-card ${shadowClass}`
+      : `bg-white/60 border-t-white/80 border-l-white/60 ${shadowClass}`;
 
-  const titleClasses = theme === 'black' ? "text-white/90" : "text-sky-900";
-  const contentClasses = theme === 'black' ? "text-white/80" : "text-sky-950";
+  const titleClasses = theme === 'black' ? "text-white/90" : theme === 'aero' ? "text-blue-600" : "text-sky-900";
+  const contentClasses = theme === 'black' ? "text-white/80" : theme === 'aero' ? "text-sky-950" : "text-sky-950 text-sky-950";
 
   // Efecto glass simplificado para TVs
   const glassEffect = flags.disableBlur ? "" : "backdrop-blur-md";
@@ -63,14 +67,14 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
 
 interface GlossyInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  theme?: 'white' | 'black';
+  theme?: 'white' | 'black' | 'aero';
 }
 
 export const GlossyInput: React.FC<GlossyInputProps> = ({ label, theme = 'white', className = '', ...props }) => {
   return (
     <div className="space-y-1.5 w-full">
       {label && (
-        <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ml-1 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+        <label className={`text-[10px] font-black uppercase tracking-widest opacity-60 ml-1 ${theme === 'black' ? 'text-white' : theme === 'aero' ? 'text-blue-900' : 'text-sky-900'}`}>
           {label}
         </label>
       )}
@@ -80,7 +84,9 @@ export const GlossyInput: React.FC<GlossyInputProps> = ({ label, theme = 'white'
           className={`w-full px-5 py-3 rounded-2xl border text-sm font-bold transition-all duration-300 outline-none relative z-10 
             ${theme === 'black' 
               ? 'bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-white/30' 
-              : 'bg-white/60 border-white/40 text-sky-950 focus:bg-white/80 focus:border-sky-300 shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]'
+              : theme === 'aero'
+                ? 'bg-white/80 border-blue-200 text-sky-950 focus:bg-white focus:border-blue-500 shadow-xl'
+                : 'bg-white/60 border-white/40 text-sky-950 focus:bg-white/80 focus:border-sky-300 shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]'
             } ${className}`}
         />
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 z-20" />
@@ -128,7 +134,7 @@ export const AeroAuthAlert: React.FC<{
   onClose: () => void; 
   onLogin: () => void;
   message?: string;
-  theme?: 'white' | 'black';
+  theme?: 'white' | 'black' | 'aero';
 }> = ({ isOpen, onClose, onLogin, message = "Inicia sesión para continuar", theme = 'white' }) => {
   if (!isOpen) return null;
 
@@ -146,19 +152,21 @@ export const AeroAuthAlert: React.FC<{
         className={`w-full max-w-sm rounded-[2rem] p-8 relative border overflow-hidden ${
           theme === 'black' 
             ? 'bg-black/80 border-white/20 text-white shadow-2xl' 
-            : 'bg-white/80 border-white/60 text-sky-950 shadow-2xl'
+            : theme === 'aero'
+              ? 'theme-aero-card border-white shadow-2xl scale-105'
+              : 'bg-white/80 border-white/60 text-sky-950 shadow-2xl'
         } backdrop-blur-xl`}
       >
-        <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/60 to-transparent'} pointer-events-none`} />
+        <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : theme === 'aero' ? 'bg-gradient-to-br from-white/80 to-transparent' : 'bg-gradient-to-br from-white/60 to-transparent'} pointer-events-none`} />
         
         <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-sky-500/20 flex items-center justify-center text-sky-500 mb-2">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-2 ${theme === 'aero' ? 'bg-blue-500 text-white shadow-lg' : 'bg-sky-500/20 text-sky-500'}`}>
             <ShieldAlert size={32} />
           </div>
           
           <div className="space-y-2">
-            <h3 className="text-xl font-black uppercase tracking-tight">Acceso Requerido</h3>
-            <p className="text-sm font-medium opacity-60 px-4 leading-relaxed">
+            <h3 className={`text-xl font-black uppercase tracking-tight ${theme === 'aero' ? 'text-blue-600' : ''}`}>Acceso Requerido</h3>
+            <p className={`text-sm font-medium opacity-60 px-4 leading-relaxed ${theme === 'aero' ? 'text-sky-900' : ''}`}>
               {message}
             </p>
           </div>

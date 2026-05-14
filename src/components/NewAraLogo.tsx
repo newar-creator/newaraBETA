@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 interface NewAraLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
-  theme?: 'white' | 'black';
+  theme?: 'white' | 'black' | 'aero';
   onClick?: () => void;
 }
 
@@ -28,7 +28,7 @@ export const NewAraLogo: React.FC<NewAraLogoProps> = ({ className = '', size = '
       }}
       onClick={onClick}
     >
-      <span className={`${theme === 'black' ? 'text-white' : 'text-[#1a2b4b]'} transition-colors duration-500`}>
+      <span className={`${theme === 'black' ? 'text-white' : theme === 'aero' ? 'text-blue-600 drop-shadow-md' : 'text-[#1a2b4b]'} transition-colors duration-500`}>
         New
       </span>
       <span 

@@ -442,7 +442,7 @@ export default function App() {
         if (gCode) {
           path = `/minijuegos/servidor/codigo/${gCode}`;
         } else {
-          path = '/minigames';
+          path = '/minijuegos';
         }
         break;
     }
@@ -462,9 +462,17 @@ export default function App() {
     }
   };
 
-  const [theme, setTheme] = useState<'white' | 'black'>(() => {
-    return (localStorage.getItem('newara_theme') as 'white' | 'black') || 'white';
+  const [theme, setTheme] = useState<'white' | 'black' | 'aero'>(() => {
+    return (localStorage.getItem('newara_theme') as 'white' | 'black' | 'aero') || 'white';
   });
+
+  useEffect(() => {
+    document.body.classList.remove('theme-aero');
+    if (theme === 'aero') {
+      document.body.classList.add('theme-aero');
+    }
+    localStorage.setItem('newara_theme', theme);
+  }, [theme]);
   const [showMobileSubjects, setShowMobileSubjects] = useState(false);
   const [showMoreMobileMenu, setShowMoreMobileMenu] = useState(false);
   const [disableAnimations, setDisableAnimations] = useState(() => {
@@ -515,6 +523,7 @@ export default function App() {
       temaWeb: "Tema del Web",
       blanco: "Blanco",
       negro: "Negro",
+      aeroBeta: "Aero Beta",
       desactivarAnimaciones: "Desactivar Animaciones",
       mejoraRendimiento: "Mejora el rendimiento en celulares viejos",
       version: "Versión",
@@ -593,6 +602,7 @@ export default function App() {
       temaWeb: "Web Theme",
       blanco: "Light",
       negro: "Dark",
+      aeroBeta: "Aero Beta",
       desactivarAnimaciones: "Disable Animations",
       mejoraRendimiento: "Improves performance on old phones",
       version: "Version",
@@ -3895,7 +3905,7 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-[80px] lg:relative lg:h-auto lg:w-64 aero-glass m-2 lg:m-4 rounded-[24px] lg:rounded-[40px] flex flex-row lg:flex-col items-center justify-between lg:justify-start py-2 lg:py-8 px-4 lg:px-0 gap-0 lg:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : 'bg-white/95 border-white'}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 h-[80px] lg:relative lg:h-auto lg:w-64 aero-glass m-2 lg:m-4 rounded-[24px] lg:rounded-[40px] flex flex-row lg:flex-col items-center justify-between lg:justify-start py-2 lg:py-8 px-4 lg:px-0 gap-0 lg:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : theme === 'aero' ? 'theme-aero-card !bg-white/85 !border-white/80' : 'bg-white/95 border-white'}`}>
         <div className="glossy-overlay opacity-20 pointer-events-none" />
         
         {/* LOGO NewAra - Now visible on mobile too */}
@@ -3931,10 +3941,10 @@ export default function App() {
               setShowNotifications(true);
             }}
             className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
-              theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
+              theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : theme === 'aero' ? 'bg-white border-blue-200 shadow-xl' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
             }`}
           >
-            <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : 'text-sky-900 group-hover:text-amber-500'} />
+            <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : theme === 'aero' ? 'text-blue-600 group-hover:text-amber-500' : 'text-sky-900 group-hover:text-amber-500'} />
             {notifications.filter(n => !n.isRead).length > 0 && (
               <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
             )}
@@ -4011,7 +4021,9 @@ export default function App() {
                 className={`w-full lg:pl-10 lg:pr-4 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 outline-none border-2 ${
                   theme === 'black' 
                     ? 'bg-zinc-900/50 border-white/5 focus:border-blue-500/50 text-white placeholder:text-white/20' 
-                    : 'bg-white border-slate-100 focus:border-blue-500 shadow-sm text-sky-950 placeholder:text-sky-900/30'
+                    : theme === 'aero'
+                      ? 'bg-white/90 border-blue-100 focus:border-blue-500 shadow-lg text-sky-950 placeholder:text-sky-900/40'
+                      : 'bg-white border-slate-100 focus:border-blue-500 shadow-sm text-sky-950 placeholder:text-sky-900/30'
                 }`}
               />
               {gallerySearch && (
@@ -6753,20 +6765,32 @@ export default function App() {
                       <p className={`text-sm font-bold mb-4 flex items-center gap-2 transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>
                         {t('temaWeb')}
                       </p>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('white'); }}
-                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'white' ? 'bg-white border-blue-400 shadow-xl scale-105' : theme === 'aero' ? 'bg-white/90 border-white/80 hover:bg-white' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-100 to-white shadow-inner border border-sky-100" />
                           <span className="text-sm font-bold text-sky-950">{t('blanco')}</span>
                         </button>
                         <button 
                           onClick={() => { playExternalBubble(); setTheme('black'); }}
-                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'black' ? 'bg-white border-blue-400 shadow-xl scale-105' : theme === 'aero' ? 'bg-black/40 border-white/20 hover:bg-black/60' : 'bg-white/40 border-white/60 hover:bg-white/60'}`}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 to-black shadow-inner border border-slate-800" />
                           <span className="text-sm font-bold text-sky-950">{t('negro')}</span>
+                        </button>
+                        <button 
+                          onClick={() => { playExternalBubble(); setTheme('aero'); }}
+                          className={`p-4 rounded-3xl flex flex-col items-center gap-3 transition-all border-2 ${theme === 'aero' ? 'bg-blue-500 border-blue-200 shadow-xl scale-105' : 'bg-blue-400/20 border-white/60 hover:bg-blue-400/30'}`}
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 via-green-400 to-blue-200 shadow-xl border border-white/40 overflow-hidden relative">
+                            <BubbleBackground theme="aero" />
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className={`text-sm font-bold ${theme === 'aero' ? 'text-white' : 'text-sky-950'}`}>{t('aeroBeta')}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${theme === 'aero' ? 'text-white/60' : 'text-blue-600/60'}`}>Beta</span>
+                          </div>
                         </button>
                       </div>
                     </div>
@@ -7819,7 +7843,8 @@ function ExerciseRunner({
   );
 }
 
-function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
+function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', badge?: string }) {
+  const isAero = theme === 'aero';
   return (
     <motion.button 
       id={id}
@@ -7831,12 +7856,12 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', b
       whileTap={{ scale: 0.98 }}
       className={`flex items-center gap-3 p-4 rounded-2xl transition-all border relative overflow-hidden ${
         active 
-          ? (theme === 'black' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600') 
-          : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/70' : 'bg-slate-50 border-transparent text-sky-950')
+          ? (isAero ? 'bg-white border-blue-400 text-blue-600 shadow-xl scale-105' : theme === 'black' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600') 
+          : (theme === 'black' ? 'bg-white/5 border-white/10 text-white/70' : isAero ? 'bg-white/20 border-white/40 text-sky-950/80 hover:bg-white/40' : 'bg-slate-50 border-transparent text-sky-950')
       }`}
     >
-      {active && <div className="glossy-overlay opacity-30" />}
-      <div className={`${active ? 'opacity-100 relative z-10' : 'opacity-60 relative z-10'}`}>
+      {(active || isAero) && <div className="glossy-overlay opacity-30" />}
+      <div className={`${active ? 'opacity-100 relative z-10' : 'opacity-60 relative z-10'} ${isAero ? 'skeuo-icon-container !p-1.5' : ''}`}>
         {icon}
       </div>
       <span className="text-[11px] font-black uppercase tracking-widest relative z-10">{label}</span>
@@ -7849,19 +7874,24 @@ function MobileMenuButton({ id, active, icon, label, onClick, theme = 'white', b
   );
 }
 
-function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black', badge?: string }) {
+function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }: { id?: string, active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', badge?: string }) {
+  const isAero = theme === 'aero';
   const handleClick = () => {
     playExternalBubble();
     onClick();
   };
 
-  const activeClasses = theme === 'black' 
-    ? 'bg-blue-600/30 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-blue-400 border-blue-500/50' 
-    : 'bg-white/60 shadow-[0_5px_15px_rgba(59,130,246,0.2)] text-blue-600 border-white/80';
+  const activeClasses = isAero
+    ? 'bg-white/90 border-blue-400 text-blue-600 shadow-xl scale-105'
+    : theme === 'black' 
+      ? 'bg-blue-600/30 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-blue-400 border-blue-500/50' 
+      : 'bg-white/60 shadow-[0_5px_15px_rgba(59,130,246,0.2)] text-blue-600 border-white/80';
 
-  const defaultClasses = theme === 'black' 
-    ? 'text-white/60 border-transparent hover:bg-white/10 hover:text-white' 
-    : 'text-sky-900/40 bg-slate-100/80 border-transparent hover:bg-slate-200/80 hover:text-sky-900 hover:shadow-md';
+  const defaultClasses = isAero
+    ? 'text-sky-900 border-transparent hover:bg-white/40'
+    : theme === 'black' 
+      ? 'text-white/60 border-transparent hover:bg-white/10 hover:text-white' 
+      : 'text-sky-900/40 bg-slate-100/80 border-transparent hover:bg-slate-200/80 hover:text-sky-900 hover:shadow-md';
 
   return (
     <motion.button 
@@ -7873,15 +7903,15 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       className={`flex-1 lg:w-full flex lg:flex-row flex-col items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 xl:p-4 rounded-xl lg:rounded-2xl transition-all relative group border-2 overflow-hidden ${active ? activeClasses : defaultClasses}`}
       style={{ willChange: 'transform' }}
     >
-      {active && <div className="glossy-overlay opacity-30" />}
+      {(active || isAero) && <div className="glossy-overlay opacity-30" />}
       <motion.div 
         animate={active ? { scale: 1.1, rotate: [0, -5, 5, 0] } : { scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'}`}
+        className={`${active ? (theme === 'black' ? 'text-blue-400' : 'text-blue-600') : 'opacity-60 group-hover:opacity-100'} ${isAero ? 'skeuo-icon-container scale-110 !p-1.5' : ''}`}
       >
         {icon}
       </motion.div>
-      <span className={`text-[10px] lg:text-sm font-bold tracking-tight hidden lg:block`}>{label}</span>
+      <span className={`text-[10px] lg:text-sm font-bold tracking-tight hidden lg:block ${isAero ? 'text-sky-950 font-black' : ''}`}>{label}</span>
       
       {badge && (
         <span className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
@@ -7905,7 +7935,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
   );
 }
 
-function UnitButton({ number, title, color, onClick, theme = 'white', isCompleted = false, difficulty }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black', isCompleted?: boolean, difficulty?: string }) {
+function UnitButton({ number, title, color, onClick, theme = 'white', isCompleted = false, difficulty }: { number: number, title: string, color: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', isCompleted?: boolean, difficulty?: string }) {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
@@ -7994,7 +8024,7 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
   );
 }
 
-function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subjectId, completedUnits = [] }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black', subjectId: string, completedUnits?: string[] }) {
+function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subjectId, completedUnits = [] }: { units: any[], subjectColor: string, onUnitClick: (index: number) => void, theme?: 'white' | 'black' | 'aero', subjectId: string, completedUnits?: string[] }) {
   if (units.length === 0) {
     return (
       <div className="py-12 text-center opacity-40 italic flex flex-col items-center gap-3">
@@ -8087,7 +8117,7 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
   );
 }
 
-function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', hasNextUnit, onNextUnit, disableAnimations }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black', hasNextUnit: boolean, onNextUnit: () => void, disableAnimations?: boolean }) {
+function UnitStudyView({ unit, color, onBack, onStartExercise, theme = 'white', hasNextUnit, onNextUnit, disableAnimations }: { unit: any, color: string, onBack: () => void, onStartExercise: () => void, theme?: 'white' | 'black' | 'aero', hasNextUnit: boolean, onNextUnit: () => void, disableAnimations?: boolean }) {
   const getGradient = (color: string) => {
     switch (color) {
       case 'green': return 'from-green-400 to-green-600';

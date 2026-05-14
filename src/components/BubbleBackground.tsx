@@ -51,7 +51,7 @@ const Bubble: React.FC<{
   );
 };
 
-export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' }> = ({ theme = 'white' }) => {
+export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' | 'aero' }> = ({ theme = 'white' }) => {
   // Balanced set of bubbles for performance
   const bubbles = React.useMemo(() => {
     if (flags.isLegacy) return []; // Desactivar burbujas en TVs escolares para máximo rendimiento
@@ -66,19 +66,23 @@ export const BubbleBackground: React.FC<{ theme?: 'white' | 'black' }> = ({ them
       delay: Math.random() * 10,
       color: theme === 'white' 
         ? ['#4ca5ff', '#67c23a', '#00f2ff', '#ffec3d'][i % 4]
-        : ['#1a2b4b', '#004d40', '#4a148c', '#bf360c'][i % 4]
+        : theme === 'aero'
+          ? ['#ffffff', '#8ac9ff', '#48ffcc', '#00ff2b'][i % 4]
+          : ['#1a2b4b', '#004d40', '#4a148c', '#bf360c'][i % 4]
     }));
   }, [theme]);
 
   const bgStyles = theme === 'white' 
     ? "bg-gradient-to-b from-[#e6f3ff] via-[#f0f9ff] to-[#ffffff]"
-    : "bg-gradient-to-b from-[#0a0f1d] via-[#1a2b4b] to-[#0a0f1d]";
+    : theme === 'aero'
+      ? "bg-transparent" // Theme aero uses body background image
+      : "bg-gradient-to-b from-[#0a0f1d] via-[#1a2b4b] to-[#0a0f1d]";
 
   return (
     <div className={`fixed inset-0 overflow-hidden pointer-events-none z-[-1] transition-colors duration-1000 ${bgStyles}`}>
       {/* Soft light spots */}
-      <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] opacity-20 ${theme === 'white' ? 'bg-[#a8d8ff]' : 'bg-[#1e3a8a]'}`} />
-      <div className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] opacity-20 ${theme === 'white' ? 'bg-[#c2ffcc]' : 'bg-[#064e3b]'}`} />
+      <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] opacity-20 ${theme === 'white' ? 'bg-[#a8d8ff]' : theme === 'aero' ? 'bg-[#00d2ff]' : 'bg-[#1e3a8a]'}`} />
+      <div className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] opacity-20 ${theme === 'white' ? 'bg-[#c2ffcc]' : theme === 'aero' ? 'bg-[#48ffcc]' : 'bg-[#064e3b]'}`} />
       
       {bubbles.map((b, i) => (
         <Bubble 

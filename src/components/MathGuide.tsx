@@ -5,12 +5,13 @@ import { GlossyButton } from './AeroUI';
 import { Calculator, Zap, Target, Divide, Hash, Layers, PieChart, Info, X as XIcon } from 'lucide-react';
 
 interface MathGuideProps {
-  theme: 'white' | 'black';
+  theme: 'white' | 'black' | 'aero';
   onClose: () => void;
 }
 
 export const MathGuide: React.FC<MathGuideProps> = ({ theme, onClose }) => {
   const isDark = theme === 'black';
+  const isAero = theme === 'aero';
 
   return (
     <motion.div 
