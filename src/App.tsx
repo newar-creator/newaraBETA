@@ -4351,7 +4351,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
-                className={`fixed bottom-[115px] left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 flex flex-col max-h-[70vh] overflow-hidden ${
+                className={`fixed bottom-[85px] left-4 right-4 p-4 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 flex flex-col max-h-[70vh] overflow-hidden ${
                   theme === 'black' 
                     ? 'bg-black/90 border-white/10' 
                     : 'bg-white/95 border-white/60'
@@ -4381,42 +4381,44 @@ export default function App() {
                     badge="BETA"
                   />
 
-                  <MobileMenuButton 
-                    active={showNotifications} 
-                    onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
-                    icon={<Bell size={20} />} 
-                    label={t('notificaciones')} 
-                    theme={theme}
-                    badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
-                  />
-                  <MobileMenuButton 
-                    id="nav-settings"
-                    active={currentView === 'settings'} 
-                    onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
-                    icon={<Settings size={20} />} 
-                    label={t('ajustes')} 
-                    theme={theme}
-                  />
-                  {isModerator && (
+                  <div className="grid grid-cols-2 gap-2">
                     <MobileMenuButton 
-                      id="nav-users"
-                      active={currentView === 'users'} 
-                      onClick={() => { navigateTo('users'); setShowMoreMobileMenu(false); }} 
-                      icon={<Users2 size={20} />} 
-                      label="Usuarios" 
+                      active={showNotifications} 
+                      onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
+                      icon={<Bell size={20} />} 
+                      label={t('notificaciones')} 
+                      theme={theme}
+                      badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
+                    />
+                    <MobileMenuButton 
+                      id="nav-settings"
+                      active={currentView === 'settings'} 
+                      onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
+                      icon={<Settings size={20} />} 
+                      label={t('ajustes')} 
                       theme={theme}
                     />
-                  )}
+                  </div>
                   {isModerator && (
-                    <MobileMenuButton 
-                      id="nav-reports"
-                      active={currentView === 'reports'} 
-                      onClick={() => { navigateTo('reports'); fetchReports(); setShowMoreMobileMenu(false); }} 
-                      icon={<AlertTriangle size={20} />} 
-                      label={t('denunciados')} 
-                      theme={theme}
-                      badge={reports.length > 0 ? reports.length.toString() : undefined}
-                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <MobileMenuButton 
+                        id="nav-users"
+                        active={currentView === 'users'} 
+                        onClick={() => { navigateTo('users'); setShowMoreMobileMenu(false); }} 
+                        icon={<Users2 size={20} />} 
+                        label="Usuarios" 
+                        theme={theme}
+                      />
+                      <MobileMenuButton 
+                        id="nav-reports"
+                        active={currentView === 'reports'} 
+                        onClick={() => { navigateTo('reports'); fetchReports(); setShowMoreMobileMenu(false); }} 
+                        icon={<AlertTriangle size={20} />} 
+                        label={t('denunciados')} 
+                        theme={theme}
+                        badge={reports.length > 0 ? reports.length.toString() : undefined}
+                      />
+                    </div>
                   )}
                   {isClaudia && (
                     <MobileMenuButton 
@@ -4438,7 +4440,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 100 }}
-                    className={`fixed bottom-[115px] left-4 right-4 p-5 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden flex flex-col max-h-[70vh] ${
+                    className={`fixed bottom-[85px] left-4 right-4 p-5 rounded-[32px] border-4 shadow-2xl backdrop-blur-3xl z-50 overflow-hidden flex flex-col max-h-[70vh] ${
                       theme === 'black' 
                         ? 'bg-black/90 border-white/10' 
                         : 'bg-white/95 border-white/60'
