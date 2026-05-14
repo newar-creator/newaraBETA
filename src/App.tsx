@@ -442,13 +442,23 @@ export default function App() {
         if (gCode) {
           path = `/minijuegos/servidor/codigo/${gCode}`;
         } else {
-          path = '/minijuegos';
+          path = '/minigames';
         }
         break;
     }
     
     if (location.pathname !== path) {
       navigate(path);
+    }
+  };
+
+  const handleCreateActivityClick = () => {
+    playExternalBubble();
+    if (!isLoggedIn) {
+      setAuthMode('login');
+      setIsRegistering(true);
+    } else {
+      navigateTo('create-activity');
     }
   };
 
@@ -2751,8 +2761,7 @@ export default function App() {
     });
     
     setActivityQuestions(mappedQuestions);
-    navigateTo('create-activity');
-    playExternalBubble();
+    handleCreateActivityClick();
   };
 
   const shuffleArray = (array: any[]) => {
@@ -4613,7 +4622,7 @@ export default function App() {
                   <HomeShortcut 
                     icon={<Plus size={18} />} 
                     label="Crear" 
-                    onClick={() => navigateTo('create-activity')} 
+                    onClick={handleCreateActivityClick} 
                     color="bg-emerald-500" 
                     theme={theme} 
                   />
@@ -4761,10 +4770,7 @@ export default function App() {
                                 </div>
                                 <p className="text-[10px] font-black uppercase opacity-40 tracking-widest px-6 leading-relaxed">No tienes actividades creadas todavía</p>
                                 <GlossyButton 
-                                  onClick={() => {
-                                    playExternalBubble();
-                                    navigateTo('create-activity');
-                                  }}
+                                  onClick={handleCreateActivityClick}
                                   className="w-full py-4 text-[10px] font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group"
                                 >
                                   <div className="flex items-center justify-center gap-2">
@@ -4795,10 +4801,7 @@ export default function App() {
                               ))}
                               <div className="pt-2">
                                 <button
-                                  onClick={() => {
-                                    playExternalBubble();
-                                    navigateTo('create-activity');
-                                  }}
+                                  onClick={handleCreateActivityClick}
                                   className={`w-full py-3 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 transition-all active:scale-95 group ${
                                     theme === 'black' 
                                       ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white' 
@@ -6168,10 +6171,7 @@ export default function App() {
                          <p className={`text-xs md:text-sm font-bold opacity-40 uppercase tracking-widest px-8 md:px-12 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>No se encontró ninguna actividad que coincida con "{gallerySearch}"</p>
                       </div>
                       <GlossyButton 
-                        onClick={() => {
-                          playExternalBubble();
-                          navigateTo('create-activity');
-                        }}
+                        onClick={handleCreateActivityClick}
                         className="px-8 md:px-12 py-3 md:py-4 text-[10px] md:text-xs font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group mx-auto"
                       >
                         <div className="flex items-center justify-center gap-2">
@@ -6310,7 +6310,7 @@ export default function App() {
                 <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
                   <Globe size={48} className="opacity-10 animate-pulse" />
                   <p className="text-sm font-black uppercase tracking-widest opacity-40">No hay actividades todavía. ¡Sé el primero!</p>
-                  <GlossyButton onClick={() => navigateTo('create-activity')}>
+                  <GlossyButton onClick={handleCreateActivityClick}>
                     Crear Actividad
                   </GlossyButton>
                 </div>
