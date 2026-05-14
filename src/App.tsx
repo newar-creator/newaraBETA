@@ -3905,12 +3905,12 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-[70px] lg:h-auto lg:relative lg:w-64 z-[100] transition-all duration-500 ${
+      <nav className={`fixed bottom-0 left-0 right-0 h-[70px] lg:h-auto lg:relative z-[100] transition-all duration-500 ${
         theme === 'black' ? 'bg-black/90 border-white/10' : theme === 'aero' ? 'theme-aero-card !bg-white/85 !border-white/80' : 'bg-white/95 border-white'
-      } lg:m-4 lg:rounded-[40px] border-t lg:border-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-2xl flex flex-row lg:flex-col items-center justify-between lg:justify-start py-1 lg:py-8 px-2 lg:px-0 gap-0 lg:gap-6 ${
+      } lg:rounded-[40px] border-t shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-2xl flex flex-row lg:flex-col items-center justify-between lg:justify-start py-1 lg:py-8 px-2 lg:px-0 gap-0 lg:gap-6 ${
         (minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
-          ? 'translate-y-[120%] lg:translate-y-0 opacity-0 pointer-events-none scale-95 origin-bottom lg:origin-center' 
-          : 'translate-y-0 opacity-100'
+          ? 'translate-y-[120%] lg:translate-y-0 opacity-0 pointer-events-none scale-95 origin-bottom lg:origin-center lg:w-0 lg:m-0 lg:border-0 lg:p-0 lg:overflow-hidden' 
+          : 'translate-y-0 opacity-100 lg:w-64 lg:m-4 lg:border-4'
       }`}>
         <div className="glossy-overlay opacity-10 lg:opacity-20 pointer-events-none" />
         
@@ -4427,7 +4427,11 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <main className="flex-1 overflow-y-auto p-4 pb-32 lg:p-8 relative">
+      <main className={`flex-1 overflow-y-auto relative transition-all duration-500 ${
+        (minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
+          ? 'p-0' 
+          : 'p-4 pb-32 lg:p-8'
+      }`}>
         <AnimatePresence>
           {isOffline && (
             <motion.div 
@@ -5491,67 +5495,84 @@ export default function App() {
               exit={{ opacity: 0, scale: 1.05 }}
               className="min-h-[85vh] flex flex-col gap-6"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3">
-                    <ArrowLeft size={24} />
-                  </button>
-                  <div>
-                    <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
-                    <p className={`font-bold opacity-60 flex items-center gap-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                      <Gamepad2 size={16} /> {minigameSession.activity.name}
-                    </p>
+              {isMinigameHost && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3">
+                      <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                      <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
+                      <p className={`font-bold opacity-60 flex items-center gap-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                        <Gamepad2 size={16} /> {minigameSession.activity.name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                     <div className="px-6 py-2 rounded-full bg-blue-500 text-white font-black tracking-widest text-xl shadow-xl shadow-blue-500/30">
+                        {minigameSession.code}
+                     </div>
+                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mt-2">Código del Servidor</p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                   <div className="px-6 py-2 rounded-full bg-blue-500 text-white font-black tracking-widest text-xl shadow-xl shadow-blue-500/30">
-                      {minigameSession.code}
-                   </div>
-                   <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mt-2">Código del Servidor</p>
-                </div>
-              </div>
+              )}
 
               {minigameSession.status === 'waiting' && (
                 <div className="flex-1 flex flex-col items-center justify-center gap-12 py-12">
-                   <div className="text-center space-y-4">
-                     <h2 className={`text-5xl md:text-7xl font-black tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                       {minigamePlayers.length}
-                     </h2>
-                     <p className="text-xl font-black uppercase tracking-[0.4em] opacity-40">Jugadores Conectados</p>
-                   </div>
-
-                   <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <AnimatePresence>
-                       {minigamePlayers.map((player, idx) => (
-                         <motion.div
-                           key={player.name}
-                           initial={{ opacity: 0, y: 20 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           transition={{ delay: idx * 0.05 }}
-                           className={`p-4 rounded-3xl border-2 text-center font-black uppercase tracking-widest text-[9px] md:text-xs relative overflow-hidden ${
-                             theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white border-blue-100 text-blue-900'
-                           }`}
-                         >
-                            <div className="glossy-overlay opacity-20" />
-                            {player.name}
-                         </motion.div>
-                       ))}
-                     </AnimatePresence>
-                   </div>
-
-                   {isMinigameHost ? (
-                     <GlossyButton 
-                       onClick={startMinigame}
-                       disabled={minigamePlayers.length === 0}
-                       className="px-16 py-6 text-2xl bg-gradient-to-br from-green-400 to-emerald-600 border-none shadow-emerald-500/40"
-                     >
-                       EMPEZAR JUEGO <Play size={24} fill="currentColor" />
-                     </GlossyButton>
-                   ) : (
-                     <div className="flex flex-col items-center gap-4">
-                        <RefreshCw className="text-blue-500 animate-spin" size={32} />
-                        <p className={`text-sm font-black uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Esperando al profesor...</p>
+                   {!isMinigameHost ? (
+                     <div className="flex flex-col items-center gap-8 text-center animate-bounce-slow">
+                        <div className="w-24 h-24 rounded-[32px] bg-blue-500 shadow-2xl flex items-center justify-center text-white scale-110">
+                           <User size={48} />
+                        </div>
+                        <div className="space-y-2">
+                           <h2 className="text-3xl font-black uppercase tracking-tight">¡Estás dentro!</h2>
+                           <p className="text-sm font-black uppercase tracking-[0.2em] opacity-40">¿Ves tu nombre en la pantalla?</p>
+                        </div>
+                        <div className="px-8 py-4 rounded-full bg-white/5 border border-white/10 font-black text-2xl tracking-widest text-white">
+                           {userName}
+                        </div>
                      </div>
+                   ) : (
+                     <>
+                       <div className="text-center space-y-4">
+                          <h2 className={`text-4xl md:text-6xl font-black uppercase tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Esperando Jugadores</h2>
+                          <div className="flex items-center justify-center gap-3">
+                             <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                             <p className="text-xs font-black uppercase tracking-[0.4em] opacity-40">Servidor Activo • {minigamePlayers.length} Conectados</p>
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 w-full max-w-6xl px-4">
+                          <AnimatePresence>
+                             {minigamePlayers.map((player, idx) => (
+                               <motion.div
+                                 key={player.name}
+                                 initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                                 exit={{ opacity: 0, scale: 0.5 }}
+                                 className={`p-6 rounded-[32px] border-4 text-center relative overflow-hidden group shadow-xl ${
+                                   theme === 'black' ? 'bg-zinc-800 border-white/5' : 'bg-white border-white/60'
+                                 }`}
+                               >
+                                  <div className="glossy-overlay opacity-5 group-hover:opacity-10 transition-opacity" />
+                                  <p className="text-xl md:text-2xl font-black truncate relative z-10">{player.name}</p>
+                                  <div className="absolute top-0 right-0 p-1 opacity-10">
+                                     <User size={12} />
+                                  </div>
+                               </motion.div>
+                             ))}
+                          </AnimatePresence>
+                       </div>
+
+                       {isMinigameHost && minigamePlayers.length > 0 && (
+                        <div className="mt-8 flex flex-col items-center gap-4">
+                          <GlossyButton onClick={startMinigame} className="px-16 py-6 text-xl bg-green-500 hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                             EMPEZAR AHORA <Play className="ml-2" fill="currentColor" />
+                          </GlossyButton>
+                          <p className="text-[10px] font-black uppercase opacity-20 tracking-widest">El profesor debe iniciar la partida</p>
+                        </div>
+                       )}
+                     </>
                    )}
                 </div>
               )}
@@ -5559,14 +5580,16 @@ export default function App() {
               {minigameSession.status === 'playing' && (
                 <div className="flex-1 flex flex-col gap-6">
                    {/* Top Bar: Question (Common for both but central for teacher) */}
-                   <div className={`p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 text-center relative overflow-hidden shadow-2xl ${
-                     theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
-                   }`}>
-                      <div className="glossy-overlay opacity-10" />
-                      <h2 className="text-xl md:text-5xl font-black tracking-tight leading-tight relative z-10 px-4">
-                        {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
-                      </h2>
-                   </div>
+                   {isMinigameHost && (
+                     <div className={`p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 text-center relative overflow-hidden shadow-2xl ${
+                       theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
+                     }`}>
+                        <div className="glossy-overlay opacity-10" />
+                        <h2 className="text-xl md:text-5xl font-black tracking-tight leading-tight relative z-10 px-4">
+                          {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
+                        </h2>
+                     </div>
+                   )}
 
                    {isMinigameHost ? (
                      /* TEACHER VIEW (Big Screen) */
@@ -5668,158 +5691,197 @@ export default function App() {
                         </div>
                      </div>
                    ) : (
-                     /* STUDENT VIEW (Small Screen) */
-                     <div className="flex-1 flex flex-col gap-6">
-                        {/* Student Status Bar */}
-                        <div className="flex items-center justify-between px-2">
+                     /* STUDENT VIEW (Kahoot-Style) */
+                     <div className="fixed inset-0 flex flex-col bg-slate-900 z-[200]">
+                         {/* PIN & Question Top Bar */}
+                         <div className="bg-white/95 px-6 py-4 flex items-center justify-between shadow-lg">
+                           <div className="flex items-center gap-2">
+                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Pin:</span>
+                             <span className="text-xl font-black text-slate-800">{minigameSession.code}</span>
+                           </div>
                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-black">
-                                 {userName?.charAt(0)}
-                              </div>
-                              <div>
-                                 <p className="text-[10px] font-black uppercase opacity-40 leading-none">Jugador</p>
-                                 <p className="text-sm font-black">{userName}</p>
-                              </div>
-                           </div>
-                           <div className="flex flex-col items-end">
-                              <p className="text-[10px] font-black uppercase opacity-40 leading-none">Pregunta</p>
-                              <p className="text-sm font-black">{minigameSession.currentQuestionIndex + 1} de {minigameSession.activity.questions.length}</p>
-                           </div>
-                        </div>
-
-                        {/* Student Input Grid */}
-                        <div className="flex-1 flex flex-col justify-center">
-                           { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
-                             <div className="space-y-6">
-                                <input 
-                                  type="text"
-                                  disabled={hasAnsweredCurrentQuestion}
-                                  placeholder="ESCRIBE AQUÍ..."
-                                  value={minigameWrittenInput}
-                                  onChange={(e) => setMinigameWrittenInput(e.target.value)}
-                                  className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl outline-none transition-all uppercase ${
-                                    hasAnsweredCurrentQuestion 
-                                      ? 'bg-white/5 border-blue-500/50 opacity-50' 
-                                      : 'bg-white/10 border-white/20 focus:border-blue-400'
-                                  }`}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !hasAnsweredCurrentQuestion && minigameWrittenInput.trim()) {
-                                      submitMinigameAnswer(minigameWrittenInput);
-                                    }
-                                  }}
-                                />
-                                {!hasAnsweredCurrentQuestion && (
-                                  <GlossyButton onClick={() => minigameWrittenInput.trim() && submitMinigameAnswer(minigameWrittenInput)} className="w-full py-8 text-2xl font-black">
-                                    ENVIAR
-                                  </GlossyButton>
-                                )}
+                             <div className="flex flex-col items-end">
+                               <span className="text-[10px] font-black text-slate-400 uppercase leading-none">Pregunta</span>
+                               <span className="text-lg font-black text-slate-800">{minigameSession.currentQuestionIndex + 1}</span>
                              </div>
-                           ) : (
-                             <div className="grid grid-cols-2 gap-3 h-full max-h-[60vh] md:max-h-full">
-                                {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((option: string, idx: number) => {
-                                   const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
-                                   const shapes = ['▲', '◆', '●', '■'];
-                                   const isAnswered = hasAnsweredCurrentQuestion;
-                                   
-                                   return (
-                                     <motion.button
-                                       key={idx}
-                                       disabled={isAnswered}
-                                       whileTap={{ scale: 0.95 }}
-                                       onClick={() => submitMinigameAnswer(option)}
-                                       className={`relative rounded-[32px] md:rounded-[48px] ${colors[idx]} shadow-xl flex items-center justify-center transition-all overflow-hidden ${
-                                         isAnswered ? 'opacity-30 grayscale-[0.5]' : 'hover:scale-[1.02]'
-                                       } h-40 md:h-full min-h-[140px] p-4`}
-                                     >
-                                        <div className="glossy-overlay opacity-20" />
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                          <span className="text-5xl md:text-7xl font-black text-white drop-shadow-2xl">{shapes[idx]}</span>
-                                          <span className="text-xs md:text-xl font-black text-white text-center leading-tight break-words line-clamp-none">
-                                            {option}
-                                          </span>
-                                        </div>
-                                     </motion.button>
-                                   );
-                                })}
+                             <div className="w-1.5 h-8 bg-slate-100 rounded-full" />
+                             <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-black text-lg">
+                                {userName?.charAt(0).toUpperCase()}
                              </div>
-                           )}
-                        </div>
+                           </div>
+                         </div>
 
-                        {/* Mobile PIN Footer */}
-                        <div className="text-center py-2 opacity-30">
-                           <p className="text-[10px] font-black uppercase tracking-[0.5em]">Server PIN: {minigameSession.code}</p>
-                        </div>
-                     </div>
+                         {/* Input Area */}
+                         <div className="flex-1 flex flex-col p-2 gap-2">
+                            { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
+                              <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4">
+                                 <input 
+                                   type="text"
+                                   disabled={hasAnsweredCurrentQuestion}
+                                   placeholder="ESCRIBE TU RESPUESTA..."
+                                   value={minigameWrittenInput}
+                                   onChange={(e) => setMinigameWrittenInput(e.target.value)}
+                                   className={`w-full p-8 rounded-[32px] border-4 text-center font-black text-2xl outline-none transition-all uppercase ${
+                                     hasAnsweredCurrentQuestion 
+                                       ? 'bg-white/5 border-blue-500/50 opacity-50 text-white' 
+                                       : 'bg-white/10 border-white/20 focus:border-blue-400 text-white'
+                                   }`}
+                                   onKeyDown={(e) => {
+                                     if (e.key === 'Enter' && !hasAnsweredCurrentQuestion && minigameWrittenInput.trim()) {
+                                       submitMinigameAnswer(minigameWrittenInput);
+                                     }
+                                   }}
+                                 />
+                                 {!hasAnsweredCurrentQuestion && (
+                                   <GlossyButton onClick={() => minigameWrittenInput.trim() && submitMinigameAnswer(minigameWrittenInput)} className="w-full py-10 text-2xl font-black">
+                                     ENVIAR
+                                   </GlossyButton>
+                                 )}
+                              </div>
+                            ) : (
+                              <div className="flex-1 grid grid-cols-2 gap-2">
+                                 {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((option: string, idx: number) => {
+                                    const colors = ['bg-red-500', 'bg-blue-600', 'bg-amber-500', 'bg-emerald-500'];
+                                    const shapes = ['▲', '◆', '●', '■'];
+                                    const isAnswered = hasAnsweredCurrentQuestion;
+                                    
+                                    return (
+                                      <motion.button
+                                        key={idx}
+                                        disabled={isAnswered}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => submitMinigameAnswer(option)}
+                                        className={`relative flex flex-col items-center justify-center transition-all ${colors[idx]} ${
+                                          isAnswered ? 'opacity-20 grayscale-[0.5]' : ''
+                                        } h-full p-4 group`}
+                                      >
+                                         <div className="glossy-overlay opacity-20" />
+                                         <span className="text-7xl font-black text-white drop-shadow-2xl mb-4 group-active:scale-95 transition-transform">{shapes[idx]}</span>
+                                         <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{option}</span>
+                                      </motion.button>
+                                    );
+                                 })}
+                              </div>
+                            )}
+                         </div>
+
+                         {/* Footer Bar */}
+                         <div className="bg-white px-6 py-3 flex items-center justify-between border-t border-slate-100">
+                           <span className="text-xs font-black text-slate-800 uppercase tracking-widest">{userName}</span>
+                           <div className="bg-slate-800 text-white px-4 py-1.5 rounded-full font-black text-sm">
+                             {minigamePlayers.find(p => p.name === userName)?.score || 0}
+                           </div>
+                         </div>
+                      </div>
                    )}
                 </div>
               )}
 
                {minigameSession.status === 'reveal' && (
                  <div className="flex-1 flex flex-col gap-10">
-                    <div className="text-center space-y-4">
-                       <h2 className="text-4xl font-black uppercase tracking-tight">Resultados de la Ronda</h2>
-                       <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-black text-sm">
-                          <CheckCircle size={16} /> {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') ? '¡Tiempo Agotado! Revisando Respuestas...' : `Respuesta Correcta: ${minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}`}
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
-                          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
-                             {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
-                               <motion.div 
-                                 key={i} 
-                                 initial={{ opacity: 0, scale: 0.9 }} 
-                                 animate={{ opacity: 1, scale: 1 }}
-                                 className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 ${
-                                   p.isCorrect ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
-                                 }`}
-                               >
-                                  <div className="flex items-center gap-4">
-                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
-                                     <span className="font-bold text-xl tracking-tight">{p.name}</span>
-                                  </div>
-                                  {p.isCorrect ? <CheckCircle className="text-green-500" size={24} /> : <XCircle className="text-red-500" size={24} />}
-                               </motion.div>
-                             ))}
-                          </div>
-                       ) : (
-                          (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
-                            const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
-                            const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
-                            const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
-                            const color = (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean') ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
-                            const isCorrect = opt === minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer;
-
-                            return (
-                              <div key={opt} className={`p-6 rounded-[32px] border-2 space-y-4 ${isCorrect ? 'border-green-500 bg-green-500/5' : 'border-white/10 bg-white/5'}`}>
-                                 <div className="flex justify-between items-center font-black">
-                                   <div className="flex items-center gap-2">
-                                      <div className={`w-3 h-3 rounded-full ${color}`} />
-                                      <span className="text-sm uppercase tracking-widest">{opt}</span>
-                                      {isCorrect && <CheckCircle size={16} className="text-green-500" />}
-                                   </div>
-                                   <span className="text-2xl tracking-tighter">{count}</span>
-                                 </div>
-                                 <div className="h-4 bg-white/5 rounded-full overflow-hidden p-0.5">
-                                    <motion.div 
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${percentage}%` }}
-                                      className={`h-full rounded-full ${color} shadow-lg`}
-                                    />
-                                 </div>
+                    {!isMinigameHost ? (
+                      <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 z-[200]">
+                         {minigamePlayers.find(p => p.name === userName)?.lastResponse?.isCorrect ? (
+                           <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6">
+                              <div className="w-32 h-32 rounded-full bg-green-500 shadow-2xl flex items-center justify-center text-white scale-125">
+                                 <CheckCircle size={64} strokeWidth={3} />
                               </div>
-                            );
-                          })
-                       )}
-                    </div>
-
-                    {isMinigameHost && (
-                      <div className="mt-auto flex justify-center">
-                         <GlossyButton onClick={showMinigameLeaderboard} className="px-16 py-6 text-xl bg-orange-500">
-                           VER TABLA DE POSICIONES <Trophy size={24} />
-                         </GlossyButton>
+                              <h2 className="text-5xl font-black text-white uppercase tracking-tighter">¡CORRECTO!</h2>
+                              <div className="bg-white/10 px-6 py-2 rounded-full text-white/60 font-black tracking-widest uppercase text-xs">
+                                Sigue así, {userName}
+                              </div>
+                           </motion.div>
+                         ) : (
+                           <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6">
+                              <div className="w-32 h-32 rounded-full bg-red-500 shadow-2xl flex items-center justify-center text-white scale-110">
+                                 <XCircle size={64} strokeWidth={3} />
+                              </div>
+                              <h2 className="text-4xl font-black text-white uppercase tracking-tighter">INCORRECTO</h2>
+                              <div className="bg-white/10 px-6 py-2 rounded-full text-white/60 font-black tracking-widest uppercase text-xs">
+                                No te rindas, {userName}
+                              </div>
+                           </motion.div>
+                         )}
+                         <div className="absolute bottom-12 left-0 right-0 px-8">
+                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                               <motion.div 
+                                 initial={{ width: "100%" }} 
+                                 animate={{ width: "0%" }} 
+                                 transition={{ duration: 5, ease: "linear" }}
+                                 className="h-full bg-white/40" 
+                               />
+                            </div>
+                            <p className="text-center text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mt-4">Esperando al profesor...</p>
+                         </div>
                       </div>
+                    ) : (
+                      <>
+                        <div className="text-center space-y-4">
+                           <h2 className="text-4xl font-black uppercase tracking-tight text-white drop-shadow-md">Resultados de la Ronda</h2>
+                           <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-black text-sm">
+                              <CheckCircle size={16} /> {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') ? '¡Tiempo Agotado! Revisando Respuestas...' : `Respuesta Correcta: ${minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}`}
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
+                              <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
+                                   <motion.div 
+                                     key={i} 
+                                     initial={{ opacity: 0, scale: 0.9 }} 
+                                     animate={{ opacity: 1, scale: 1 }}
+                                     className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 ${
+                                       p.isCorrect ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
+                                     }`}
+                                   >
+                                      <div className="flex items-center gap-4">
+                                         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black">{p.name.charAt(0)}</div>
+                                         <span className="font-bold text-xl tracking-tight text-white">{p.name}</span>
+                                      </div>
+                                      {p.isCorrect ? <CheckCircle className="text-green-500" size={24} /> : <XCircle className="text-red-500" size={24} />}
+                                   </motion.div>
+                                 ))}
+                              </div>
+                           ) : (
+                              (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean' ? ['Verdadero', 'Falso'] : minigameSession.activity.questions[minigameSession.currentQuestionIndex].options).map((opt: string, idx: number) => {
+                                const count = minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex && p.lastResponse?.answer === opt).length;
+                                const percentage = minigamePlayers.length > 0 ? (count / minigamePlayers.length) * 100 : 0;
+                                const colors = ['bg-red-500', 'bg-blue-500', 'bg-amber-500', 'bg-emerald-500'];
+                                const color = (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'true-false' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'boolean') ? (opt === 'Verdadero' ? 'bg-blue-500' : 'bg-red-500') : colors[idx];
+                                const isCorrect = opt === minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer;
+
+                                return (
+                                  <div key={opt} className={`p-6 rounded-[32px] border-2 space-y-4 ${isCorrect ? 'border-green-500 bg-green-500/5' : 'border-white/10 bg-white/5'}`}>
+                                     <div className="flex justify-between items-center font-black">
+                                       <div className="flex items-center gap-2">
+                                          <div className={`w-3 h-3 rounded-full ${color}`} />
+                                          <span className="text-sm uppercase tracking-widest text-white">{opt}</span>
+                                          {isCorrect && <CheckCircle size={16} className="text-green-500" />}
+                                       </div>
+                                       <span className="text-2xl tracking-tighter text-white">{count}</span>
+                                     </div>
+                                     <div className="h-4 bg-white/5 rounded-full overflow-hidden p-0.5">
+                                        <motion.div 
+                                          initial={{ width: 0 }}
+                                          animate={{ width: `${percentage}%` }}
+                                          className={`h-full rounded-full ${color} shadow-lg`}
+                                        />
+                                     </div>
+                                  </div>
+                                );
+                              })
+                           )}
+                        </div>
+
+                        {isMinigameHost && (
+                          <div className="mt-auto flex justify-center">
+                             <GlossyButton onClick={showMinigameLeaderboard} className="px-16 py-6 text-xl bg-orange-500 shadow-2xl">
+                               VER TABLA DE POSICIONES <Trophy size={24} />
+                             </GlossyButton>
+                          </div>
+                        )}
+                      </>
                     )}
                  </div>
                )}
