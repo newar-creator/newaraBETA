@@ -5493,26 +5493,26 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="min-h-[85vh] flex flex-col gap-6"
+              className="min-h-[85vh] flex flex-col gap-10 p-6 md:p-12"
             >
               {isMinigameHost && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3">
-                      <ArrowLeft size={24} />
+                <div className="flex items-center justify-between mb-6 px-4">
+                  <div className="flex items-center gap-6">
+                    <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-4">
+                      <ArrowLeft size={28} />
                     </button>
                     <div>
-                      <h1 className={`text-2xl md:text-4xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
-                      <p className={`font-bold opacity-60 flex items-center gap-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                        <Gamepad2 size={16} /> {minigameSession.activity.name}
+                      <h1 className={`text-3xl md:text-5xl font-black tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
+                      <p className={`font-bold opacity-60 flex items-center gap-2 text-lg ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                        <Gamepad2 size={20} /> {minigameSession.activity.name}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                     <div className="px-6 py-2 rounded-full bg-blue-500 text-white font-black tracking-widest text-xl shadow-xl shadow-blue-500/30">
+                  <div className="flex flex-col items-end gap-2">
+                     <div className="px-8 py-3 rounded-2xl bg-blue-500 text-white font-black tracking-widest text-2xl shadow-xl shadow-blue-500/30">
                         {minigameSession.code}
                      </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mt-2">Código del Servidor</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Código del Servidor</p>
                   </div>
                 </div>
               )}
@@ -5581,11 +5581,11 @@ export default function App() {
                 <div className="flex-1 flex flex-col gap-6">
                    {/* Top Bar: Question (Common for both but central for teacher) */}
                    {isMinigameHost && (
-                     <div className={`p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 text-center relative overflow-hidden shadow-2xl ${
-                       theme === 'black' ? 'bg-zinc-900 border-white/10' : 'bg-white border-white'
+                     <div className={`p-10 md:p-20 rounded-[40px] md:rounded-[60px] border-8 text-center relative overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.2)] mb-8 ${
+                       theme === 'black' ? 'bg-zinc-900 border-white/5' : 'bg-white border-white'
                      }`}>
-                        <div className="glossy-overlay opacity-10" />
-                        <h2 className="text-xl md:text-5xl font-black tracking-tight leading-tight relative z-10 px-4">
+                        <div className="glossy-overlay opacity-5" />
+                        <h2 className="text-3xl md:text-6xl font-black tracking-tight leading-tight relative z-10 px-8 drop-shadow-sm">
                           {minigameSession.activity.questions[minigameSession.currentQuestionIndex].question}
                         </h2>
                      </div>
@@ -5694,25 +5694,25 @@ export default function App() {
                      /* STUDENT VIEW (Kahoot-Style) */
                      <div className="fixed inset-0 flex flex-col bg-slate-900 z-[200]">
                          {/* PIN & Question Top Bar */}
-                         <div className="bg-white/95 px-6 py-4 flex items-center justify-between shadow-lg">
-                           <div className="flex items-center gap-2">
-                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Pin:</span>
-                             <span className="text-xl font-black text-slate-800">{minigameSession.code}</span>
-                           </div>
+                         <div className="bg-white/95 px-8 py-6 flex items-center justify-between shadow-lg">
                            <div className="flex items-center gap-3">
+                             <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Pin:</span>
+                             <span className="text-2xl font-black text-slate-800 tracking-tighter">{minigameSession.code}</span>
+                           </div>
+                           <div className="flex items-center gap-4">
                              <div className="flex flex-col items-end">
                                <span className="text-[10px] font-black text-slate-400 uppercase leading-none">Pregunta</span>
-                               <span className="text-lg font-black text-slate-800">{minigameSession.currentQuestionIndex + 1}</span>
+                               <span className="text-xl font-black text-slate-800">{minigameSession.currentQuestionIndex + 1}</span>
                              </div>
-                             <div className="w-1.5 h-8 bg-slate-100 rounded-full" />
-                             <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-black text-lg">
+                             <div className="w-2 h-10 bg-slate-100 rounded-full" />
+                             <div className="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center text-white font-black text-xl shadow-lg ring-4 ring-blue-500/10">
                                 {userName?.charAt(0).toUpperCase()}
                              </div>
                            </div>
                          </div>
 
                          {/* Input Area */}
-                         <div className="flex-1 flex flex-col p-2 gap-2">
+                         <div className="flex-1 flex flex-col p-4 md:p-10 gap-4">
                             { (minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ) ? (
                               <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4">
                                  <input 
@@ -5766,9 +5766,12 @@ export default function App() {
                          </div>
 
                          {/* Footer Bar */}
-                         <div className="bg-white px-6 py-3 flex items-center justify-between border-t border-slate-100">
-                           <span className="text-xs font-black text-slate-800 uppercase tracking-widest">{userName}</span>
-                           <div className="bg-slate-800 text-white px-4 py-1.5 rounded-full font-black text-sm">
+                         <div className="bg-white px-8 py-4 flex items-center justify-between border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                           <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                              <span className="text-sm font-black text-slate-800 uppercase tracking-widest">{userName}</span>
+                           </div>
+                           <div className="bg-slate-900 text-white px-6 py-2 rounded-xl font-black text-lg shadow-lg">
                              {minigamePlayers.find(p => p.name === userName)?.score || 0}
                            </div>
                          </div>
@@ -5816,14 +5819,14 @@ export default function App() {
                       </div>
                     ) : (
                       <>
-                        <div className="text-center space-y-4">
-                           <h2 className="text-4xl font-black uppercase tracking-tight text-white drop-shadow-md">Resultados de la Ronda</h2>
-                           <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 font-black text-sm">
-                              <CheckCircle size={16} /> {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') ? '¡Tiempo Agotado! Revisando Respuestas...' : `Respuesta Correcta: ${minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}`}
+                        <div className="text-center space-y-6 mb-10">
+                           <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">Resultados</h2>
+                           <div className="inline-flex items-center gap-4 px-10 py-4 rounded-3xl bg-green-500/10 border-2 border-green-500/20 text-green-400 font-black text-lg shadow-xl shadow-green-500/5">
+                              <CheckCircle size={24} /> {(minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written') ? '¡Tiempo Agotado! Revisando Respuestas...' : `Respuesta Correcta: ${minigameSession.activity.questions[minigameSession.currentQuestionIndex].correctAnswer}`}
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                            {minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'writing' || minigameSession.activity.questions[minigameSession.currentQuestionIndex].type === 'written' ? (
                               <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4">
                                  {minigamePlayers.filter(p => p.lastResponse?.questionIndex === minigameSession.currentQuestionIndex).map((p, i) => (
