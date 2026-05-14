@@ -3905,10 +3905,12 @@ export default function App() {
       )}
 
       {/* Sidebar - Navigation Rail (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed bottom-0 left-0 right-0 h-[80px] lg:relative lg:h-auto lg:w-64 aero-glass m-2 lg:m-4 rounded-[24px] lg:rounded-[40px] flex flex-row lg:flex-col items-center justify-between lg:justify-start py-2 lg:py-8 px-4 lg:px-0 gap-0 lg:gap-6 border-4 shadow-2xl z-50 transition-all duration-500 ${theme === 'black' ? 'bg-black/90 border-white/10' : theme === 'aero' ? 'theme-aero-card !bg-white/85 !border-white/80' : 'bg-white/95 border-white'}`}>
-        <div className="glossy-overlay opacity-20 pointer-events-none" />
+      <nav className={`fixed bottom-0 left-0 right-0 h-[70px] lg:h-auto lg:relative lg:w-64 z-[100] transition-all duration-500 ${
+        theme === 'black' ? 'bg-black/90 border-white/10' : theme === 'aero' ? 'theme-aero-card !bg-white/85 !border-white/80' : 'bg-white/95 border-white'
+      } lg:m-4 lg:rounded-[40px] border-t lg:border-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-2xl flex flex-row lg:flex-col items-center justify-between lg:justify-start py-1 lg:py-8 px-2 lg:px-0 gap-0 lg:gap-6`}>
+        <div className="glossy-overlay opacity-10 lg:opacity-20 pointer-events-none" />
         
-        {/* LOGO NewAra - Now visible on mobile too */}
+        {/* LOGO NewAra - Hidden on Mobile Bottom Nav */}
         <div className="hidden lg:flex flex-col items-center gap-0 lg:gap-2 mb-0 lg:mb-1 px-4 scale-90 lg:scale-100">
            <div className="lg:hidden">
              <NewAraLogo size="sm" theme={theme} onClick={() => playExternalBubble()} />
@@ -3917,7 +3919,7 @@ export default function App() {
              <NewAraLogo size="lg" theme={theme} onClick={() => playExternalBubble()} />
            </div>
           
-          <div className="hidden lg:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+           <div className="hidden lg:block w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
         </div>
 
         {/* PC Offline Status - Positioned between logo and user profile */}
@@ -4165,11 +4167,10 @@ export default function App() {
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Redesigned Bottom Tab Bar */}
           {!minigameSessionId && (
-            <div className="flex lg:hidden justify-around items-center w-full px-2 mt-auto">
-              <NavButton 
-                id="mobile-nav-home"
+            <div className="flex lg:hidden justify-around items-center w-full h-full relative z-10 px-1">
+              <MobileTabButton 
                 active={currentView === 'home'} 
                 onClick={() => {
                   navigateTo('home');
@@ -4180,20 +4181,17 @@ export default function App() {
                 label={t('inicio')} 
                 theme={theme}
               />
-              <NavButton 
-                id="mobile-nav-gallery"
-                active={currentView === 'gallery'} 
+              <MobileTabButton 
+                active={showMobileSubjects} 
                 onClick={() => {
-                  navigateTo('gallery');
+                  setShowMobileSubjects(!showMobileSubjects);
                   setShowMoreMobileMenu(false);
-                  setShowMobileSubjects(false);
                 }} 
-                icon={<Globe size={22} />} 
-                label="Galería" 
+                icon={<Book size={22} />} 
+                label={t('materias')} 
                 theme={theme}
               />
-              <NavButton 
-                id="mobile-nav-classes"
+              <MobileTabButton 
                 active={currentView === 'classes' || currentView === 'class-detail'} 
                 onClick={() => {
                   navigateTo('classes');
@@ -4204,8 +4202,18 @@ export default function App() {
                 label="Clases" 
                 theme={theme}
               />
-              <NavButton 
-                id="mobile-nav-more"
+              <MobileTabButton 
+                active={currentView === 'gallery'} 
+                onClick={() => {
+                  navigateTo('gallery');
+                  setShowMoreMobileMenu(false);
+                  setShowMobileSubjects(false);
+                }} 
+                icon={<Globe size={22} />} 
+                label="Galería" 
+                theme={theme}
+              />
+              <MobileTabButton 
                 active={showMoreMobileMenu} 
                 onClick={() => {
                   setShowMoreMobileMenu(!showMoreMobileMenu);
@@ -4308,16 +4316,6 @@ export default function App() {
                       theme={theme}
                     />
                   )}
-
-                  <div className="h-px bg-white/10 my-2" />
-                  
-                  <MobileMenuButton 
-                    active={showMobileSubjects} 
-                    onClick={() => { setShowMobileSubjects(!showMobileSubjects); setShowMoreMobileMenu(false); }} 
-                    icon={<Book size={20} />} 
-                    label={t('materias')} 
-                    theme={theme}
-                  />
                 </div>
               </motion.div>
             )}
@@ -7840,6 +7838,48 @@ function ExerciseRunner({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function MobileTabButton({ active, icon, label, onClick, theme = 'white', badge }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', badge?: string }) {
+  const isAero = theme === 'aero';
+  const isDark = theme === 'black';
+
+  return (
+    <motion.button 
+      onClick={() => {
+        playExternalBubble();
+        onClick();
+      }}
+      className="flex-1 flex flex-col items-center justify-center relative py-1"
+      whileTap={{ scale: 0.9 }}
+    >
+      <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${
+        active 
+          ? (isAero ? 'bg-blue-400 text-white shadow-lg' : isDark ? 'bg-blue-600/30 text-blue-400' : 'bg-blue-50 text-blue-600') 
+          : (isDark ? 'text-white/40 hover:text-white/60' : 'text-sky-900/40 hover:text-sky-900/60')
+      }`}>
+        {icon}
+        {badge && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] font-black px-1 py-0.5 rounded-full shadow-sm z-10">
+            {badge}
+          </span>
+        )}
+      </div>
+      <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 transition-colors duration-300 ${
+        active 
+          ? (isAero ? 'text-blue-600' : isDark ? 'text-blue-400' : 'text-blue-600') 
+          : (isDark ? 'text-white/30' : 'text-sky-900/30')
+      }`}>
+        {label}
+      </span>
+      {active && (
+        <motion.div 
+          layoutId="mobile-tab-indicator"
+          className={`absolute bottom-0 w-8 h-0.5 rounded-full ${isAero ? 'bg-blue-500' : isDark ? 'bg-blue-500' : 'bg-blue-600'}`}
+        />
+      )}
+    </motion.button>
   );
 }
 
