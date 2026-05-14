@@ -2334,7 +2334,7 @@ export default function App() {
     }
   };
 
-  const createAssignment = async (classId: string, title: string, description: string, dueDate: string, attachment?: any) => {
+  const createAssignment = async (classId: string, title: string, description: string, dueDate: string, attachments?: any[]) => {
     if (!isLoggedIn) {
       setAuthRequiredMsg("Inicia sesión para crear tareas para tus alumnos.");
       return;
@@ -2346,7 +2346,7 @@ export default function App() {
         title,
         description,
         dueDate,
-        attachment: attachment || null,
+        attachments: attachments || [],
         createdAt: serverTimestamp()
       });
       fetchClassDetails(classId);

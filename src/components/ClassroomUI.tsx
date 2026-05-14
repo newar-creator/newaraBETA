@@ -197,7 +197,7 @@ interface ClassDetailProps {
   onPostMessage: (content: string) => void;
   onShareResource: (title: string, code: string) => void;
   onPlayActivity: (code: string) => void;
-  onCreateAssignment: (title: string, description: string, dueDate: string, attachment?: any) => void;
+  onCreateAssignment: (title: string, description: string, dueDate: string, attachments?: any[]) => void;
   onSubmitTask: (assignmentId: string, attachment: any) => void;
   onBack: () => void;
   onArchive: () => void;
@@ -319,7 +319,19 @@ const AssignmentItem: React.FC<{
                 {ass.description}
               </div>
 
-              {ass.attachment && (
+              {ass.attachments && ass.attachments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Material de apoyo ({ass.attachments.length})</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {ass.attachments.map((file: any, idx: number) => (
+                      <FileAttachment key={idx} file={file} theme={theme} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Backward compatibility */}
+              {!ass.attachments && ass.attachment && (
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Material de apoyo</p>
                   <FileAttachment file={ass.attachment} theme={theme} />
@@ -386,7 +398,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
   const [taskDue, setTaskDue] = useState('');
-  const [taskAttachment, setTaskAttachment] = useState<any>(null);
+  const [taskAttachments, setTaskAttachments] = useState<any[]>([]);
 
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [archiveInput, setArchiveInput] = useState('');
@@ -429,11 +441,11 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
 
   const handleCreateTask = () => {
     if (!taskTitle.trim()) return;
-    onCreateAssignment(taskTitle, taskDesc, taskDue, taskAttachment);
+    onCreateAssignment(taskTitle, taskDesc, taskDue, taskAttachments);
     setTaskTitle('');
     setTaskDesc('');
     setTaskDue('');
-    setTaskAttachment(null);
+    setTaskAttachments([]);
     setShowTaskForm(false);
   };
 
@@ -866,11 +878,51 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                              />
                            </div>
                            <div className="space-y-1">
-                             <label className="text-[10px] font-black opacity-40 uppercase tracking-widest ml-2">Adjunto de apoyo</label>
-                             <label className={`w-full p-4 rounded-2xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:bg-sky-500/10 ${theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200'}`}>
-                               <Paperclip size={18} /> {taskAttachment ? taskAttachment.name : 'Subir archivo'}
-                               <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, setTaskAttachment)} />
-                             </label>
+                             <label className="text-[10px] font-black opacity-40 uppercase tracking-widest ml-2">Material de apoyo (Máx 3)</label>
+                             <div className="space-y-2">
+                               {taskAttachments.map((f, i) => (
+                                 <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                                   <div className="flex items-center gap-2 overflow-hidden">
+                                     <Paperclip size={14} className="text-sky-500 flex-shrink-0" />
+                                     <span className="text-xs font-bold truncate">{f.name}</span>
+                                   </div>
+                                   <button 
+                                     onClick={() => setTaskAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                                     className="p-1 hover:bg-red-500/10 rounded-lg text-red-500 transition-all flex-shrink-0"
+                                   >
+                                     <Trash2 size={14} />
+                                   </button>
+                                 </div>
+                               ))}
+                               
+                               {taskAttachments.length < 3 && (
+                                 <label className={`w-full p-4 rounded-2xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:bg-sky-500/10 ${theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200'}`}>
+                                   <Plus size={18} /> {taskAttachments.length === 0 ? 'Adjuntar archivo' : 'Añadir otro'}
+                                   <input 
+                                     type="file" 
+                                     className="hidden" 
+                                     onChange={(e) => {
+                                       const file = e.target.files?.[0];
+                                       if (!file) return;
+                                       if (file.size > 2000000) {
+                                         setFileError(`"${file.name}" es demasiado grande (Máx 2MB).`);
+                                         return;
+                                       }
+                                       const reader = new FileReader();
+                                       reader.onload = () => {
+                                         setTaskAttachments(prev => [...prev, {
+                                           name: file.name,
+                                           type: file.type,
+                                           url: reader.result as string
+                                         }]);
+                                         setFileError(null);
+                                       };
+                                       reader.readAsDataURL(file);
+                                     }} 
+                                   />
+                                 </label>
+                               )}
+                             </div>
                            </div>
                         </div>
                         
@@ -924,7 +976,19 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                        
                        <p className="text-sm font-medium leading-relaxed opacity-80">{viewingAssignment.description}</p>
                        
-                       {viewingAssignment.attachment && (
+                       {viewingAssignment.attachments && viewingAssignment.attachments.length > 0 && (
+                         <div className="p-4 bg-sky-500/5 rounded-2xl border border-sky-500/10">
+                            <p className="text-[10px] font-black uppercase opacity-40 mb-3 tracking-widest">Material adjunto ({viewingAssignment.attachments.length})</p>
+                            <div className="grid grid-cols-1 gap-2">
+                              {viewingAssignment.attachments.map((file: any, idx: number) => (
+                                <FileAttachment key={idx} file={file} theme={theme} />
+                              ))}
+                            </div>
+                         </div>
+                       )}
+                       
+                       {/* Backward compatibility */}
+                       {!viewingAssignment.attachments && viewingAssignment.attachment && (
                          <div className="p-4 bg-sky-500/5 rounded-2xl border border-sky-500/10">
                             <p className="text-[10px] font-black uppercase opacity-40 mb-3 tracking-widest">Material adjunto</p>
                             <FileAttachment file={viewingAssignment.attachment} theme={theme} />
@@ -981,6 +1045,10 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                     <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => {
                                       const file = e.target.files?.[0];
                                       if (file) {
+                                        if (file.size > 2000000) {
+                                          setFileError(`"${file.name}" es demasiado grande (Máx 2MB).`);
+                                          return;
+                                        }
                                         const reader = new FileReader();
                                         reader.onload = () => {
                                           if (confirm(`¿Quieres enviar "${file.name}"?`)) {
@@ -989,6 +1057,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                               type: file.type,
                                               url: reader.result as string
                                             });
+                                            setFileError(null);
                                           }
                                         };
                                         reader.readAsDataURL(file);
