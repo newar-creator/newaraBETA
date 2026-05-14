@@ -4182,16 +4182,6 @@ export default function App() {
                 theme={theme}
               />
               <MobileTabButton 
-                active={showMobileSubjects} 
-                onClick={() => {
-                  setShowMobileSubjects(!showMobileSubjects);
-                  setShowMoreMobileMenu(false);
-                }} 
-                icon={<Book size={22} />} 
-                label={t('materias')} 
-                theme={theme}
-              />
-              <MobileTabButton 
                 active={currentView === 'classes' || currentView === 'class-detail'} 
                 onClick={() => {
                   navigateTo('classes');
@@ -4201,6 +4191,14 @@ export default function App() {
                 icon={<Users size={22} />} 
                 label="Clases" 
                 theme={theme}
+              />
+              <MobileTabButton 
+                active={false} 
+                onClick={handleCreateActivityClick} 
+                icon={<Plus size={22} strokeWidth={4} />} 
+                label="" 
+                theme={theme}
+                isCenter={true}
               />
               <MobileTabButton 
                 active={currentView === 'gallery'} 
@@ -7841,9 +7839,39 @@ function ExerciseRunner({
   );
 }
 
-function MobileTabButton({ active, icon, label, onClick, theme = 'white', badge }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', badge?: string }) {
+function MobileTabButton({ active, icon, label, onClick, theme = 'white', badge, isCenter = false }: { active: boolean, icon: React.ReactNode, label: string, onClick: () => void, theme?: 'white' | 'black' | 'aero', badge?: string, isCenter?: boolean }) {
   const isAero = theme === 'aero';
   const isDark = theme === 'black';
+
+  if (isCenter) {
+    return (
+      <motion.button 
+        onClick={() => {
+          playExternalBubble();
+          onClick();
+        }}
+        className="flex-1 flex flex-col items-center justify-center relative -mt-4"
+        whileTap={{ scale: 0.9 }}
+      >
+        <div className={`relative p-3 rounded-full shadow-2xl transition-all duration-300 ${
+          isAero 
+            ? 'bg-gradient-to-br from-blue-400 via-green-400 to-blue-200 border-2 border-white shadow-[0_8px_25px_rgba(37,99,235,0.4)]' 
+            : 'bg-blue-600 border-2 border-blue-400 shadow-[0_8px_25px_rgba(37,99,235,0.4)]'
+        }`}>
+          <div className="absolute inset-0 glossy-overlay opacity-50 rounded-full" />
+          <div className="absolute inset-0 bg-white/10 rounded-full pointer-events-none" />
+          <div className="text-white relative z-10 flex items-center justify-center drop-shadow-md">
+            {icon}
+          </div>
+        </div>
+        {label && (
+          <span className={`text-[9px] font-black uppercase tracking-tighter mt-1 ${isDark ? 'text-white/40' : 'text-sky-900/40'}`}>
+            {label}
+          </span>
+        )}
+      </motion.button>
+    );
+  }
 
   return (
     <motion.button 
