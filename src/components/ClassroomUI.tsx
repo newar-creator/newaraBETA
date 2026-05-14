@@ -47,8 +47,10 @@ import { playExternalBubble } from '../lib/sounds';
 const FileAttachment: React.FC<{ file: any; theme: 'black' | 'light' }> = ({ file, theme }) => {
   if (!file) return null;
 
+  const [showPreview, setShowPreview] = useState(false);
   const isImage = file.type.startsWith('image/');
-  const isDocument = file.type === 'application/pdf' || file.type.includes('msword') || file.type.includes('officedocument');
+  const isPdf = file.type === 'application/pdf';
+  const isDocument = isPdf || file.type.includes('msword') || file.type.includes('officedocument');
 
   const downloadFile = () => {
     const link = document.createElement('a');
@@ -60,25 +62,67 @@ const FileAttachment: React.FC<{ file: any; theme: 'black' | 'light' }> = ({ fil
   };
 
   return (
-    <div className={`mt-3 p-4 md:p-3 rounded-2xl border flex items-center gap-3 md:gap-4 transition-all hover:bg-white/5 active:scale-[0.98] ${
-      theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50 border-sky-100'
-    }`}>
-      <div className="p-3 bg-sky-500/20 rounded-xl text-sky-500 flex-shrink-0">
-        {isImage ? <ImageIcon size={20} /> : isDocument ? <FileText size={20} /> : <File size={20} />}
+    <div className="space-y-2">
+      <div className={`mt-2 p-3 rounded-2xl border flex items-center gap-3 transition-all hover:bg-white/5 ${
+        theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-sky-50 border-sky-100'
+      }`}>
+        <div className="p-3 bg-sky-500/20 rounded-xl text-sky-500 flex-shrink-0">
+          {isImage ? <ImageIcon size={20} /> : isDocument ? <FileText size={20} /> : <File size={20} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-xs font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{file.name}</p>
+          <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest leading-none mt-0.5">{file.type.split('/')[1]}</p>
+        </div>
+        <div className="flex gap-1">
+          {(isImage || isPdf) && (
+            <button 
+              onClick={() => setShowPreview(!showPreview)} 
+              className={`p-2 hover:bg-white/10 rounded-xl transition-all ${showPreview ? 'bg-blue-500 text-white' : 'text-sky-500'}`}
+              title="Vista previa"
+            >
+              <Search size={18} />
+            </button>
+          )}
+          {isImage ? (
+             <button onClick={() => window.open(file.url, '_blank')} className="p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
+               <ExternalLink size={18} />
+             </button>
+          ) : (
+            <button onClick={downloadFile} className="p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
+              <Download size={18} />
+            </button>
+          )}
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className={`text-xs font-black truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{file.name}</p>
-        <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{file.type.split('/')[1]}</p>
-      </div>
-      {isImage ? (
-         <button onClick={() => window.open(file.url, '_blank')} className="p-3 md:p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
-           <ExternalLink size={18} />
-         </button>
-      ) : (
-        <button onClick={downloadFile} className="p-3 md:p-2 hover:bg-white/10 rounded-xl text-sky-500 transition-colors">
-          <Download size={18} />
-        </button>
-      )}
+
+      <AnimatePresence>
+        {showPreview && (isImage || isPdf) && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className={`p-2 rounded-2xl border bg-black/5 ${
+              theme === 'black' ? 'border-white/10' : 'border-sky-100'
+            }`}>
+              {isImage ? (
+                <img 
+                  src={file.url} 
+                  alt={file.name} 
+                  className="w-full max-h-80 object-contain rounded-xl bg-black/10 shadow-inner" 
+                />
+              ) : (
+                <iframe 
+                  src={`${file.url}#toolbar=0`} 
+                  className="w-full h-[500px] rounded-xl border-none bg-white"
+                  title={file.name}
+                />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
