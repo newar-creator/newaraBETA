@@ -4329,27 +4329,6 @@ export default function App() {
                 theme={theme}
               />
             )}
-
-            <div className="flex flex-col gap-1 w-full pb-8 pt-4 border-t border-white/10 mt-4">
-              <p className="hidden lg:block text-[9px] uppercase font-black text-sky-800/40 tracking-wider mb-2 px-2">{t('temasRecientes')}</p>
-              {SUBJECTS.slice(0, 5).map(s => (
-                <button 
-                  key={s.id}
-                  onClick={() => {
-                    playExternalBubble();
-                    setSelectedSubject(s);
-                    navigateTo('subject', { subjectId: s.id });
-                  }}
-                  className={`flex items-center justify-center lg:justify-start gap-3 p-2 rounded-xl transition-all ${selectedSubject?.id === s.id && currentView === 'subject' ? 'bg-white/40 shadow-inner' : 'hover:bg-white/20'}`}
-                  title={s.name}
-                >
-                  <div className={`p-1.5 rounded-lg text-white shadow-md bg-gradient-to-b ${getColorClasses(s.color)}`}>
-                    {getIcon(s.icon, 16)}
-                  </div>
-                  <span className={`hidden lg:block text-sm font-semibold transition-colors duration-500 ${theme === 'black' ? 'text-white/80' : 'text-sky-900'}`}>{s.name}</span>
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Mobile Navigation - Redesigned Bottom Tab Bar */}
@@ -7203,15 +7182,6 @@ export default function App() {
                className="max-w-7xl mx-auto px-4 py-12"
              >
                 <div className="relative mb-20 text-center flex flex-col items-center overflow-hidden">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.05, scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center -z-10 select-none pointer-events-none w-full overflow-hidden"
-                  >
-                    <h2 className={`text-[120px] md:text-[clamp(100px,18vw,240px)] font-black uppercase tracking-tighter leading-none whitespace-nowrap ${theme === 'black' ? 'text-white' : 'text-blue-900'}`}>
-                      {t('materias')}
-                    </h2>
-                  </motion.div>
                   <h1 className={`text-5xl md:text-8xl font-black tracking-tighter mb-4 drop-shadow-xl ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
                     {t('materias')}
                   </h1>
