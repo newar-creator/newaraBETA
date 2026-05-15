@@ -4471,13 +4471,6 @@ export default function App() {
                       />
                     </>
                   )}
-                  <MobileMenuButton 
-                    active={currentView === 'horario'} 
-                    onClick={() => { navigateTo('horario'); setShowMoreMobileMenu(false); }} 
-                    icon={<Calendar size={20} />} 
-                    label="Horarios" 
-                    theme={theme}
-                  />
                 </div>
               </motion.div>
             )}
