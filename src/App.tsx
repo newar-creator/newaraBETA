@@ -3244,7 +3244,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
-    <div className={`flex h-screen overflow-hidden font-sans relative flex-col md:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
+    <div className={`flex h-screen overflow-hidden font-sans relative flex-col lg:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
 
       {showWelcome && (
         <WelcomeTutorial 
@@ -4435,14 +4435,6 @@ export default function App() {
                   />
 
                   <MobileMenuButton 
-                    active={showNotifications} 
-                    onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
-                    icon={<Bell size={20} />} 
-                    label={t('notificaciones')} 
-                    theme={theme}
-                    badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
-                  />
-                  <MobileMenuButton 
                     id="nav-settings"
                     active={currentView === 'settings'} 
                     onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
@@ -4533,7 +4525,7 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className={`lg:hidden flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
+      <div className={`lg:hidden w-full flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
         <div className="absolute left-6 top-1/2 -translate-y-1/2">
            <div 
              className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
