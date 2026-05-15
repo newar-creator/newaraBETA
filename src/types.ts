@@ -440,7 +440,7 @@ export const SUBJECTS: Subject[] = [
     id: 'historia',
     name: 'Historia',
     icon: 'Scroll',
-    color: 'amber',
+    color: 'orange',
     description: 'Exploración del pasado desde los orígenes de la humanidad hasta la disolución del Imperio Romano.',
     units: [
       {

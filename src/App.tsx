@@ -2980,7 +2980,8 @@ export default function App() {
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
       case 'sky': return 'from-sky-400 to-sky-600';
-      case 'yellow': return 'from-yellow-400 to-yellow-500';
+      case 'yellow': return 'from-yellow-400 to-yellow-600';
+      case 'orange': return 'from-orange-400 to-orange-600';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/30';
@@ -4492,7 +4493,12 @@ export default function App() {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 gap-2 overflow-y-auto pr-1 custom-scrollbar">
-                      {SUBJECTS.map(s => (
+                      {[...SUBJECTS].sort((a, b) => {
+                        const colorOrder = ['red', 'orange', 'amber', 'yellow', 'green', 'emerald', 'sky', 'blue', 'indigo', 'violet', 'purple', 'rose', 'pink'];
+                        const idxA = colorOrder.indexOf(a.color);
+                        const idxB = colorOrder.indexOf(b.color);
+                        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                      }).map(s => (
                         <button 
                           key={s.id}
                           onClick={() => {
@@ -5128,7 +5134,12 @@ export default function App() {
 
                 <AeroCard title={t('materias')} theme={theme} className="lg:col-span-2 xl:col-span-1">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                    {SUBJECTS.map(s => (
+                    {[...SUBJECTS].sort((a, b) => {
+                        const colorOrder = ['red', 'orange', 'amber', 'yellow', 'green', 'emerald', 'sky', 'blue', 'indigo', 'violet', 'purple', 'rose', 'pink'];
+                        const idxA = colorOrder.indexOf(a.color);
+                        const idxB = colorOrder.indexOf(b.color);
+                        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                    }).map(s => (
                       <button 
                         key={s.id} 
                         onClick={() => handleSubjectClick(s)}
@@ -7175,7 +7186,12 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl mx-auto pb-20">
-                  {SUBJECTS.map(subject => (
+                  {[...SUBJECTS].sort((a, b) => {
+                    const colorOrder = ['red', 'orange', 'amber', 'yellow', 'green', 'emerald', 'sky', 'blue', 'indigo', 'violet', 'purple', 'rose', 'pink'];
+                    const idxA = colorOrder.indexOf(a.color);
+                    const idxB = colorOrder.indexOf(b.color);
+                    return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                  }).map(subject => (
                     <AeroCard 
                       key={subject.id} 
                       theme={theme} 
@@ -7190,10 +7206,11 @@ export default function App() {
                         className="w-full h-full flex flex-row items-center gap-4 p-4 md:p-6 text-left group"
                       >
                         <div className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-white shadow-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 bg-gradient-to-br ${
-                          subject.color === 'yellow' ? 'from-yellow-400 to-yellow-500 shadow-yellow-500/40 text-yellow-950' :
+                          subject.color === 'yellow' ? 'from-yellow-400 to-yellow-600 shadow-yellow-500/40 text-white' :
                           subject.color === 'emerald' ? 'from-emerald-400 to-emerald-600 shadow-emerald-500/40' :
                           subject.color === 'green' ? 'from-green-400 to-green-600 shadow-green-500/40' :
                           subject.color === 'blue' ? 'from-blue-400 to-blue-600 shadow-blue-500/40' :
+                          subject.color === 'orange' ? 'from-orange-400 to-orange-600 shadow-orange-500/40 text-white' :
                           subject.color === 'amber' ? 'from-amber-400 to-amber-600 shadow-amber-500/40' :
                           subject.color === 'red' ? 'from-red-400 to-red-600 shadow-red-500/40' :
                           subject.color === 'sky' ? 'from-sky-400 to-sky-600 shadow-sky-500/40' :
@@ -7941,8 +7958,9 @@ function ExerciseRunner({
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
       case 'sky': return 'from-sky-400 to-sky-600';
-      case 'yellow': return 'from-yellow-400 to-yellow-500';
+      case 'yellow': return 'from-yellow-400 to-yellow-600';
       case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/30';
+      case 'orange': return 'from-orange-400 to-orange-600';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
@@ -8320,8 +8338,9 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
       case 'blue': return 'from-blue-400 to-blue-600 shadow-blue-500/50';
       case 'sky': return 'from-sky-400 to-sky-600 shadow-sky-500/50';
-      case 'yellow': return 'from-yellow-400 to-yellow-500 shadow-yellow-500/50';
+      case 'yellow': return 'from-yellow-400 to-yellow-600 shadow-yellow-500/50';
       case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/50';
+      case 'orange': return 'from-orange-400 to-orange-600 shadow-orange-500/50';
       case 'amber': return 'from-amber-400 to-amber-600 shadow-amber-500/50';
       case 'indigo': return 'from-indigo-400 to-indigo-600 shadow-indigo-500/50';
       case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';
@@ -8421,6 +8440,8 @@ function DuolingoPath({ units, subjectColor, onUnitClick, theme = 'white', subje
       case 'blue': return theme === 'black' ? 'bg-blue-500/40' : 'bg-blue-500/60';
       case 'sky': return theme === 'black' ? 'bg-sky-500/40' : 'bg-sky-500/60';
       case 'amber': return theme === 'black' ? 'bg-amber-500/40' : 'bg-amber-500/60';
+      case 'orange': return theme === 'black' ? 'bg-orange-500/40' : 'bg-orange-500/60';
+      case 'yellow': return theme === 'black' ? 'bg-yellow-500/40' : 'bg-yellow-500/60';
       case 'indigo': return theme === 'black' ? 'bg-indigo-500/40' : 'bg-indigo-500/60';
       case 'red': return theme === 'black' ? 'bg-red-500/40' : 'bg-red-500/60';
       case 'violet':
