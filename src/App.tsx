@@ -4381,26 +4381,33 @@ export default function App() {
                     badge="BETA"
                   />
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <MobileMenuButton 
-                      active={showNotifications} 
-                      onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
-                      icon={<Bell size={20} />} 
-                      label={t('notificaciones')} 
-                      theme={theme}
-                      badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
-                    />
-                    <MobileMenuButton 
-                      id="nav-settings"
-                      active={currentView === 'settings'} 
-                      onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
-                      icon={<Settings size={20} />} 
-                      label={t('ajustes')} 
-                      theme={theme}
-                    />
-                  </div>
+                  <MobileMenuButton 
+                    id="nav-materias"
+                    active={currentView === 'materias'} 
+                    onClick={() => { navigateTo('materias'); setShowMoreMobileMenu(false); }} 
+                    icon={<BookOpen size={20} />} 
+                    label={t('materias')} 
+                    theme={theme}
+                  />
+
+                  <MobileMenuButton 
+                    active={showNotifications} 
+                    onClick={() => { setShowNotifications(true); setShowMoreMobileMenu(false); }} 
+                    icon={<Bell size={20} />} 
+                    label={t('notificaciones')} 
+                    theme={theme}
+                    badge={notifications.filter(n => !n.isRead).length > 0 ? notifications.filter(n => !n.isRead).length.toString() : undefined}
+                  />
+                  <MobileMenuButton 
+                    id="nav-settings"
+                    active={currentView === 'settings'} 
+                    onClick={() => { navigateTo('settings'); setShowMoreMobileMenu(false); }} 
+                    icon={<Settings size={20} />} 
+                    label={t('ajustes')} 
+                    theme={theme}
+                  />
                   {isModerator && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <>
                       <MobileMenuButton 
                         id="nav-users"
                         active={currentView === 'users'} 
@@ -4418,7 +4425,7 @@ export default function App() {
                         theme={theme}
                         badge={reports.length > 0 ? reports.length.toString() : undefined}
                       />
-                    </div>
+                    </>
                   )}
                   {isClaudia && (
                     <MobileMenuButton 
