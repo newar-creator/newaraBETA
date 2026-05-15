@@ -12,9 +12,10 @@ interface AeroCardProps {
   title?: string;
   extra?: React.ReactNode;
   theme?: 'white' | 'black' | 'aero';
+  onClick?: () => void;
 }
 
-export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, extra, theme = 'white' }) => {
+export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', title, extra, theme = 'white', onClick }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
   // Optimización: Eliminar sombras pesadas en dispositivos legacy
@@ -36,16 +37,27 @@ export const AeroCard: React.FC<AeroCardProps> = ({ children, className = '', ti
   // Efecto glass simplificado para TVs
   const glassEffect = flags.disableBlur ? "" : "backdrop-blur-md";
 
-  const Component = flags.reduceAnimations ? 'div' : motion.div;
+  const isClickable = !!onClick;
+  const Component = flags.reduceAnimations ? (isClickable ? 'button' : 'div') : (isClickable ? motion.button : motion.div);
+
+  const interactionProps = isClickable ? {
+    role: 'button',
+    tabIndex: 0,
+    className: `group cursor-pointer text-left w-full block active:scale-[0.98] transition-transform`
+  } : {};
 
   return (
     // @ts-ignore - Dynamic motion component
     <Component 
       {...(flags.reduceAnimations ? {} : {
         initial: { opacity: 0, y: isMobile ? 10 : 20 },
-        animate: { opacity: 1, y: 0 }
+        animate: { opacity: 1, y: 0 },
+        whileHover: isClickable ? { scale: 1.01 } : {},
+        whileTap: isClickable ? { scale: 0.98 } : {}
       })}
-      className={`aero-glass rounded-[2rem] p-3 md:p-6 overflow-hidden relative border transition-all duration-300 ${glassEffect} ${themeClasses} ${className}`}
+      className={`aero-glass rounded-[2rem] p-3 md:p-6 overflow-hidden relative border transition-all duration-300 ${glassEffect} ${themeClasses} ${isClickable ? 'cursor-pointer active:scale-95' : ''} ${className}`}
+      onClick={onClick}
+      {...interactionProps}
     >
       <div className={`absolute inset-0 ${theme === 'black' ? 'bg-gradient-to-br from-white/5 to-transparent' : 'bg-gradient-to-br from-white/40 to-transparent'} pointer-events-none`} />
       {!flags.isLegacy && <div className="glossy-overlay opacity-20" />}

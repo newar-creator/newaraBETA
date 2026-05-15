@@ -78,7 +78,8 @@ import {
   ExternalLink,
   Server,
   GraduationCap,
-  Presentation
+  Presentation,
+  Pizza
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -344,6 +345,7 @@ export default function App() {
     }
 
     const viewMap: Record<string, View> = {
+      'inicio': 'home',
       'materias': 'materias',
       'leaderboard': 'leaderboard',
       'gallery': 'gallery',
@@ -387,8 +389,10 @@ export default function App() {
       if (currentView !== 'class-detail') setCurrentView('class-detail');
     } else {
       // Catch-all: if we have a path that doesn't match, go to inicio
-      if (location.pathname !== '/inicio' && location.pathname !== '/' && !location.pathname.startsWith('/horario')) {
+      if (location.pathname !== '/inicio' && location.pathname !== '/') {
          navigate('/inicio', { replace: true });
+      } else if (currentView !== 'home') {
+         setCurrentView('home');
       }
     }
   }, [location.pathname]);
@@ -407,6 +411,22 @@ export default function App() {
   const navigateTo = (view: View, params?: { subjectId?: string, unitIndex?: number, classId?: string, gameCode?: string }) => {
     setLastView(currentView);
     setUnitSearch('');
+    
+    // NEW: Handle state updates before navigation
+    if (params?.subjectId) {
+      const sub = SUBJECTS.find(s => s.id === params.subjectId);
+      if (sub) setSelectedSubject(sub);
+    }
+
+    if (params?.unitIndex !== undefined) {
+      setSelectedUnitIndex(params.unitIndex);
+    }
+
+    if (params?.classId) {
+      const cls = userClasses.find(c => c.id === params.classId);
+      if (cls) setActiveClass(cls);
+    }
+
     setCurrentView(view);
     
     // NEW: Sync State to URL
@@ -538,6 +558,7 @@ export default function App() {
       explorar: "Explora y aprende",
       inicio: "Inicio",
       explorarMaterias: "Explorar Materias",
+      explorarMateriasDesc: "Explora todas las materias disponibles y comienza a aprender.",
       unidadesYTemas: "Unidades y Temas",
       informacion: "Información",
       verProgramas: "Ver Programas",
@@ -580,7 +601,9 @@ export default function App() {
       nuevaTarea: "Nueva Tarea",
       nuevoAnuncio: "Nuevo Anuncio",
       contenidoEliminado: "Contenido Eliminado",
-      actualizacionSistema: "Actualización del Sistema"
+      actualizacionSistema: "Actualización del Sistema",
+      italiano: "Italiano",
+      materia_italiano_desc: "Aprende italiano desde las bases: pronunciación, verbos, artículos y estructura de oraciones."
     },
     en: {
       materias: "Subjects",
@@ -617,6 +640,7 @@ export default function App() {
       explorar: "Explore and learn",
       inicio: "Home",
       explorarMaterias: "Explore Subjects",
+      explorarMateriasDesc: "Explore all available subjects and start learning.",
       unidadesYTemas: "Units and Topics",
       informacion: "Information",
       verProgramas: "View Programs",
@@ -659,7 +683,9 @@ export default function App() {
       nuevaTarea: "New Assignment",
       nuevoAnuncio: "New Announcement",
       contenidoEliminado: "Content Removed",
-      actualizacionSistema: "System Update"
+      actualizacionSistema: "System Update",
+      italiano: "Italian",
+      materia_italiano_desc: "Learn Italian from the basics: pronunciation, verbs, articles and sentence structure."
     },
     ru: {
       materias: "Предметы",
@@ -695,6 +721,7 @@ export default function App() {
       explorar: "Исследуй и учись",
       inicio: "Главная",
       explorarMaterias: "Исследовать предметы",
+      explorarMateriasDesc: "Исследуйте все доступные предметы и начинайте учиться.",
       unidadesYTemas: "Разделы и темы",
       informacion: "Информация",
       verProgramas: "Просмотреть программы",
@@ -742,6 +769,7 @@ export default function App() {
   };
 
   const t = (key: string) => translations[language][key] || key;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Classroom States
   const [classAnnouncements, setClassAnnouncements] = useState<any[]>([]);
@@ -2942,6 +2970,7 @@ export default function App() {
       case 'Calculator': return <Calculator size={size} />;
       case 'BookOpen': return <BookOpen size={size} />;
       case 'Croissant': return <Croissant size={size} />;
+      case 'Pizza': return <Pizza size={size} />;
       default: return <BookOpen size={size} />;
     }
   };
@@ -2951,8 +2980,10 @@ export default function App() {
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
       case 'sky': return 'from-sky-400 to-sky-600';
+      case 'yellow': return 'from-yellow-400 to-yellow-500';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
+      case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/30';
       case 'red': return 'from-red-400 to-red-600';
       case 'violet':
       case 'purple': return 'from-violet-400 to-violet-600 shadow-violet-500/20';
@@ -4104,7 +4135,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex-1 w-full lg:px-4 lg:overflow-y-auto lg:custom-scrollbar flex lg:flex-col flex-row justify-around lg:justify-start items-center gap-1 lg:gap-8">
+        <div className="flex-1 w-full lg:px-4 lg:overflow-y-auto lg:custom-scrollbar flex lg:flex-col flex-row justify-around lg:justify-start items-center gap-1 lg:gap-4">
           {/* Desktop Search Bar */}
           <div className="hidden lg:flex w-full mb-2">
             <div className="relative w-full group">
@@ -4125,6 +4156,29 @@ export default function App() {
                     navigateTo('horario');
                     setGallerySearch('');
                     return;
+                  }
+
+                  if (normalized === 'newen.araoz.ar/materia/italiano' || normalized === '/materia/italiano') {
+                    const sub = SUBJECTS.find(s => s.id === 'italiano');
+                    if (sub) {
+                      setSelectedSubject(sub);
+                      navigateTo('subject', { subjectId: 'italiano' });
+                      setGallerySearch('');
+                      return;
+                    }
+                  }
+
+                  const unitMatch = normalized.match(/newen\.araoz\.ar\/materia\/italiano\/unidad\/(\d+)/) || normalized.match(/\/materia\/italiano\/unidad\/(\d+)/);
+                  if (unitMatch) {
+                    const sub = SUBJECTS.find(s => s.id === 'italiano');
+                    const unitIdx = parseInt(unitMatch[1]) - 1;
+                    if (sub && sub.units[unitIdx]) {
+                      setSelectedSubject(sub);
+                      setSelectedUnitIndex(unitIdx);
+                      navigateTo('unit-study', { subjectId: 'italiano', unitIndex: unitIdx });
+                      setGallerySearch('');
+                      return;
+                    }
                   }
 
                   setGallerySearch(val);
@@ -4170,7 +4224,7 @@ export default function App() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex flex-col gap-4 w-full items-center">
+          <div className="hidden lg:flex flex-col gap-3 w-full">
             <NavButton 
               id="nav-home"
               active={currentView === 'home'} 
@@ -4180,6 +4234,17 @@ export default function App() {
               }} 
               icon={<Home size={22} />} 
               label={t('inicio')} 
+              theme={theme}
+            />
+            <NavButton 
+              id="nav-materias"
+              active={currentView === 'materias'} 
+              onClick={() => {
+                navigateTo('materias');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<BookOpen size={22} />} 
+              label={t('materias')} 
               theme={theme}
             />
             <NavButton 
@@ -4265,9 +4330,9 @@ export default function App() {
               />
             )}
 
-            <div className="flex flex-col gap-2 w-full pb-8 pt-4 border-t border-white/10 mt-4">
-              <p className="hidden lg:block text-[10px] uppercase font-bold text-sky-800/40 tracking-tighter mb-2 px-2">{t('materias')}</p>
-              {SUBJECTS.map(s => (
+            <div className="flex flex-col gap-1 w-full pb-8 pt-4 border-t border-white/10 mt-4">
+              <p className="hidden lg:block text-[9px] uppercase font-black text-sky-800/40 tracking-wider mb-2 px-2">{t('temasRecientes')}</p>
+              {SUBJECTS.slice(0, 5).map(s => (
                 <button 
                   key={s.id}
                   onClick={() => {
@@ -4427,15 +4492,13 @@ export default function App() {
                       />
                     </>
                   )}
-                  {isClaudia && (
-                    <MobileMenuButton 
-                      active={currentView === 'horario'} 
-                      onClick={() => { navigateTo('horario'); setShowMoreMobileMenu(false); }} 
-                      icon={<Calendar size={20} />} 
-                      label="Horarios" 
-                      theme={theme}
-                    />
-                  )}
+                  <MobileMenuButton 
+                    active={currentView === 'horario'} 
+                    onClick={() => { navigateTo('horario'); setShowMoreMobileMenu(false); }} 
+                    icon={<Calendar size={20} />} 
+                    label="Horarios" 
+                    theme={theme}
+                  />
                 </div>
               </motion.div>
             )}
@@ -4545,7 +4608,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <main className={`flex-1 overflow-y-auto relative transition-all duration-500 ${
+      <main className={`flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-500 ${
         (minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
           ? 'p-0' 
           : 'p-4 pb-32 lg:p-8'
@@ -4739,6 +4802,13 @@ export default function App() {
                 </div>
                 
                 <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                  <HomeShortcut 
+                    icon={<BookOpen size={18} />} 
+                    label="Materias" 
+                    onClick={() => navigateTo('materias')} 
+                    color="bg-sky-500" 
+                    theme={theme} 
+                  />
                   <HomeShortcut 
                     icon={<LayoutGrid size={18} />} 
                     label="Galería" 
@@ -7124,6 +7194,92 @@ export default function App() {
             </motion.div>
           )}
 
+          {currentView === 'materias' && (
+             <motion.div 
+               key="materias"
+               initial={disableAnimations ? { opacity: 1 } : { opacity: 0, y: 30 }}
+               animate={disableAnimations ? { opacity: 1 } : { opacity: 1, y: 0 }}
+               exit={disableAnimations ? { opacity: 1 } : { opacity: 0, y: -30 }}
+               className="max-w-7xl mx-auto px-4 py-12"
+             >
+                <div className="relative mb-20 text-center flex flex-col items-center overflow-hidden">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 0.05, scale: 1 }}
+                    className="absolute inset-0 flex items-center justify-center -z-10 select-none pointer-events-none w-full overflow-hidden"
+                  >
+                    <h2 className={`text-[120px] md:text-[clamp(100px,18vw,240px)] font-black uppercase tracking-tighter leading-none whitespace-nowrap ${theme === 'black' ? 'text-white' : 'text-blue-900'}`}>
+                      {t('materias')}
+                    </h2>
+                  </motion.div>
+                  <h1 className={`text-5xl md:text-8xl font-black tracking-tighter mb-4 drop-shadow-xl ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                    {t('materias')}
+                  </h1>
+                  <p className={`text-xl font-medium opacity-60 max-w-2xl mx-auto leading-relaxed ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                    {t('explorarMateriasDesc')}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:gap-6 max-w-3xl mx-auto pb-20">
+                  {SUBJECTS.map(subject => (
+                    <AeroCard 
+                      key={subject.id} 
+                      theme={theme} 
+                      className="group p-0 md:p-0 overflow-visible! h-full"
+                    >
+                      <button
+                        onClick={() => {
+                          playExternalBubble();
+                          setSelectedSubject(subject);
+                          navigateTo('subject', { subjectId: subject.id });
+                        }}
+                        className="w-full h-full flex flex-row items-center gap-4 p-4 md:p-6 text-left group"
+                      >
+                        <div className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center text-white shadow-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 bg-gradient-to-br ${
+                          subject.color === 'yellow' ? 'from-yellow-400 to-yellow-500 shadow-yellow-500/40 text-yellow-950' :
+                          subject.color === 'emerald' ? 'from-emerald-400 to-emerald-600 shadow-emerald-500/40' :
+                          subject.color === 'green' ? 'from-green-400 to-green-600 shadow-green-500/40' :
+                          subject.color === 'blue' ? 'from-blue-400 to-blue-600 shadow-blue-500/40' :
+                          subject.color === 'amber' ? 'from-amber-400 to-amber-600 shadow-amber-500/40' :
+                          subject.color === 'red' ? 'from-red-400 to-red-600 shadow-red-500/40' :
+                          subject.color === 'sky' ? 'from-sky-400 to-sky-600 shadow-sky-500/40' :
+                          subject.color === 'violet' ? 'from-violet-400 to-violet-600 shadow-violet-500/40' :
+                          subject.color === 'pink' ? 'from-pink-400 to-pink-600 shadow-pink-500/40' :
+                          subject.color === 'indigo' ? 'from-indigo-400 to-indigo-600 shadow-indigo-500/40' :
+                          'from-blue-400 to-blue-600 shadow-blue-500/40'
+                        }`}>
+                          <div className="absolute inset-0 bg-white/20 rounded-[inherit] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="relative transform transition-transform group-hover:scale-110">
+                            {getIcon(subject.icon, isMobile ? 24 : 32)}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className={`text-xl md:text-3xl font-black tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                              {subject.name}
+                            </h3>
+                          </div>
+                          <p className={`text-xs md:text-sm leading-relaxed line-clamp-2 opacity-60 font-medium ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                            {subject.description}
+                          </p>
+                          <div className="mt-4 flex items-center gap-6">
+                            <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full ${theme === 'black' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                              {subject.units.length} {subject.units.length === 1 ? 'UNIDAD' : 'UNIDADES'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className={`p-3 rounded-2xl transition-all duration-300 transform group-hover:translate-x-2 ${theme === 'black' ? 'bg-white/5 opacity-40 group-hover:opacity-100 group-hover:bg-blue-500 text-white' : 'bg-slate-50 text-sky-950 group-hover:bg-blue-500 group-hover:text-white shadow-sm'}`}>
+                          <ChevronRight size={20} />
+                        </div>
+                      </button>
+                    </AeroCard>
+                  ))}
+                </div>
+             </motion.div>
+          )}
+
           {currentView === 'subject' && selectedSubject && (
              <motion.div 
                key="subject"
@@ -7831,6 +7987,8 @@ function ExerciseRunner({
       case 'green': return 'from-green-400 to-green-600';
       case 'blue': return 'from-blue-400 to-blue-600';
       case 'sky': return 'from-sky-400 to-sky-600';
+      case 'yellow': return 'from-yellow-400 to-yellow-500';
+      case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/30';
       case 'amber': return 'from-amber-400 to-amber-600';
       case 'indigo': return 'from-indigo-400 to-indigo-600';
       case 'red': return 'from-red-400 to-red-600';
@@ -8208,6 +8366,8 @@ function UnitButton({ number, title, color, onClick, theme = 'white', isComplete
       case 'green': return 'from-green-400 to-green-600 shadow-green-500/50';
       case 'blue': return 'from-blue-400 to-blue-600 shadow-blue-500/50';
       case 'sky': return 'from-sky-400 to-sky-600 shadow-sky-500/50';
+      case 'yellow': return 'from-yellow-400 to-yellow-500 shadow-yellow-500/50';
+      case 'emerald': return 'from-emerald-400 to-emerald-600 shadow-emerald-500/50';
       case 'amber': return 'from-amber-400 to-amber-600 shadow-amber-500/50';
       case 'indigo': return 'from-indigo-400 to-indigo-600 shadow-indigo-500/50';
       case 'red': return 'from-red-400 to-red-600 shadow-red-500/50';

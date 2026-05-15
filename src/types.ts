@@ -66,6 +66,158 @@ export interface ResourceCode {
 
 export const SUBJECTS: Subject[] = [
   {
+    id: 'italiano',
+    name: 'Italiano',
+    icon: 'Pizza',
+    color: 'yellow',
+    description: 'Aprende italiano desde las bases: pronunciación, verbos, artículos y estructura de oraciones.',
+    units: [
+      {
+        title: 'Lezione 1: L\'alfabeto e la pronuncia',
+        description: 'El alfabeto italiano, sonidos especiales (GL, GN, SCI, SCE) y consonantes dobles.',
+        explanation: 'El italiano tiene sonidos que no existen en español. Por ejemplo, "CI" suena como "CHI" y "GL" suena similar a una "LL" muy suave. Las consonantes dobles se deben pronunciar con más fuerza.',
+        meanings: [
+          { term: 'L\'alfabeto', definition: 'El alfabeto italiano.' },
+          { term: 'Pronuncia', definition: 'Pronunciación de los sonidos.' },
+          { term: 'Consonanti doppie', definition: 'Consonantes dobles (se pronuncian con más énfasis).' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo suena la combinación "CI" en italiano?', options: ['Como "SI"', 'Como "CHI"', 'Como "KI"', 'Como "TI"'], correct: 1 },
+          { type: 'writing', question: '¿Cómo se dice "alfabeto" en italiano?', options: [], correct: 'alfabeto', placeholder: '...' },
+          { type: 'true-false', question: 'La combinación "GN" suena como nuestra "Ñ".', options: ['Verdadero', 'Falso'], correct: 0 },
+          { type: 'multiple-choice', question: '¿Qué palabra significa "niño" en italiano?', options: ['Bambino', 'Ragazzo', 'Figlio', 'Uomo'], correct: 0 }
+        ]
+      },
+      {
+        title: 'Lezione 2: Pronombres y Verbos -are',
+        description: 'Pronombres personales sujeto y conjugación de verbos regulares terminados en -are.',
+        explanation: 'Los pronombres (io, tu, lui/lei...) son fundamentales. Los verbos terminados en -are (mangiare, amare) siguen un patrón regular en presente: -o, -i, -a, -iamo, -ate, -ano.',
+        meanings: [
+          { term: 'Io mangio', definition: 'Yo como.' },
+          { term: 'Lui ama', definition: 'Él ama.' },
+          { term: 'Voi guardate', definition: 'Vosotros miráis.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cuál es el pronombre para "nosotros"?', options: ['Io', 'Tu', 'Noi', 'Voi'], correct: 2 },
+          { type: 'writing', question: 'Conjuga "amare" para "Tu": Tu ____', options: [], correct: 'ami', placeholder: '...' },
+          { type: 'multiple-choice', question: '¿Cómo se dice "Ellos comen"?', options: ['Loro mangia', 'Loro mangiano', 'Loro mangiate', 'Loro mangio'], correct: 1 }
+        ]
+      },
+      {
+        title: 'Lezione 3: Verbos -ere e -ire',
+        description: 'Conjugación de verbos regulares terminados en -ere e -ire.',
+        explanation: 'Los verbos en -ere (leggere) e -ire (dormire) tienen sus propias terminaciones: -o, -i, -e, -iamo, -ete/-ite, -ono.',
+        meanings: [
+          { term: 'Leggere', definition: 'Leer.' },
+          { term: 'Vedere', definition: 'Ver.' },
+          { term: 'Dormire', definition: 'Dormir.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo se dice "Yo leo" (leggere)?', options: ['Io leggi', 'Io leggo', 'Io legge', 'Io leggiamo'], correct: 1 },
+          { type: 'writing', question: 'Conjuga "dormire" para "Lui": Lui ____', options: [], correct: 'dorme', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 4: Negación e Interrogación',
+        description: 'Estructura de oraciones negativas e interrogativas en presente.',
+        explanation: 'Para negar, ponemos "non" antes del verbo. Para preguntar, la entonación sube al final de la frase.',
+        meanings: [
+          { term: 'Non mangio', definition: 'No como.' },
+          { term: 'Lavori?', definition: '¿Trabajas?' },
+          { term: 'Non ballate?', definition: '¿No bailáis?' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Dónde se coloca "non" para negar?', options: ['Después del verbo', 'Al final de la frase', 'Antes del verbo', 'Al principio de la frase siempre'], correct: 2 },
+          { type: 'writing', question: 'Pasa a negativo: "Io dormo"', options: [], correct: 'Io non dormo', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 5: Artículos Indefinidos',
+        description: 'Uso de un, uno, una, un\' según el género y la letra inicial.',
+        explanation: 'Masc: un (vocal/cons), uno (Z, S+cons). Fem: una (cons), un\' (vocal).',
+        meanings: [
+          { term: 'Un libro', definition: 'Un libro.' },
+          { term: 'Uno zio', definition: 'Un tío.' },
+          { term: 'Un\'amica', definition: 'Una amiga.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cuál artículo se usa para "zio"?', options: ['Un', 'Uno', 'Una', 'Un\''], correct: 1 },
+          { type: 'writing', question: '¿Artículo para "idea" (fem)?', options: [], correct: 'un\'', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 6: Artículos Definidos',
+        description: 'Uso de il, lo, la, l\', i, gli, le.',
+        explanation: 'Masc sing: il (cons), lo (Z, S+cons), l\' (vocal). Plural: i, gli. Fem: la, l\'. Plural: le.',
+        meanings: [
+          { term: 'Lo studente', definition: 'El estudiante.' },
+          { term: 'Gli estudiantes', definition: 'Los estudiantes.' },
+          { term: 'La sedia', definition: 'La silla.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Plural de "lo"?', options: ['i', 'le', 'gli', 'la'], correct: 2 },
+          { type: 'writing', question: '¿Artículo para "albero" (masc)?', options: [], correct: 'l\'', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 7: Género y Plural',
+        description: 'Reglas de formación de género y número.',
+        explanation: 'Masc: -o -> -i. Fem: -a -> -e. Neutro/Masc: -e -> -i.',
+        meanings: [
+          { term: 'Gatto / Gatti', definition: 'Gato / Gatos.' },
+          { term: 'Bambina / Bambine', definition: 'Niña / Niñas.' },
+          { term: 'Padre / Padri', definition: 'Padre / Padres.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo es el plural de "casa"?', options: ['Casi', 'Cases', 'Case', 'Casa'], correct: 2 },
+          { type: 'writing', question: '¿Plural de "cane" (perro)?', options: [], correct: 'cani', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 8: Verbo Essere y Adjetivos',
+        description: 'Conjugación de essere (ser/estar) y concordancia de adjetivos.',
+        explanation: 'Essere: sono, sei, è, siamo, siete, sono. Los adjetivos concuerdan en género y número.',
+        meanings: [
+          { term: 'Io sono', definition: 'Yo soy / estoy.' },
+          { term: 'Lui è bravo', definition: 'Él es bueno.' },
+          { term: 'Siamo stanchi', definition: 'Estamos cansados.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo se dice "Nosotros somos"?', options: ['Siete', 'Siamo', 'Sono', 'Sei'], correct: 1 },
+          { type: 'writing', question: '¿Cómo se dice "Ella es bonita" (bella)?', options: [], correct: 'Lei è bella', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 9: Los Posesivos',
+        description: 'Adjetivos posesivos y su uso.',
+        explanation: 'Llevan artículo: il mio, la tua... Excepción: parientes en singular (mia madre).',
+        meanings: [
+          { term: 'Il mio libro', definition: 'Mi libro.' },
+          { term: 'Mia sorella', definition: 'Mi hermana (sin "la").' },
+          { term: 'I tuoi amici', definition: 'Tus amigos.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Cómo se dice "Mis libros"?', options: ['I mio libri', 'I miei libri', 'Le mie libri', 'Mei libri'], correct: 1 },
+          { type: 'writing', question: '¿Cómo se dice "Mi padre"?', options: [], correct: 'mio padre', placeholder: '...' }
+        ]
+      },
+      {
+        title: 'Lezione 10: Preposiciones Básicas',
+        description: 'Uso de A, IN, SU, DI, DA, PER, CON.',
+        explanation: 'Indicación de lugar y tiempo. Ej: "Abito a Roma" (ciudades), "Vado in Italia" (países).',
+        meanings: [
+          { term: 'A casa', definition: 'En casa.' },
+          { term: 'In ufficio', definition: 'En la oficina.' },
+          { term: 'Di sera', definition: 'De noche.' }
+        ],
+        exercises: [
+          { type: 'multiple-choice', question: '¿Qué preposición se usa para ciudades?', options: ['In', 'Di', 'A', 'Da'], correct: 2 },
+          { type: 'writing', question: '¿Cómo se dice "Voy a Italia"?', options: [], correct: 'Vado in Italia', placeholder: '...' }
+        ]
+      }
+    ]
+  },
+  {
     id: 'ingles',
     name: 'Inglés',
     icon: 'Languages',
