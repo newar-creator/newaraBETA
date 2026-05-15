@@ -4237,17 +4237,6 @@ export default function App() {
               theme={theme}
             />
             <NavButton 
-              id="nav-materias"
-              active={currentView === 'materias'} 
-              onClick={() => {
-                navigateTo('materias');
-                setShowMobileSubjects(false);
-              }} 
-              icon={<BookOpen size={22} />} 
-              label={t('materias')} 
-              theme={theme}
-            />
-            <NavButton 
               id="nav-gallery"
               active={currentView === 'gallery'} 
               onClick={() => {
@@ -4270,7 +4259,6 @@ export default function App() {
               theme={theme}
               badge="BETA"
             />
-
             <NavButton 
               id="nav-classes"
               active={currentView === 'classes' || currentView === 'class-detail'} 
@@ -4280,6 +4268,17 @@ export default function App() {
               }} 
               icon={<Users size={22} />} 
               label="Clases" 
+              theme={theme}
+            />
+            <NavButton 
+              id="nav-materias"
+              active={currentView === 'materias'} 
+              onClick={() => {
+                navigateTo('materias');
+                setShowMobileSubjects(false);
+              }} 
+              icon={<BookOpen size={22} />} 
+              label={t('materias')} 
               theme={theme}
             />
             <NavButton 
