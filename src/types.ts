@@ -75,6 +75,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 1: L\'alfabeto e la pronuncia',
         description: 'El alfabeto italiano, sonidos especiales (GL, GN, SCI, SCE) y consonantes dobles.',
+        difficulty: 'Baja',
         explanation: 'El italiano tiene sonidos que no existen en español. Por ejemplo, "CI" suena como "CHI" y "GL" suena similar a una "LL" muy suave. Las consonantes dobles se deben pronunciar con más fuerza.',
         meanings: [
           { term: 'L\'alfabeto', definition: 'El alfabeto italiano.' },
@@ -91,6 +92,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 2: Pronombres y Verbos -are',
         description: 'Pronombres personales sujeto y conjugación de verbos regulares terminados en -are.',
+        difficulty: 'Baja',
         explanation: 'Los pronombres (io, tu, lui/lei...) son fundamentales. Los verbos terminados en -are (mangiare, amare) siguen un patrón regular en presente: -o, -i, -a, -iamo, -ate, -ano.',
         meanings: [
           { term: 'Io mangio', definition: 'Yo como.' },
@@ -106,6 +108,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 3: Verbos -ere e -ire',
         description: 'Conjugación de verbos regulares terminados en -ere e -ire.',
+        difficulty: 'Baja',
         explanation: 'Los verbos en -ere (leggere) e -ire (dormire) tienen sus propias terminaciones: -o, -i, -e, -iamo, -ete/-ite, -ono.',
         meanings: [
           { term: 'Leggere', definition: 'Leer.' },
@@ -120,6 +123,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 4: Negación e Interrogación',
         description: 'Estructura de oraciones negativas e interrogativas en presente.',
+        difficulty: 'Media',
         explanation: 'Para negar, ponemos "non" antes del verbo. Para preguntar, la entonación sube al final de la frase.',
         meanings: [
           { term: 'Non mangio', definition: 'No como.' },
@@ -134,6 +138,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 5: Artículos Indefinidos',
         description: 'Uso de un, uno, una, un\' según el género y la letra inicial.',
+        difficulty: 'Media',
         explanation: 'Masc: un (vocal/cons), uno (Z, S+cons). Fem: una (cons), un\' (vocal).',
         meanings: [
           { term: 'Un libro', definition: 'Un libro.' },
@@ -148,6 +153,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 6: Artículos Definidos',
         description: 'Uso de il, lo, la, l\', i, gli, le.',
+        difficulty: 'Media',
         explanation: 'Masc sing: il (cons), lo (Z, S+cons), l\' (vocal). Plural: i, gli. Fem: la, l\'. Plural: le.',
         meanings: [
           { term: 'Lo studente', definition: 'El estudiante.' },
@@ -162,6 +168,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 7: Género y Plural',
         description: 'Reglas de formación de género y número.',
+        difficulty: 'Media',
         explanation: 'Masc: -o -> -i. Fem: -a -> -e. Neutro/Masc: -e -> -i.',
         meanings: [
           { term: 'Gatto / Gatti', definition: 'Gato / Gatos.' },
@@ -176,6 +183,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 8: Verbo Essere y Adjetivos',
         description: 'Conjugación de essere (ser/estar) y concordancia de adjetivos.',
+        difficulty: 'Alta',
         explanation: 'Essere: sono, sei, è, siamo, siete, sono. Los adjetivos concuerdan en género y número.',
         meanings: [
           { term: 'Io sono', definition: 'Yo soy / estoy.' },
@@ -190,6 +198,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 9: Los Posesivos',
         description: 'Adjetivos posesivos y su uso.',
+        difficulty: 'Alta',
         explanation: 'Llevan artículo: il mio, la tua... Excepción: parientes en singular (mia madre).',
         meanings: [
           { term: 'Il mio libro', definition: 'Mi libro.' },
@@ -204,6 +213,7 @@ export const SUBJECTS: Subject[] = [
       {
         title: 'Lezione 10: Preposiciones Básicas',
         description: 'Uso de A, IN, SU, DI, DA, PER, CON.',
+        difficulty: 'Alta',
         explanation: 'Indicación de lugar y tiempo. Ej: "Abito a Roma" (ciudades), "Vado in Italia" (países).',
         meanings: [
           { term: 'A casa', definition: 'En casa.' },
