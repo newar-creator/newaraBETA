@@ -13,10 +13,8 @@
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@tailwindcss/vite": "^4.1.14",
-    "@types/canvas-confetti": "^1.9.0",
     "@vitejs/plugin-legacy": "^6.0.0",
     "@vitejs/plugin-react": "^5.0.4",
-    "canvas-confetti": "^1.9.4",
     "firebase": "^12.12.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
@@ -28,8 +26,11 @@
     "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "canvas-confetti": "^1.9.4",
+    "postcss": "^8.5.14",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
