@@ -150,7 +150,7 @@
   }
 
   .aero-icon-button {
-    @apply p-2 rounded-full transition-all active:scale-90 border border-white/40 shadow-sm relative overflow-hidden;
+    @apply p-1.5 md:p-2 rounded-full transition-all active:scale-90 border border-white/40 shadow-sm relative overflow-hidden;
     background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
     backdrop-filter: blur(4px);
   }

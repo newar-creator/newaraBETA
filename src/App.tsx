@@ -6464,16 +6464,16 @@ export default function App() {
                           
                           <div className="space-y-2 relative z-10">
                             <div className="flex items-center justify-between">
-                              <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
+                              <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-blue-500/20 text-blue-500 text-[8px] md:text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
                                 {activity.id}
                               </span>
-                              <div className="flex gap-1">
+                              <div className="flex gap-0.5 md:gap-1">
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); reportAbuse('activity', activity.id, activity.name, activity.creatorName); }}
                                   className="aero-icon-button text-amber-500 bg-amber-500/10"
                                   title="Denunciar Abuso"
                                 >
-                                  <Flag size={14} />
+                                  <Flag className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                 </button>
                                 {(isModerator || 
                                     activity.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
@@ -6485,14 +6485,14 @@ export default function App() {
                                       className="aero-icon-button text-blue-500 bg-blue-500/10"
                                       title="Editar Actividad"
                                     >
-                                      <Edit3 size={14} />
+                                      <Edit3 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                     </button>
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); handleDeleteActivity(activity.id, e, activity.creatorName, activity.title, activity.creatorId); }}
                                       className="aero-icon-button text-red-500 bg-red-500/10"
                                       title="Eliminar Actividad"
                                     >
-                                      <Trash2 size={14} />
+                                      <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                     </button>
                                   </>
                                 )}
