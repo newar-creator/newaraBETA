@@ -6527,20 +6527,20 @@ export default function App() {
     
                           <div className="space-y-3 relative z-10 pt-4 border-t border-white/10">
                             <div className="flex flex-col gap-2">
-                               <div className="flex gap-2">
+                               <div className="flex gap-1 md:gap-2">
                                   <GlossyButton 
                                     onClick={(e) => { e.stopPropagation(); setSelectedActivityDetail(activity); }}
                                     variant="gray"
-                                    className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
+                                    className="flex-1 px-1 md:px-3 py-1.5 md:py-2 rounded-xl text-[8px] md:text-[10px] whitespace-nowrap overflow-hidden text-ellipsis"
                                   >
                                     Ver más
                                   </GlossyButton>
                                   {userRole === 'Profesor' && (
                                     <GlossyButton 
                                       onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
-                                      className="flex-1 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px] bg-gradient-to-br from-amber-400 to-orange-500"
+                                      className="flex-1 px-1 md:px-3 py-1.5 md:py-2 rounded-xl text-[8px] md:text-[10px] whitespace-nowrap overflow-hidden text-ellipsis bg-gradient-to-br from-amber-400 to-orange-500"
                                     >
-                                      HOST <Gamepad2 size={12} />
+                                      HOST <Gamepad2 size={12} className="inline-block ml-0.5 md:ml-1 scale-75 md:scale-100" />
                                     </GlossyButton>
                                   )}
                                </div>
@@ -6549,7 +6549,7 @@ export default function App() {
                                  loading={isLoadingActivity && !currentSharedActivity}
                                  className="w-full py-1.5 md:py-2 rounded-xl text-[9px] md:text-[10px]"
                                >
-                                 JUGAR <Play size={10} fill="currentColor" />
+                                 JUGAR <Play size={10} fill="currentColor" className="ml-1" />
                                </GlossyButton>
                             </div>
                           </div>
@@ -7553,7 +7553,7 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className={`text-lg font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Denunciar Abuso</h3>
-                    <p className={`text-[10px] font-black uppercase opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{showReportModal.creatorName}</p>
+                    <p className={`text-[10px] font-black opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{showReportModal.creatorName}</p>
                   </div>
                 </div>
 
