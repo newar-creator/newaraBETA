@@ -3812,7 +3812,7 @@ export default function App() {
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black uppercase opacity-40">Creador</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold truncate max-w-[120px] group-hover:text-blue-400 transition-colors uppercase tracking-tight">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
+                          <span className="text-sm font-bold truncate max-w-[120px] group-hover:text-blue-400 transition-colors">{selectedActivityDetail.creatorName || 'Anónimo'}</span>
                           {selectedActivityDetail.creatorIsHelper && (
                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-500" title="AYUDANTE">
                                 <Sparkles size={10} />
