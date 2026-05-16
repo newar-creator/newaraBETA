@@ -389,8 +389,24 @@ export default function App() {
     } else if (firstSegment === 'clase' && segments[1]) {
       if (currentView !== 'class-detail') setCurrentView('class-detail');
     } else {
-      // Catch-all: if we have a path that doesn't match, go to inicio
-      if (location.pathname !== '/inicio' && location.pathname !== '/') {
+      // Catch-all: if we have a path that doesn't match, or we just loaded the root
+      if (location.pathname === '/') {
+        // Let's redirect to the path corresponding to the stored currentView
+        const viewPaths: Record<string, string> = {
+          'materias': '/materias',
+          'leaderboard': '/leaderboard',
+          'gallery': '/gallery',
+          'users': '/usuarios',
+          'classes': '/clases',
+          'settings': '/ajustes',
+          'reports': '/reports',
+          'minigames': '/minijuegos',
+          'horario': '/horario',
+          'home': '/inicio'
+        };
+        const route = viewPaths[currentView] || '/inicio';
+        navigate(route, { replace: true });
+      } else if (location.pathname !== '/inicio') {
          navigate('/inicio', { replace: true });
       } else if (currentView !== 'home') {
          setCurrentView('home');
@@ -1403,11 +1419,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('newara_view', currentView);
   }, [currentView]);
-
-  // Persist theme changes
-  useEffect(() => {
-    localStorage.setItem('newara_theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('newara_disable_animations', disableAnimations.toString());
@@ -7246,7 +7257,7 @@ export default function App() {
                     <AeroCard 
                       key={subject.id} 
                       theme={theme} 
-                      className="group p-0 md:p-0 overflow-visible! h-full"
+                      className={`group p-0 md:p-0 overflow-visible! h-full transition-all duration-500 hover:-translate-y-1 ${theme === 'black' ? 'border-white/10 hover:border-white/30 bg-gradient-to-br from-white/5 to-transparent hover:from-white/10 hover:to-transparent shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2),inset_0_2px_5px_rgba(255,255,255,0.2)]' : 'border border-white/30 hover:border-white/60 bg-gradient-to-br from-white/40 to-white/10 hover:from-white/60 hover:to-white/20 shadow-[inset_0_1px_3px_rgba(255,255,255,0.6),0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[0_0_25px_rgba(255,255,255,0.8),inset_0_2px_8px_rgba(255,255,255,1),0_8px_32px_rgba(0,0,0,0.1)]'}`}
                     >
                       <button
                         onClick={() => {
