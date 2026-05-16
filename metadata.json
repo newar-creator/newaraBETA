@@ -2,5 +2,5 @@
   "name": "NewAra",
   "description": "Plataforma educativa interactiva con gestión de usuarios, clases y estética Frutiger Aero.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

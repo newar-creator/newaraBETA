@@ -5671,23 +5671,23 @@ export default function App() {
               className="min-h-[85vh] flex flex-col gap-10 p-6 md:p-12"
             >
               {isMinigameHost && (
-                <div className="flex items-center justify-between mb-6 px-4">
-                  <div className="flex items-center gap-6">
-                    <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-4">
-                      <ArrowLeft size={28} />
+                <div className="flex flex-col md:flex-row items-center md:justify-between mb-8 md:mb-6 gap-8 md:gap-4 px-2 md:px-4">
+                  <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+                    <button onClick={leaveMinigame} className="aero-icon-button bg-white/10 hover:bg-white/20 transition-all p-3 md:p-4 flex-shrink-0">
+                      <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
                     </button>
-                    <div>
-                      <h1 className={`text-3xl md:text-5xl font-black tracking-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
-                      <p className={`font-bold opacity-60 flex items-center gap-2 text-lg ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
-                        <Gamepad2 size={20} /> {minigameSession.activity.name}
+                    <div className="flex-1 md:flex-none text-left">
+                      <h1 className={`text-2xl md:text-5xl font-black tracking-tight leading-tight ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Minijuego en Vivo</h1>
+                      <p className={`font-bold opacity-60 flex items-center gap-2 text-[10px] md:text-lg ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                        <Gamepad2 className="w-3 h-3 md:w-5 md:h-5" /> {minigameSession.activity.name}
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                     <div className="px-8 py-3 rounded-2xl bg-blue-500 text-white font-black tracking-widest text-2xl shadow-xl shadow-blue-500/30">
+                  <div className="flex flex-col items-center md:items-end gap-3 w-full md:w-auto">
+                     <div className="px-8 py-5 md:px-8 md:py-3 rounded-[32px] md:rounded-2xl bg-blue-600 md:bg-blue-500 text-white font-black tracking-normal md:tracking-widest text-4xl md:text-2xl shadow-[0_20px_50px_-10px_rgba(59,130,246,0.5)] md:shadow-xl md:shadow-blue-500/30 animate-pulse">
                         {minigameSession.code}
                      </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Código del Servidor</p>
+                     <p className={`text-[10px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Código del Servidor</p>
                   </div>
                 </div>
               )}
@@ -5868,10 +5868,10 @@ export default function App() {
                      /* STUDENT VIEW (Kahoot-Style) */
                      <div className="fixed inset-0 flex flex-col bg-slate-900 z-[200]">
                          {/* PIN & Question Top Bar */}
-                         <div className="bg-white/95 px-8 py-6 flex items-center justify-between shadow-lg">
-                           <div className="flex items-center gap-3">
-                             <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Pin:</span>
-                             <span className="text-2xl font-black text-slate-800 tracking-tighter">{minigameSession.code}</span>
+                         <div className="bg-white px-4 md:px-8 py-4 md:py-6 flex items-center justify-between shadow-md border-b">
+                           <div className="flex flex-col md:flex-row md:items-center gap-0 md:gap-3">
+                             <span className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest leading-tight">PIN DE ACCESO</span>
+                             <span className="text-xl md:text-2xl font-black text-blue-600 tracking-normal">{minigameSession.code}</span>
                            </div>
                            <div className="flex items-center gap-4">
                              <div className="flex flex-col items-end">
@@ -6036,7 +6036,10 @@ export default function App() {
                                           <span className="text-sm uppercase tracking-widest text-white">{opt}</span>
                                           {isCorrect && <CheckCircle size={16} className="text-green-500" />}
                                        </div>
-                                       <span className="text-2xl tracking-tighter text-white">{count}</span>
+                                       <div className="flex flex-col items-end">
+                                          <span className="text-2xl tracking-tighter text-white">{count}</span>
+                                          <span className="text-[10px] opacity-40 uppercase tracking-wider font-extrabold">Eligieron esta opción</span>
+                                        </div>
                                      </div>
                                      <div className="h-4 bg-white/5 rounded-full overflow-hidden p-0.5">
                                         <motion.div 

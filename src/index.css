@@ -24,18 +24,19 @@
   }
 
   html {
-    /* Prevent oversized document scrolling on some mobile browsers */
-    overflow: hidden;
+    /* Allow scrolling on mobile while keeping the base structure */
+    overflow-x: hidden;
     height: 100%;
     width: 100%;
-    position: fixed;
   }
 
   body {
-    @apply min-h-screen text-slate-800 antialiased overflow-y-auto;
+    @apply min-h-screen text-slate-800 antialiased;
     height: 100%;
     width: 100%;
-    overscroll-behavior-y: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     /* Hardware acceleration hints */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
