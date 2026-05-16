@@ -4530,52 +4530,54 @@ export default function App() {
       </nav>
 
       {/* Main Content Area Logo for Mobile */}
-      <div className={`lg:hidden w-full flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
-        <div className="absolute left-6 top-1/2 -translate-y-1/2">
-           <div 
-             className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
-             onClick={() => navigateTo('settings')}
-           >
-             {userAvatar ? (
-               <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
-             ) : (
-               <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
-                 <User size={20} />
-               </div>
-             )}
-           </div>
-        </div>
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
-           <button 
-             onClick={() => {
-               playExternalBubble();
-               setShowNotifications(true);
-             }}
-             className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border-2 hover:scale-105 ${
-               theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
-             }`}
-           >
-             <Bell size={20} className={theme === 'black' ? 'text-white' : 'text-sky-950'} />
-             {notifications.filter(n => !n.isRead).length > 0 && (
-               <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
-             )}
-           </button>
-        </div>
+      {!(currentView === 'minigames' && minigameSession && !isMinigameHost && (minigameSession.status === 'playing' || minigameSession.status === 'results' || minigameSession.status === 'reveal' || minigameSession.status === 'ended')) && (
+        <div className={`lg:hidden w-full flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
+          <div className="absolute left-6 top-1/2 -translate-y-1/2">
+             <div 
+               className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
+               onClick={() => navigateTo('settings')}
+             >
+               {userAvatar ? (
+                 <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+               ) : (
+                 <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
+                   <User size={20} />
+                 </div>
+               )}
+             </div>
+          </div>
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+             <button 
+               onClick={() => {
+                 playExternalBubble();
+                 setShowNotifications(true);
+               }}
+               className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border-2 hover:scale-105 ${
+                 theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
+               }`}
+             >
+               <Bell size={20} className={theme === 'black' ? 'text-white' : 'text-sky-950'} />
+               {notifications.filter(n => !n.isRead).length > 0 && (
+                 <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+               )}
+             </button>
+          </div>
 
-        <AnimatePresence>
-          {isOffline && (
-            <motion.div 
-               initial={{ opacity: 0, y: -20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
-            >
-               <WifiOff size={14} className="text-white" />
-               <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{t('sistemaOffline')}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          <AnimatePresence>
+            {isOffline && (
+              <motion.div 
+                 initial={{ opacity: 0, y: -20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 exit={{ opacity: 0, y: -20 }}
+                 className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-red-500/90 backdrop-blur-md rounded-full border border-white/30 shadow-lg"
+              >
+                 <WifiOff size={14} className="text-white" />
+                 <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{t('sistemaOffline')}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <main className={`flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-500 ${
         (minigameSessionId || activeExercise !== null || currentView === 'play-activity' || currentView === 'create-activity') 
@@ -6067,55 +6069,88 @@ export default function App() {
                )}
 
                {minigameSession.status === 'results' && (
-                <div className="flex-1 flex flex-col gap-12 items-center justify-center">
-                   <div className="text-center space-y-4">
-                      <h2 className="text-3xl md:text-5xl font-black tracking-tight flex items-center justify-center gap-4">
-                         <Trophy className="text-amber-500" size={48} /> POSICIONES
-                      </h2>
-                      <p className="text-sm font-black uppercase tracking-[0.3em] opacity-40">Resultados Parciales</p>
-                   </div>
+                 isMinigameHost ? (
+                  <div className="flex-1 flex flex-col gap-12 items-center justify-center">
+                     <div className="text-center space-y-4">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tight flex items-center justify-center gap-4">
+                           <Trophy className="text-amber-500" size={48} /> POSICIONES
+                        </h2>
+                        <p className="text-sm font-black uppercase tracking-[0.3em] opacity-40">Resultados Parciales</p>
+                     </div>
 
-                   <div className="w-full max-w-2xl space-y-4">
-                      {minigamePlayers.slice(0, 5).map((player, idx) => (
-                        <motion.div
-                          key={player.name}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className={`p-6 rounded-[32px] border-2 flex items-center justify-between relative overflow-hidden ${
-                            idx === 0 ? 'bg-gradient-to-r from-amber-400/20 to-amber-600/20 border-amber-500/30' :
-                            idx === 2 ? 'bg-gradient-to-r from-orange-400/20 to-orange-600/20 border-orange-500/30' :
-                            'bg-white/5 border-white/10'
-                          }`}
+                     <div className="w-full max-w-2xl space-y-4">
+                        {minigamePlayers.slice(0, 5).map((player, idx) => (
+                          <motion.div
+                            key={player.name}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className={`p-6 rounded-[32px] border-2 flex items-center justify-between relative overflow-hidden ${
+                              idx === 0 ? 'bg-gradient-to-r from-amber-400/20 to-amber-600/20 border-amber-500/30' :
+                              idx === 2 ? 'bg-gradient-to-r from-orange-400/20 to-orange-600/20 border-orange-500/30' :
+                              'bg-white/5 border-white/10'
+                            }`}
+                          >
+                             <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${
+                                  idx === 0 ? 'bg-amber-500 text-white shadow-lg' : 'bg-white/10'
+                                }`}>
+                                  {idx + 1}
+                                </div>
+                                <span className="text-lg md:text-xl font-black uppercase tracking-widest">{player.name}</span>
+                                {player.pointsLastRound > 0 && (
+                                  <span className="px-2 py-0.5 rounded-lg bg-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-tighter">
+                                     +{player.pointsLastRound}
+                                  </span>
+                                )}
+                             </div>
+                             <div className="text-xl md:text-2xl font-black tracking-tighter">
+                                {player.score.toLocaleString()}
+                             </div>
+                             <div className="glossy-overlay opacity-20" />
+                          </motion.div>
+                        ))}
+                     </div>
+
+                     {isMinigameHost && (
+                       <GlossyButton onClick={nextMinigameQuestion} className="px-20 py-5 text-xl">
+                          {minigameSession.currentQuestionIndex + 1 >= minigameSession.activity.questions.length ? 'VER PODIO FINAL' : 'SIGUIENTE PREGUNTA'} <ChevronRight size={24} />
+                       </GlossyButton>
+                     )}
+                  </div>
+                 ) : (
+                   <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                     <motion.div 
+                       animate={{ 
+                         scale: [1, 1.2, 1], 
+                         rotate: [0, 5, -5, 0],
+                         opacity: [0.5, 1, 0.5]
+                       }}
+                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                       className="w-24 h-24 rounded-[32px] bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.3)] mb-4"
+                     >
+                       <Gamepad2 size={48} className="text-blue-400" />
+                     </motion.div>
+                     <div className="text-center space-y-3">
+                        <motion.h3 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white"
                         >
-                           <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${
-                                idx === 0 ? 'bg-amber-500 text-white shadow-lg' : 'bg-white/10'
-                              }`}>
-                                {idx + 1}
-                              </div>
-                              <span className="text-lg md:text-xl font-black uppercase tracking-widest">{player.name}</span>
-                              {player.pointsLastRound > 0 && (
-                                <span className="px-2 py-0.5 rounded-lg bg-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-tighter">
-                                   +{player.pointsLastRound}
-                                </span>
-                              )}
-                           </div>
-                           <div className="text-xl md:text-2xl font-black tracking-tighter">
-                              {player.score.toLocaleString()}
-                           </div>
-                           <div className="glossy-overlay opacity-20" />
-                        </motion.div>
-                      ))}
+                          ESPERANDO AL PROFESOR
+                        </motion.h3>
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="text-sm font-black uppercase tracking-[0.3em] text-white/40"
+                        >
+                          Mira la pantalla principal
+                        </motion.p>
+                     </div>
                    </div>
-
-                   {isMinigameHost && (
-                     <GlossyButton onClick={nextMinigameQuestion} className="px-20 py-5 text-xl">
-                        {minigameSession.currentQuestionIndex + 1 >= minigameSession.activity.questions.length ? 'VER PODIO FINAL' : 'SIGUIENTE PREGUNTA'} <ChevronRight size={24} />
-                     </GlossyButton>
-                   )}
-                </div>
-              )}
+                 )
+               )}
 
               {minigameSession.status === 'ended' && (
                 <div className="flex-1 flex flex-col items-center justify-center gap-16 py-12">
