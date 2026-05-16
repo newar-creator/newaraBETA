@@ -79,7 +79,8 @@ import {
   Server,
   GraduationCap,
   Presentation,
-  Pizza
+  Pizza,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -5183,6 +5184,18 @@ export default function App() {
                     </div>
                   </div>
                 </AeroCard>
+
+              <div className="flex justify-center pt-8">
+                <a 
+                  href="https://drive.google.com/file/d/1EtKFWGGZ0C25qb7__53Zd5hes4ZtyjHA/view" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full md:w-auto px-12 py-5 rounded-3xl bg-gradient-to-br from-green-400 to-green-600 hover:scale-105 active:scale-95 transition-all shadow-[0_8px_30px_rgba(34,197,94,0.4)] text-white font-black text-xl md:text-2xl uppercase tracking-widest flex items-center justify-center gap-4"
+                >
+                  <Download size={28} />
+                  DESCARGAR NEWARA
+                </a>
+              </div>
               
               </motion.div>
           )}
