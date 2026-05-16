@@ -34,5 +34,9 @@
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "overrides": {
+    "fetch-blob": "^4.0.0",
+    "formdata-polyfill": "^4.0.10"
   }
 }
