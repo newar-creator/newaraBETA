@@ -246,6 +246,7 @@ interface ClassDetailProps {
   onBack: () => void;
   onArchive: () => void;
   onLeave: () => void;
+  onViewProfile?: (userId: string, userName?: string) => void;
   userName: string;
   initialTab?: 'anuncios' | 'tareas' | 'personas' | 'chat';
 }
@@ -412,6 +413,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
   onPostAnnouncement, onPostComment, onEditAnnouncement, onDeleteAnnouncement, 
   onEditComment, onDeleteComment, onReportAbuse, onPostMessage,
   onShareResource, onPlayActivity, onCreateAssignment, onSubmitTask, onBack, onArchive, onLeave, userName,
+  onViewProfile,
   initialTab = 'anuncios'
 }) => {
   const [activeTab, setActiveTab] = useState<'anuncios' | 'tareas' | 'personas' | 'chat'>(initialTab);
@@ -1262,9 +1264,19 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                   <div className="space-y-1">
                     {members.filter(m => m.role === 'Profesor').map(m => (
                       <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
-                        <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                        <div 
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                        >
+                          <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                        </div>
                         <div className="flex items-center gap-2">
-                           <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                           <p 
+                             className={`font-bold hover:underline cursor-pointer ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
+                             onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                           >
+                             {m.userName}
+                           </p>
                            {m.isHelper && (
                              <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
                                 <Sparkles size={10} /> AYUDANTE
@@ -1291,9 +1303,19 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                     ) : (
                       members.filter(m => m.role === 'Estudiante').map(m => (
                         <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
-                          <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                          <div 
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                          >
+                            <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                          </div>
                           <div className="flex items-center gap-2">
-                             <p className={`font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{m.userName}</p>
+                             <p 
+                               className={`font-bold hover:underline cursor-pointer ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
+                               onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                             >
+                               {m.userName}
+                             </p>
                              {m.isHelper && (
                                <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
                                   <Sparkles size={10} /> AYUDANTE

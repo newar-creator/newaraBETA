@@ -5074,6 +5074,7 @@ export default function App() {
                   submissions={classSubmissions}
                   messages={classMessages}
                   userName={userName}
+                  onViewProfile={handleViewProfile}
                   onPostAnnouncement={(content, att) => postAnnouncement(activeClass.id, content, att)}
                   onPostComment={(annId, content) => postComment(activeClass.id, annId, content)}
                   onEditAnnouncement={(annId, content) => editAnnouncement(activeClass.id, annId, content)}
