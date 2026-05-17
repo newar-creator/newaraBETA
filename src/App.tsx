@@ -1794,6 +1794,43 @@ export default function App() {
   const [loadingActivityDetail, setLoadingActivityDetail] = useState<string | null>(null);
   const [viewingProfile, setViewingProfile] = useState<any | null>(null);
   const [viewingProfileActivities, setViewingProfileActivities] = useState<any[]>([]);
+  const [showDonateModal, setShowDonateModal] = useState<any | null>(null);
+  const [donateAmount, setDonateAmount] = useState<number>(0);
+  const [isDonating, setIsDonating] = useState(false);
+
+  const handleDonateAras = async () => {
+    if (!isLoggedIn || !userName || !showDonateModal || donateAmount <= 0) return;
+    if (donateAmount > userAras) {
+      alert("No tienes suficientes Aras para donar.");
+      return;
+    }
+    
+    setIsDonating(true);
+    try {
+      const myRef = doc(db, 'users', userName.trim());
+      const targetRef = doc(db, 'users', showDonateModal.name || showDonateModal.id);
+      
+      await updateDoc(myRef, {
+        aras: increment(-donateAmount)
+      });
+      await updateDoc(targetRef, {
+        aras: increment(donateAmount)
+      });
+      
+      setUserAras(prev => prev - donateAmount);
+      playSuccessSound();
+      setShowDonateModal(null);
+      setDonateAmount(0);
+      alert(`Has donado ${donateAmount} Aras a ${showDonateModal.name || showDonateModal.id}!!`);
+      
+    } catch (error) {
+      console.error("Error donating aras:", error);
+      alert("Error al donar Aras.");
+    } finally {
+      setIsDonating(false);
+    }
+  };
+
   const [showProgramModal, setShowProgramModal] = useState(false);
   const [selectedProgramSubject, setSelectedProgramSubject] = useState<any>(null);
   const [expandedProgramUnits, setExpandedProgramUnits] = useState<Set<number>>(new Set());
@@ -4126,11 +4163,20 @@ export default function App() {
                 </div>
 
                 <div className="space-y-4 md:space-y-6">
-                  <div className="p-5 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/5 border border-white/10">
-                    <p className="text-[9px] md:text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-2 md:mb-3">BIOGRAFÍA</p>
-                    <p className="text-xs md:text-base leading-relaxed font-medium">
-                      {viewingProfile.bio || "Este usuario prefiere mantener su biografía en secreto..."}
-                    </p>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/5 border border-white/10">
+                    <div className="flex-1">
+                      <p className="text-[9px] md:text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-2 md:mb-3">BIOGRAFÍA</p>
+                      <p className="text-xs md:text-base leading-relaxed font-medium">
+                        {viewingProfile.bio || "Este usuario prefiere mantener su biografía en secreto..."}
+                      </p>
+                    </div>
+                    {isLoggedIn && viewingProfile.name !== userName && viewingProfile.name !== 'Estudiante' && (
+                        <div className="sm:ml-4 flex-shrink-0">
+                          <GlossyButton onClick={() => setShowDonateModal(viewingProfile)} className="!bg-amber-500 hover:!bg-amber-600 !border-amber-400 !text-white text-xs px-4 py-2 uppercase font-black tracking-widest shadow-lg shadow-amber-500/20">
+                            DONAR!!
+                          </GlossyButton>
+                        </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -4195,6 +4241,80 @@ export default function App() {
                    </div>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Donate Modal */}
+      <AnimatePresence>
+        {showDonateModal && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setShowDonateModal(null); setDonateAmount(0); }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-sm rounded-[32px] overflow-hidden border-2 shadow-2xl p-6 ${
+                theme === 'black' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-white border-white text-sky-950'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-black flex items-center gap-2">
+                  <Coins className="text-amber-500" /> Donar Aras
+                </h3>
+                <button 
+                  onClick={() => { setShowDonateModal(null); setDonateAmount(0); }}
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="mb-6 space-y-4 text-center">
+                <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-white/20 shadow-lg relative group items-center justify-center flex bg-zinc-800">
+                   {showDonateModal.avatar ? (
+                     <img src={showDonateModal.avatar} alt="" className="w-full h-full object-cover" />
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center text-white text-2xl font-black bg-gradient-to-br from-blue-500 to-indigo-600">
+                       {showDonateModal.name?.[0]?.toUpperCase() || 'E'}
+                     </div>
+                   )}
+                </div>
+                <p className="font-bold opacity-80">
+                  ¿Cuántas Aras quieres donar a <span className="text-amber-500 font-black">{showDonateModal.name || showDonateModal.id}</span>?
+                </p>
+                <div className="flex flex-col items-center gap-2">
+                    <input 
+                      type="number"
+                      min="1"
+                      max={userAras}
+                      value={donateAmount || ''}
+                      onChange={(e) => setDonateAmount(Math.min(userAras, Math.max(1, parseInt(e.target.value) || 0)))}
+                      className={`w-full max-w-[200px] text-center text-3xl font-black bg-transparent border-b-4 border-amber-500/30 focus:border-amber-500 outline-none pb-2 transition-all ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
+                      placeholder="0"
+                    />
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-60">
+                      Saldo disponible: <span className="text-amber-500">{userAras}</span>
+                    </span>
+                </div>
+              </div>
+
+              <GlossyButton 
+                onClick={handleDonateAras}
+                disabled={isDonating || donateAmount <= 0}
+                className="w-full !bg-amber-500 hover:!bg-amber-600 !border-amber-400 !text-white text-lg py-4 font-black flex items-center justify-center gap-2"
+              >
+                {isDonating ? <RefreshCw className="animate-spin" /> : <Heart fill="currentColor" />}
+                {isDonating ? 'DONANDO...' : `DONAR ${donateAmount || 0} ARAS`}
+              </GlossyButton>
             </motion.div>
           </div>
         )}
