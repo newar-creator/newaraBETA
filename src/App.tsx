@@ -5759,9 +5759,12 @@ export default function App() {
                               <span>PUBLICANDO...</span>
                            </div>
                          ) : (
-                           <>
-                             PUBLICAR ACTIVIDAD <Share2 size={32} />
-                           </>
+                           <div className="flex flex-col items-center justify-center">
+                             <div className="flex items-center gap-3">
+                               PUBLICAR ACTIVIDAD <Share2 size={32} />
+                             </div>
+                             <span className="text-xs md:text-sm tracking-widest opacity-80 font-black mt-1">CUESTA 125 ARAS</span>
+                           </div>
                          )}
                       </GlossyButton>
                     </motion.div>
