@@ -8598,7 +8598,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
       >
         {icon}
       </motion.div>
-      <span className={`text-[10px] lg:text-sm font-bold tracking-tight hidden lg:block ${isAero ? 'text-sky-950 font-black' : ''}`}>{label}</span>
+      <span className={`text-[9px] lg:text-sm font-bold tracking-tight mt-1 lg:mt-0 ${isAero ? 'text-sky-950 font-black' : theme === 'black' ? 'text-white' : 'text-slate-800'}`}>{label}</span>
       
       {badge && (
         <span className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white text-[7px] md:text-[9px] font-black px-1.5 md:px-2 py-0.5 rounded-full shadow-lg animate-pulse border border-white/20 z-10">
