@@ -843,6 +843,10 @@ export default function App() {
   const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
+  const [userAras, setUserAras] = useState<number>(() => {
+    const saved = localStorage.getItem('newara_user_aras');
+    return saved ? parseInt(saved, 10) : 300;
+  });
   const [isRegistering, setIsRegistering] = useState(false);
   const [loginUserName, setLoginUserName] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -901,6 +905,14 @@ export default function App() {
             if (data.avatar) setUserAvatar(data.avatar);
             if (data.role) setUserRole(data.role);
             if (data.bio) setUserBio(data.bio);
+            if (data.aras !== undefined) {
+              setUserAras(data.aras);
+              localStorage.setItem('newara_user_aras', data.aras.toString());
+            } else {
+              setUserAras(300);
+              localStorage.setItem('newara_user_aras', '300');
+              updateDoc(userRef, { aras: 300 }).catch(console.error);
+            }
             if (data.completedUnits) {
               setCompletedUnits(data.completedUnits);
               localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
@@ -1194,11 +1206,13 @@ export default function App() {
           bio: userBio.slice(0, 300),
           role: null, // Force selection on first login/right after register
           avatar: safeAvatar,
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          aras: 300
         });
         playSuccessSound();
         setUserName(loginUserName.trim());
         setUserPassword(loginPassword);
+        setUserAras(300);
         setIsLoggedIn(true);
         setIsRegistering(false);
         setShowWelcome(false);
@@ -1425,6 +1439,82 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('newara_disable_animations', disableAnimations.toString());
   }, [disableAnimations]);
+
+  useEffect(() => {
+    if (isLoggedIn && userName && userName !== 'Estudiante') {
+      const checkDailyRewards = async () => {
+        const today = new Date().toISOString().split('T')[0];
+        const rewardKey = `last_daily_rank_reward_${userName}`;
+        
+        if (localStorage.getItem(rewardKey) === today) return;
+
+        try {
+          const userRef = doc(db, 'users', userName.trim());
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+             const data = userDoc.data();
+             if (data.lastLeaderboardRewardDate === today) {
+                localStorage.setItem(rewardKey, today);
+                return;
+             }
+
+             const usersSnap = await getDocs(query(collection(db, 'users'), limit(200)));
+             const usersData = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+             const actSnap = await getDocs(collection(db, 'activities'));
+             const activities = actSnap.docs.map(d => d.data());
+
+             let totalArasToReward = 0;
+
+             const lb = usersData.map((u: any) => {
+                const userActs = activities.filter(a => a.creatorName === u.id);
+                const computedViews = userActs.reduce((acc, a) => acc + (a.views || 0), 0);
+                const computedLikes = userActs.reduce((acc, a) => acc + (a.likes?.length || 0), 0);
+                const computedCorrect = (u.completedUnits?.length || 0) + (u.stats?.totalCorrect || 0);
+                return { id: u.id, correct: computedCorrect, likes: computedLikes, views: computedViews };
+             });
+
+             const ranks = {
+                correct: [...lb].sort((a,b) => b.correct - a.correct),
+                likes: [...lb].sort((a,b) => b.likes - a.likes),
+                views: [...lb].sort((a,b) => b.views - a.views)
+             };
+
+             const categories = ['correct', 'likes', 'views'] as const;
+             for (const cat of categories) {
+                const rank = ranks[cat].findIndex(u => u.id === userName.trim());
+                if (rank !== -1 && ranks[cat][rank][cat] > 0) {
+                   if (rank === 0) totalArasToReward += 20;
+                   else if (rank === 1) totalArasToReward += 10;
+                   else if (rank === 2) totalArasToReward += 5;
+                   else if (rank === 3 || rank === 4) totalArasToReward += 2;
+                }
+             }
+
+             await updateDoc(userRef, {
+                lastLeaderboardRewardDate: today,
+                aras: increment(totalArasToReward)
+             });
+
+             if (totalArasToReward > 0) {
+                 setUserAras(prev => {
+                   const newAras = prev + totalArasToReward;
+                   localStorage.setItem('newara_user_aras', newAras.toString());
+                   return newAras;
+                 });
+             }
+             localStorage.setItem(rewardKey, today);
+          }
+        } catch (e) {
+          console.error("Error checking daily rewards", e);
+        }
+      };
+      // Timeout to not block initial render excessively
+      const to = setTimeout(() => { checkDailyRewards(); }, 3000);
+      return () => clearTimeout(to);
+    }
+  }, [isLoggedIn, userName]);
+
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number, activityCode?: string} | null>(null);
   const [exerciseState, setExerciseState] = useState({ 
@@ -2133,6 +2223,33 @@ export default function App() {
       unsubscribePlayers();
     };
   }, [minigameSessionId]);
+
+  useEffect(() => {
+    if (minigameSession?.status === 'ended' && userName && !isMinigameHost) {
+      const rewardKey = `reward_${minigameSessionId}`;
+      if (!sessionStorage.getItem(rewardKey)) {
+        const myRankIndex = minigamePlayers.findIndex(p => p.name === userName);
+        if (myRankIndex !== -1) {
+          let reward = 0;
+          if (myRankIndex === 0) reward = 30;
+          else if (myRankIndex === 1) reward = 15;
+          else if (myRankIndex === 2) reward = 5;
+          else reward = 2; // Participating or below top 3
+          
+          if (reward > 0) {
+            const userRef = doc(db, 'users', userName.trim());
+            updateDoc(userRef, { aras: increment(reward) }).catch(console.error);
+            setUserAras(prev => {
+              const newAras = prev + reward;
+              localStorage.setItem('newara_user_aras', newAras.toString());
+              return newAras;
+            });
+          }
+        }
+        sessionStorage.setItem(rewardKey, 'true');
+      }
+    }
+  }, [minigameSession?.status, minigamePlayers, userName, isMinigameHost, minigameSessionId]);
 
   // Handle music and sounds
   useEffect(() => {
@@ -3050,6 +3167,12 @@ export default function App() {
       return;
     }
 
+    if (!editingActivityId && userAras < 125) {
+      setCreationError("No tienes suficientes Aras para publicar una nueva actividad (costo: 125 Aras).");
+      playErrorSound();
+      return;
+    }
+
     let timeoutId: any;
     setIsCreatingActivity(true);
 
@@ -3102,6 +3225,13 @@ export default function App() {
         await updateDoc(docRef, activityData);
       } else {
         await setDoc(docRef, activityData);
+        const userRef = doc(db, 'users', userName.trim());
+        await updateDoc(userRef, { aras: increment(-125) });
+        setUserAras(prev => {
+          const newAras = prev - 125;
+          localStorage.setItem('newara_user_aras', newAras.toString());
+          return newAras;
+        });
       }
 
       if (timeoutId) clearTimeout(timeoutId);
@@ -4101,7 +4231,7 @@ export default function App() {
         </div>
 
         {/* PC Offline Status - Positioned between logo and user profile */}
-        <div className="hidden lg:block mb-2">
+        <div className="hidden lg:flex flex-col items-center gap-3 mb-2">
           <AnimatePresence>
             {isOffline && (
               <motion.div 
@@ -4115,20 +4245,32 @@ export default function App() {
             )}
           </AnimatePresence>
 
-          <button 
-            onClick={() => {
-              playExternalBubble();
-              setShowNotifications(true);
-            }}
-            className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
-              theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : theme === 'aero' ? 'bg-white border-blue-200 shadow-xl' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
-            }`}
-          >
-            <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : theme === 'aero' ? 'text-blue-600 group-hover:text-amber-500' : 'text-sky-900 group-hover:text-amber-500'} />
-            {notifications.filter(n => !n.isRead).length > 0 && (
-              <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
-            )}
-          </button>
+          <div className="flex items-center gap-2 justify-center">
+            <button 
+              onClick={() => {
+                playExternalBubble();
+                setShowNotifications(true);
+              }}
+              className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
+                theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : theme === 'aero' ? 'bg-white border-blue-200 shadow-xl' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
+              }`}
+            >
+              <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : theme === 'aero' ? 'text-blue-600 group-hover:text-amber-500' : 'text-sky-900 group-hover:text-amber-500'} />
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+              )}
+            </button>
+            <div className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 ${
+                theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
+              }`}
+              title="Tu saldo de Aras (utilizadas para publicar actividades)"
+            >
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-black tracking-tighter">{userAras}</span>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest">Aras</span>
+            </div>
+          </div>
         </div>
 
         <div className="hidden lg:flex flex-col items-center gap-2 mb-4">
@@ -4562,6 +4704,20 @@ export default function App() {
                )}
              </div>
           </div>
+          
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+             <div className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl border-2 ${
+                  theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
+                }`}
+                title="Tu saldo de Aras"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-base font-black tracking-tighter">{userAras}</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest -mt-1">Aras</span>
+             </div>
+          </div>
+
           <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
              <button 
                onClick={() => {
