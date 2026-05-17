@@ -82,7 +82,8 @@ import {
   Pizza,
   Download,
   Filter,
-  ListFilter
+  ListFilter,
+  Coins
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -4263,15 +4264,30 @@ export default function App() {
               </button>
             )}
             {isLoggedIn && (
-              <div className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 ${
-                  theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
+              <div 
+                className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all hover:scale-105 active:scale-95 cursor-default group ${
+                  theme === 'black' 
+                    ? 'bg-gradient-to-b from-amber-500/20 to-amber-700/20 border-amber-500/40 text-amber-300 shadow-[inset_0_1px_3px_rgba(251,191,36,0.3)]' 
+                    : theme === 'aero' 
+                    ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-amber-300/80 text-amber-950 shadow-[inset_0_2px_8px_rgba(255,255,255,0.8),0_4px_12px_rgba(251,191,36,0.4)]' 
+                    : 'bg-gradient-to-b from-amber-50 to-amber-100 border-amber-200 text-amber-700 shadow-sm'
                 }`}
                 title="Tu saldo de Aras (utilizadas para publicar actividades)"
               >
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-black tracking-tighter">{userAras}</span>
+                {theme === 'aero' && <div className="absolute top-0 left-0 w-full h-1/2 bg-white/40 rounded-t-2xl pointer-events-none"></div>}
+                
+                <div className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${
+                  theme === 'aero' ? 'bg-gradient-to-br from-yellow-100 to-amber-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_2px_4px_rgba(0,0,0,0.1)] border border-amber-200/50' : ''
+                }`}>
+                  <Coins size={14} className={theme === 'black' ? 'text-amber-400' : theme === 'aero' ? 'text-amber-600 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]' : 'text-amber-600'} />
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">Aras</span>
+                
+                <div className="flex flex-col items-start leading-none relative z-10 -ml-0.5">
+                  <span className={`text-sm tracking-tighter ${theme === 'aero' ? 'font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]' : 'font-black'}`}>
+                    {userAras}
+                  </span>
+                  <span className="text-[8px] font-black uppercase tracking-widest opacity-80 mt-0.5">Aras</span>
+                </div>
               </div>
             )}
           </div>
@@ -4730,15 +4746,30 @@ export default function App() {
           
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
              {isLoggedIn && (
-               <div className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl border-2 ${
-                    theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
-                  }`}
-                  title="Tu saldo de Aras"
-                >
-                  <div className="flex items-center gap-1">
-                    <span className="text-base font-black tracking-tighter">{userAras}</span>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest -mt-1">Aras</span>
+               <div 
+                 className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all active:scale-95 cursor-default group ${
+                   theme === 'black' 
+                     ? 'bg-gradient-to-b from-amber-500/20 to-amber-700/20 border-amber-500/40 text-amber-300 shadow-[inset_0_1px_3px_rgba(251,191,36,0.3)]' 
+                     : theme === 'aero' 
+                     ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-amber-300/80 text-amber-950 shadow-[inset_0_2px_8px_rgba(255,255,255,0.8),0_4px_12px_rgba(251,191,36,0.4)]' 
+                     : 'bg-gradient-to-b from-amber-50 to-amber-100 border-amber-200 text-amber-700 shadow-sm'
+                 }`}
+                 title="Tu saldo de Aras"
+               >
+                 {theme === 'aero' && <div className="absolute top-0 left-0 w-full h-1/2 bg-white/40 rounded-t-2xl pointer-events-none"></div>}
+                 
+                 <div className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${
+                  theme === 'aero' ? 'bg-gradient-to-br from-yellow-100 to-amber-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_2px_4px_rgba(0,0,0,0.1)] border border-amber-200/50' : ''
+                 }`}>
+                   <Coins size={16} className={theme === 'black' ? 'text-amber-400' : theme === 'aero' ? 'text-amber-600 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]' : 'text-amber-600'} />
+                 </div>
+                 
+                 <div className="flex flex-col items-start leading-none relative z-10 -ml-0.5">
+                   <span className={`text-base tracking-tighter ${theme === 'aero' ? 'font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]' : 'font-black'}`}>
+                     {userAras}
+                   </span>
+                   <span className="text-[9px] font-black uppercase tracking-widest opacity-80 mt-0.5">Aras</span>
+                 </div>
                </div>
              )}
           </div>
