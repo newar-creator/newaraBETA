@@ -8422,7 +8422,7 @@ function NavButton({ id, active, icon, label, onClick, theme = 'white', badge }:
     ? 'text-sky-900 border-transparent hover:bg-white/40'
     : theme === 'black' 
       ? 'text-white/60 border-transparent hover:bg-white/10 hover:text-white' 
-      : 'text-sky-900/40 bg-slate-100/80 border-transparent hover:bg-slate-200/80 hover:text-sky-900 hover:shadow-md';
+      : 'text-sky-900/80 bg-slate-100/80 border-transparent hover:bg-slate-200/80 hover:text-sky-900 hover:shadow-md';
 
   return (
     <motion.button 
