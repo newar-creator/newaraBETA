@@ -4246,20 +4246,22 @@ export default function App() {
           </AnimatePresence>
 
           <div className="flex items-center gap-2 justify-center">
-            <button 
-              onClick={() => {
-                playExternalBubble();
-                setShowNotifications(true);
-              }}
-              className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
-                theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : theme === 'aero' ? 'bg-white border-blue-200 shadow-xl' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
-              }`}
-            >
-              <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : theme === 'aero' ? 'text-blue-600 group-hover:text-amber-500' : 'text-sky-900 group-hover:text-amber-500'} />
-              {notifications.filter(n => !n.isRead).length > 0 && (
-                <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
-              )}
-            </button>
+            {isLoggedIn && (
+              <button 
+                onClick={() => {
+                  playExternalBubble();
+                  setShowNotifications(true);
+                }}
+                className={`group relative p-3 rounded-2xl transition-all active:scale-95 border-2 hover:scale-105 ${
+                  theme === 'black' ? 'bg-white/5 border-white/10 hover:border-blue-500/30' : theme === 'aero' ? 'bg-white border-blue-200 shadow-xl' : 'bg-white/60 border-white hover:border-blue-300 shadow-sm'
+                }`}
+              >
+                <Bell size={20} className={theme === 'black' ? 'text-white/70 group-hover:text-amber-400' : theme === 'aero' ? 'text-blue-600 group-hover:text-amber-500' : 'text-sky-900 group-hover:text-amber-500'} />
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+                )}
+              </button>
+            )}
             {isLoggedIn && (
               <div className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 ${
                   theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
@@ -4742,20 +4744,22 @@ export default function App() {
           </div>
 
           <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
-             <button 
-               onClick={() => {
-                 playExternalBubble();
-                 setShowNotifications(true);
-               }}
-               className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border-2 hover:scale-105 ${
-                 theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
-               }`}
-             >
-               <Bell size={20} className={theme === 'black' ? 'text-white' : 'text-sky-950'} />
-               {notifications.filter(n => !n.isRead).length > 0 && (
-                 <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
-               )}
-             </button>
+             {isLoggedIn && (
+               <button 
+                 onClick={() => {
+                   playExternalBubble();
+                   setShowNotifications(true);
+                 }}
+                 className={`relative p-2.5 rounded-2xl transition-all active:scale-90 border-2 hover:scale-105 ${
+                   theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white shadow-inner'
+                 }`}
+               >
+                 <Bell size={20} className={theme === 'black' ? 'text-white' : 'text-sky-950'} />
+                 {notifications.filter(n => !n.isRead).length > 0 && (
+                   <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+                 )}
+               </button>
+             )}
           </div>
 
           <AnimatePresence>
