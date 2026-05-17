@@ -4260,38 +4260,53 @@ export default function App() {
                 <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
               )}
             </button>
-            <div className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 ${
-                theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
-              }`}
-              title="Tu saldo de Aras (utilizadas para publicar actividades)"
-            >
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-black tracking-tighter">{userAras}</span>
+            {isLoggedIn && (
+              <div className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 ${
+                  theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
+                }`}
+                title="Tu saldo de Aras (utilizadas para publicar actividades)"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-black tracking-tighter">{userAras}</span>
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Aras</span>
               </div>
-              <span className="text-[8px] font-black uppercase tracking-widest">Aras</span>
-            </div>
+            )}
           </div>
         </div>
 
         <div className="hidden lg:flex flex-col items-center gap-2 mb-4">
-          <div className="w-14 h-14 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden group">
-            {userAvatar ? (
-              <img 
-                src={userAvatar} 
-                alt="Profile" 
-                className="w-full h-full object-cover rounded-full"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
-                <User size={28} />
+          {isLoggedIn ? (
+            <>
+              <div 
+                className="w-14 h-14 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden group cursor-pointer"
+                onClick={() => navigateTo('settings')}
+              >
+                {userAvatar ? (
+                  <img 
+                    src={userAvatar} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover rounded-full"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
+                    <User size={28} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className="hidden lg:flex flex-col items-center">
-            <span className={`hidden lg:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
-            <span className={`hidden lg:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{userRole}</span>
-          </div>
+              <div className="hidden lg:flex flex-col items-center cursor-pointer" onClick={() => navigateTo('settings')}>
+                <span className={`hidden lg:block text-[11px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white' : 'text-sky-900/80'}`}>{userName}</span>
+                <span className={`hidden lg:block text-[9px] font-bold uppercase tracking-widest opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>{userRole}</span>
+              </div>
+            </>
+          ) : (
+            <div className="w-full px-4">
+              <GlossyButton onClick={() => setIsRegistering(true)} className="w-full py-3 flex items-center justify-center text-[10px] font-black tracking-widest uppercase !rounded-[20px]">
+                INICIAR SESIÓN
+              </GlossyButton>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 w-full lg:px-4 lg:overflow-y-auto lg:custom-scrollbar flex lg:flex-col flex-row justify-around lg:justify-start items-center gap-1 lg:gap-4">
@@ -4690,32 +4705,40 @@ export default function App() {
       {/* Main Content Area Logo for Mobile */}
       {!(currentView === 'minigames' && minigameSession && !isMinigameHost && (minigameSession.status === 'playing' || minigameSession.status === 'results' || minigameSession.status === 'reveal' || minigameSession.status === 'ended')) && (
         <div className={`lg:hidden w-full flex flex-col items-center justify-center h-16 px-4 z-30 sticky top-0 transition-all duration-500 bg-transparent`}>
-          <div className="absolute left-6 top-1/2 -translate-y-1/2">
-             <div 
-               className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
-               onClick={() => navigateTo('settings')}
-             >
-               {userAvatar ? (
-                 <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
-               ) : (
-                 <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
-                   <User size={20} />
-                 </div>
-               )}
-             </div>
+          <div className="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2">
+             {isLoggedIn ? (
+               <div 
+                 className="w-11 h-11 rounded-full p-0.5 bg-white/20 border-2 border-white/40 shadow-lg overflow-hidden cursor-pointer active:scale-90 transition-transform"
+                 onClick={() => navigateTo('settings')}
+               >
+                 {userAvatar ? (
+                   <img src={userAvatar} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                 ) : (
+                   <div className={`w-full h-full rounded-full flex items-center justify-center ${theme === 'black' ? 'bg-white/10' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white shadow-inner'}`}>
+                     <User size={20} />
+                   </div>
+                 )}
+               </div>
+             ) : (
+               <GlossyButton onClick={() => setIsRegistering(true)} className="px-3 py-1.5 text-[9px] font-black tracking-widest uppercase !rounded-[14px]">
+                 INICIAR SESIÓN
+               </GlossyButton>
+             )}
           </div>
           
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-             <div className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl border-2 ${
-                  theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
-                }`}
-                title="Tu saldo de Aras"
-              >
-                <div className="flex items-center gap-1">
-                  <span className="text-base font-black tracking-tighter">{userAras}</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest -mt-1">Aras</span>
-             </div>
+             {isLoggedIn && (
+               <div className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl border-2 ${
+                    theme === 'black' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : theme === 'aero' ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-amber-50 border-amber-200 text-amber-600'
+                  }`}
+                  title="Tu saldo de Aras"
+                >
+                  <div className="flex items-center gap-1">
+                    <span className="text-base font-black tracking-tighter">{userAras}</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest -mt-1">Aras</span>
+               </div>
+             )}
           </div>
 
           <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
