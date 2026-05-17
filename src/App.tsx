@@ -80,7 +80,9 @@ import {
   GraduationCap,
   Presentation,
   Pizza,
-  Download
+  Download,
+  Filter,
+  ListFilter
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -1450,6 +1452,8 @@ export default function App() {
   const [currentSharedActivity, setCurrentSharedActivity] = useState<any>(null);
   const [galleryActivities, setGalleryActivities] = useState<any[]>([]);
   const [gallerySearch, setGallerySearch] = useState('');
+  const [galleryFilter, setGalleryFilter] = useState<'newest' | 'oldest' | 'most_views' | 'least_views' | 'most_likes' | 'least_likes'>('newest');
+  const [showGalleryFilters, setShowGalleryFilters] = useState(false);
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity', classId?: string, parentId?: string} | null>(null);
   const [reportReason, setReportReason] = useState('');
@@ -6405,6 +6409,59 @@ export default function App() {
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative">
+                      <button
+                        onClick={() => { playExternalBubble(); setShowGalleryFilters(!showGalleryFilters); }}
+                        className={`p-3 rounded-2xl border-2 transition-all shadow-lg active:scale-95 ${
+                          theme === 'black'
+                            ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                            : 'bg-white/60 border-white/40 text-sky-950 hover:bg-white'
+                        } ${showGalleryFilters ? (theme === 'black' ? 'bg-white/20' : 'bg-white') : ''}`}
+                      >
+                        <ListFilter size={18} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showGalleryFilters && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className={`absolute top-full left-0 mt-2 p-2 rounded-2xl border-2 shadow-2xl z-50 min-w-[180px] ${
+                              theme === 'black'
+                                ? 'bg-slate-900/95 border-white/10 backdrop-blur-xl'
+                                : 'bg-white/95 border-white/20 backdrop-blur-xl'
+                            }`}
+                          >
+                            {[
+                              { id: 'newest', label: 'Más Nuevo' },
+                              { id: 'oldest', label: 'Más Viejo' },
+                              { id: 'most_views', label: 'Más Visitas' },
+                              { id: 'least_views', label: 'Menos Visitas' },
+                              { id: 'most_likes', label: 'Más Likes' },
+                              { id: 'least_likes', label: 'Menos Likes' },
+                            ].map(f => (
+                              <button
+                                key={f.id}
+                                onClick={() => {
+                                  setGalleryFilter(f.id as any);
+                                  setShowGalleryFilters(false);
+                                  playExternalBubble();
+                                }}
+                                className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                  galleryFilter === f.id
+                                    ? (theme === 'black' ? 'bg-blue-500 text-white' : 'bg-blue-500 text-white')
+                                    : (theme === 'black' ? 'text-white/60 hover:bg-white/10 hover:text-white' : 'text-sky-900 hover:bg-slate-100')
+                                }`}
+                              >
+                                {f.label}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
                     <div className="relative w-full sm:w-64">
                       <Search size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
                       <input 
@@ -6465,36 +6522,8 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-                  {galleryActivities.filter(activity => {
-                    const search = gallerySearch.toLowerCase();
-                    const date = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : '';
-                    return (
-                      activity.name?.toLowerCase().includes(search) ||
-                      activity.creatorName?.toLowerCase().includes(search) ||
-                      activity.id?.toLowerCase().includes(search) ||
-                      date.includes(search)
-                    );
-                  }).length === 0 && gallerySearch.trim() !== '' ? (
-                    <div className="col-span-full py-20 text-center space-y-6">
-                      <div className="relative inline-block">
-                         <SearchX size={80} className={`mx-auto opacity-10 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
-                      </div>
-                      <div className="space-y-2">
-                         <h2 className={`text-2xl md:text-5xl font-black uppercase tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡NO HAY NADA!</h2>
-                         <p className={`text-xs md:text-sm font-bold opacity-40 uppercase tracking-widest px-8 md:px-12 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>No se encontró ninguna actividad que coincida con "{gallerySearch}"</p>
-                      </div>
-                      <GlossyButton 
-                        onClick={handleCreateActivityClick}
-                        className="px-8 md:px-12 py-3 md:py-4 text-[10px] md:text-xs font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group mx-auto"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-                          CREAR ACTIVIDAD
-                        </div>
-                      </GlossyButton>
-                    </div>
-                  ) : (
-                    galleryActivities.filter(activity => {
+                  {(() => {
+                    const filteredAndSorted = galleryActivities.filter(activity => {
                       const search = gallerySearch.toLowerCase();
                       const date = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : '';
                       return (
@@ -6503,7 +6532,50 @@ export default function App() {
                         activity.id?.toLowerCase().includes(search) ||
                         date.includes(search)
                       );
-                    }).map((activity) => {
+                    }).sort((a, b) => {
+                      switch (galleryFilter) {
+                        case 'most_views': return (b.views || 0) - (a.views || 0);
+                        case 'least_views': return (a.views || 0) - (b.views || 0);
+                        case 'most_likes': return (b.likes?.length || 0) - (a.likes?.length || 0);
+                        case 'least_likes': return (a.likes?.length || 0) - (b.likes?.length || 0);
+                        case 'oldest': {
+                          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+                          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+                          return ta - tb;
+                        }
+                        case 'newest':
+                        default: {
+                          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+                          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+                          return tb - ta;
+                        }
+                      }
+                    });
+
+                    if (filteredAndSorted.length === 0 && gallerySearch.trim() !== '') {
+                      return (
+                        <div className="col-span-full py-20 text-center space-y-6">
+                          <div className="relative inline-block">
+                             <SearchX size={80} className={`mx-auto opacity-10 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`} />
+                          </div>
+                          <div className="space-y-2">
+                             <h2 className={`text-2xl md:text-5xl font-black uppercase tracking-tighter ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡NO HAY NADA!</h2>
+                             <p className={`text-xs md:text-sm font-bold opacity-40 uppercase tracking-widest px-8 md:px-12 transition-colors ${theme === 'black' ? 'text-white' : 'text-sky-800'}`}>No se encontró ninguna actividad que coincida con "{gallerySearch}"</p>
+                          </div>
+                          <GlossyButton 
+                            onClick={handleCreateActivityClick}
+                            className="px-8 md:px-12 py-3 md:py-4 text-[10px] md:text-xs font-black bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 rounded-2xl group mx-auto"
+                          >
+                            <div className="flex items-center justify-center gap-2">
+                              <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+                              CREAR ACTIVIDAD
+                            </div>
+                          </GlossyButton>
+                        </div>
+                      );
+                    }
+
+                    return filteredAndSorted.map((activity) => {
                       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
                       const dateStr = activity.createdAt?.toDate ? activity.createdAt.toDate().toLocaleDateString() : 'Desconocida';
                       return (
@@ -6615,7 +6687,7 @@ export default function App() {
                         </motion.div>
                       )
                     })
-                  )}
+                  })()}
                 </div>
               )}
               
