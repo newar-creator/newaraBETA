@@ -91,6 +91,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, setDoc, getDocs, query, where, orderBy, limit, deleteDoc, updateDoc, increment, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getOptimizationFlags } from './lib/optimization';
+import { db, auth } from './lib/firebase';
 import firebaseConfig from '../firebase-applet-config.json';
 import { SUBJECTS, Subject } from './types';
 import { AeroCard, GlossyButton, GlossyInput, AeroAuthAlert } from './components/AeroUI';
@@ -100,13 +101,9 @@ import { GeographyGuide } from './components/GeographyGuide';
 import { MathGuide } from './components/MathGuide';
 import { BubbleBackground } from './components/BubbleBackground';
 import { WelcomeTutorial } from './components/WelcomeTutorial';
+import { ArasHistory } from './components/ArasHistory';
 import { playExternalBubble, playWaterDrop, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong, playWhoosh, playTick, playCheer } from './lib/sounds';
 import { ClassCard, ClassDetail } from './components/ClassroomUI';
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
-const auth = getAuth(app);
 
 const APP_VERSION = "1.2.1-FIX";
 const APP_LAST_BUILD = "2026-05-08 22:55 UTC";
@@ -177,7 +174,7 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 };
 
-type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario' | 'users';
+type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario' | 'users' | 'aras';
 
 type NotificationType = 'assignment' | 'announcement' | 'moderation' | 'update';
 
@@ -304,6 +301,7 @@ export default function App() {
     if (path === 'ajustes') return 'settings';
     if (path === 'reports') return 'reports';
     if (path === 'minijuegos') return 'minigames';
+    if (path === 'aras') return 'aras';
     if (path === 'materia') return 'subject';
     if (path === 'clase') return 'class-detail';
     if (path === 'inicio') return 'home';
@@ -358,6 +356,7 @@ export default function App() {
       'ajustes': 'settings',
       'reports': 'reports',
       'minijuegos': 'minigames',
+      'aras': 'aras',
       'create-activity': 'create-activity',
       'play-activity': 'play-activity',
       'horario': 'horario'
@@ -405,6 +404,7 @@ export default function App() {
           'reports': '/reports',
           'minigames': '/minijuegos',
           'horario': '/horario',
+          'aras': '/aras',
           'home': '/inicio'
         };
         const route = viewPaths[currentView] || '/inicio';
@@ -468,6 +468,7 @@ export default function App() {
       case 'play-activity': path = '/play-activity'; break;
       case 'horario': path = '/horario'; break;
       case 'users': path = '/usuarios'; break;
+      case 'aras': path = '/aras'; break;
       case 'subject': 
         if (sId) path = `/materia/${sId}`;
         break;
@@ -956,6 +957,19 @@ export default function App() {
     };
     syncProfile();
   }, [isLoggedIn, userName]); 
+
+  const logAraTransaction = async (userId: string, amount: number, type: string, details: string) => {
+    try {
+      await addDoc(collection(db, 'users', userId, 'ara_transactions'), {
+        amount,
+        type,
+        details,
+        timestamp: serverTimestamp()
+      });
+    } catch (e) {
+      console.error("Error logging ara transaction", e);
+    }
+  };
 
   const checkUsername = async (name: string) => {
     if (!name.trim() || name.trim() === 'Estudiante') return;
@@ -1503,6 +1517,7 @@ export default function App() {
                    localStorage.setItem('newara_user_aras', newAras.toString());
                    return newAras;
                  });
+                 logAraTransaction(userName.trim(), totalArasToReward, 'leaderboard_reward', 'Premio por top en tabla de posiciones');
              }
              localStorage.setItem(rewardKey, today);
           }
@@ -1810,6 +1825,7 @@ export default function App() {
       const myRef = doc(db, 'users', userName.trim());
       const targetRef = doc(db, 'users', showDonateModal.name || showDonateModal.id);
       
+      const userTargetName = showDonateModal.name || showDonateModal.id;
       await updateDoc(myRef, {
         aras: increment(-donateAmount)
       });
@@ -1818,10 +1834,13 @@ export default function App() {
       });
       
       setUserAras(prev => prev - donateAmount);
+      logAraTransaction(userName.trim(), -donateAmount, 'donacion_enviada', `Has donado a ${userTargetName}`);
+      logAraTransaction(userTargetName, donateAmount, 'donacion_recibida', `Recibiste donación de ${userName.trim()}`);
+      
       playSuccessSound();
       setShowDonateModal(null);
       setDonateAmount(0);
-      alert(`Has donado ${donateAmount} Aras a ${showDonateModal.name || showDonateModal.id}!!`);
+      alert(`Has donado ${donateAmount} Aras a ${userTargetName}!!`);
       
     } catch (error) {
       console.error("Error donating aras:", error);
@@ -2282,6 +2301,7 @@ export default function App() {
               localStorage.setItem('newara_user_aras', newAras.toString());
               return newAras;
             });
+            logAraTransaction(userName.trim(), reward, 'minigame_reward', 'Recompensa por jugar minijuego');
           }
         }
         sessionStorage.setItem(rewardKey, 'true');
@@ -3270,6 +3290,7 @@ export default function App() {
           localStorage.setItem('newara_user_aras', newAras.toString());
           return newAras;
         });
+        logAraTransaction(userName.trim(), -125, 'activity_created', 'Publicaste una nueva actividad');
       }
 
       if (timeoutId) clearTimeout(timeoutId);
@@ -4385,14 +4406,15 @@ export default function App() {
             )}
             {isLoggedIn && (
               <div 
-                className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all hover:scale-105 active:scale-95 cursor-default group ${
+                onClick={() => navigateTo('aras')}
+                className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all hover:scale-105 active:scale-95 cursor-pointer group ${
                   theme === 'black' 
                     ? 'bg-gradient-to-b from-amber-500/20 to-amber-700/20 border-amber-500/40 text-amber-300 shadow-[inset_0_1px_3px_rgba(251,191,36,0.3)]' 
                     : theme === 'aero' 
                     ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-amber-300/80 text-amber-950 shadow-[inset_0_2px_8px_rgba(255,255,255,0.8),0_4px_12px_rgba(251,191,36,0.4)]' 
                     : 'bg-gradient-to-b from-amber-50 to-amber-100 border-amber-200 text-amber-700 shadow-sm'
                 }`}
-                title="Tu saldo de Aras (utilizadas para publicar actividades)"
+                title="Historial de Aras"
               >
                 {theme === 'aero' && <div className="absolute top-0 left-0 w-full h-1/2 bg-white/40 rounded-t-2xl pointer-events-none"></div>}
                 
@@ -4867,14 +4889,15 @@ export default function App() {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
              {isLoggedIn && (
                <div 
-                 className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all active:scale-95 cursor-default group ${
+                 onClick={() => navigateTo('aras')}
+                 className={`relative overflow-hidden flex items-center gap-2 px-3 py-1.5 rounded-2xl border transition-all active:scale-95 cursor-pointer group ${
                    theme === 'black' 
                      ? 'bg-gradient-to-b from-amber-500/20 to-amber-700/20 border-amber-500/40 text-amber-300 shadow-[inset_0_1px_3px_rgba(251,191,36,0.3)]' 
                      : theme === 'aero' 
                      ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-amber-300/80 text-amber-950 shadow-[inset_0_2px_8px_rgba(255,255,255,0.8),0_4px_12px_rgba(251,191,36,0.4)]' 
                      : 'bg-gradient-to-b from-amber-50 to-amber-100 border-amber-200 text-amber-700 shadow-sm'
                  }`}
-                 title="Tu saldo de Aras"
+                 title="Historial de Aras"
                >
                  {theme === 'aero' && <div className="absolute top-0 left-0 w-full h-1/2 bg-white/40 rounded-t-2xl pointer-events-none"></div>}
                  
@@ -7055,6 +7078,22 @@ export default function App() {
                 onViewProfile={handleViewProfile} 
                 onClose={() => navigateTo('home')}
                 currentUserName={userName}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'aras' && isLoggedIn && (
+            <motion.div
+              key="aras"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-5xl mx-auto"
+            >
+              <ArasHistory 
+                theme={theme}
+                userName={userName.trim()}
+                userAras={userAras}
               />
             </motion.div>
           )}
