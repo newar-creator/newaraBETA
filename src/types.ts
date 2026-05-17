@@ -806,6 +806,47 @@ export const SUBJECTS: Subject[] = [
         ]
       },
       {
+        title: 'Concepto y Características de los DDHH',
+        description: 'Concepto de Derechos Humanos, importancia y características esenciales.',
+        difficulty: 'Media',
+        explanation: 'Los Derechos Humanos son inherentes a todos, protegen la dignidad, promueven la igualdad y fundan la democracia. Sus características esenciales son ser universales, inalienables, imprescriptibles, indivisibles e interdependientes e irrenunciables.',
+        meanings: [
+          { term: 'Inalienables', definition: 'No pueden cederse ni transferirse voluntariamente.' },
+          { term: 'Imprescriptibles', definition: 'No pierden vigencia con el paso del tiempo.' },
+          { term: 'Irrenunciables', definition: 'La persona no puede renunciar a ellos, aunque lo desee.' },
+          { term: 'Indivisibles', definition: 'Ningún derecho es más importante que otro; todos forman un conjunto inseparable.' }
+        ],
+        exercises: [
+          { question: '¿Qué son los Derechos Humanos?', options: ['Privilegios de unos pocos', 'Facultades y atributos inherentes a todos los seres humanos por su sola condición humana', 'Leyes que cambian todos los años', 'Obligaciones del Estado hacia otros países'], correct: 1 },
+          { question: '¿Qué característica indica que corresponden a todas las personas en cualquier parte del mundo?', options: ['Inalienables', 'Universales', 'Imprescriptibles', 'Indivisibles'], correct: 1 },
+          { question: 'Que no pueden cederse ni transferirse significa que son:', options: ['Interdependientes', 'Irrenunciables', 'Inalienables', 'Universales'], correct: 2 },
+          { question: 'Que no se pierden con el tiempo significa que son:', options: ['Imprescriptibles', 'Inflexibles', 'Relativos', 'Universales'], correct: 0 },
+          { question: '¿Qué significa que los DDHH sean interdependientes?', options: ['Que dependen del dinero', 'Que están relacionados entre sí: el cumplimiento de uno favorece el de los demás', 'Que unos son más importantes que otros', 'Que no importan'], correct: 1 },
+          { question: '¿Para qué sirven los DDHH en relación al Estado?', options: ['Para darle más poder', 'Para limitar el poder del Estado, impidiendo que actúe de manera arbitraria o abusiva', 'Para eliminar al Estado', 'Para que el Estado no haga nada'], correct: 1 },
+          { question: '¿Cuál es el valor fundamental y principal que protegen los DDHH?', options: ['El dinero', 'El planeta', 'La dignidad humana', 'El arte'], correct: 2 }
+        ]
+      },
+      {
+        title: 'Clasificación de los DDHH',
+        description: 'Las tres generaciones de Derechos Humanos y su marco normativo en Argentina.',
+        difficulty: 'Alta',
+        explanation: 'Los DDHH se clasifican en tres generaciones: 1.ª (Civiles y Políticos) del Siglo XVIII; 2.ª (Económicos, Sociales y Culturales) del Siglo XIX-XX; y 3.ª (De los Pueblos o de Solidaridad) del Siglo XX-XXI. En Argentina, tienen jerarquía constitucional según el Art. 75 inc. 22 de la CN.',
+        meanings: [
+          { term: '1.ª Generación', definition: 'Derechos Civiles y Políticos (ej. a la vida, al voto). Surgen en el Siglo XVIII.' },
+          { term: '2.ª Generación', definition: 'Derechos Económicos, Sociales y Culturales (ej. salud, trabajo, educación). Surgen en los Siglos XIX-XX.' },
+          { term: '3.ª Generación', definition: 'Derechos de los Pueblos (ej. paz, ambiente sano). Surgen en los Siglos XX-XXI.' }
+        ],
+        exercises: [
+          { question: '¿A qué generación pertenece el derecho a la vida y el derecho al voto?', options: ['1.ª Generación', '2.ª Generación', '3.ª Generación', 'Ninguna'], correct: 0 },
+          { question: '¿A qué generación pertenece el derecho a la educación, la salud y el trabajo digno?', options: ['1.ª Generación', '2.ª Generación', '3.ª Generación', 'Generación Espontánea'], correct: 1 },
+          { question: 'El derecho a un ambiente sano y a la paz pertenece a:', options: ['1.ª Generación', '2.ª Generación', '3.ª Generación', 'La prehistoria'], correct: 2 },
+          { question: 'En Argentina, ¿qué artículo incorporó los Tratados Internacionales de DDHH con jerarquía constitucional?', options: ['Art. 1', 'Art. 14 bis', 'Art. 75 inc. 22', 'Art. 29'], correct: 2 },
+          { question: '¿En qué siglo surgieron los derechos de 1.ª Generación?', options: ['Siglo XV', 'Siglo XVIII', 'Siglo XX', 'Siglo XXI'], correct: 1 },
+          { question: '¿En qué siglos surgieron los derechos de 3.ª Generación?', options: ['Siglo XVIII', 'Siglo XIX', 'Siglo XX-XXI', 'Aún no surgieron'], correct: 2 },
+          { question: 'Según el marco normativo nacional ¿qué jerarquía tiene la Declaración Universal de Derechos Humanos (ONU, 1948) en Argentina?', options: ['Ley provincial', 'Decreto presidencial', 'Jerarquía Constitucional', 'Ley común'], correct: 2 }
+        ]
+      },
+      {
         title: 'La Constitución Nacional',
         description: 'Ley Suprema de Argentina. Derechos, deberes y garantías fundamentales.',
         difficulty: 'Alta',
