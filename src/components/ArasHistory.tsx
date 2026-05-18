@@ -58,12 +58,14 @@ export function ArasHistory({ theme, userName, userAras }: ArasHistoryProps) {
 
   const formatTransactionDetails = (tx: any) => {
     if (tx.type === 'donacion_recibida') {
-        const senderName = tx.details.replace('Recibiste donación de ', '');
-        return `${senderName} Te Donó`;
+        const details = tx.details || '';
+        const senderName = details.replace(/Recibiste donación de /i, '').trim();
+        return senderName ? `${senderName} Te Donó` : 'Donación Recibida';
     }
     if (tx.type === 'donacion_enviada') {
-        const receiverName = tx.details.replace('Has donado a ', '');
-        return `Donaste a ${receiverName}`;
+        const details = tx.details || '';
+        const receiverName = details.replace(/Has donado a /i, '').trim();
+        return receiverName ? `Donaste a ${receiverName}` : 'Donación Enviada';
     }
     return tx.details;
   };

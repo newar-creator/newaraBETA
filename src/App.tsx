@@ -1843,9 +1843,12 @@ export default function App() {
     setIsDonating(true);
     try {
       const myRef = doc(db, 'users', userName.trim());
-      const targetRef = doc(db, 'users', showDonateModal.name || showDonateModal.id);
+      const targetId = (showDonateModal.id || showDonateModal.name || "").trim();
+      if (!targetId) throw new Error("No target ID found");
+      const targetRef = doc(db, 'users', targetId);
       
-      const userTargetName = showDonateModal.name || showDonateModal.id;
+      const userTargetName = showDonateModal.name || targetId;
+      
       await updateDoc(myRef, {
         aras: increment(-donateAmount)
       });
@@ -1854,8 +1857,8 @@ export default function App() {
       });
       
       setUserAras(prev => prev - donateAmount);
-      logAraTransaction(userName.trim(), -donateAmount, 'donacion_enviada', `Has donado a ${userTargetName}`);
-      logAraTransaction(userTargetName, donateAmount, 'donacion_recibida', `Recibiste donación de ${userName.trim()}`);
+      await logAraTransaction(userName.trim(), -donateAmount, 'donacion_enviada', `Has donado a ${userTargetName}`);
+      await logAraTransaction(targetId, donateAmount, 'donacion_recibida', `Recibiste donación de ${userName.trim()}`);
       
       playSuccessSound();
       setShowDonateModal(null);
