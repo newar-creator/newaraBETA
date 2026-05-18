@@ -10,6 +10,9 @@ service cloud.firestore {
     // --- Users ---
     match /users/{userId} {
       allow read, write: if true;
+      match /ara_transactions/{transactionId} {
+        allow read, write: if true;
+      }
     }
 
     // --- Activities ---
