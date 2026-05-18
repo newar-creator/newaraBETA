@@ -1423,8 +1423,26 @@ export default function App() {
         orderBy('createdAt', 'asc'), 
         limit(150)
       );
-      const unsubscribe = onSnapshot(msgQ, (snap) => {
-        setClassMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const unsubscribe = onSnapshot(msgQ, async (snap) => {
+        const messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Fetch fresh avatars for authors
+        const uniqueAuthors = Array.from(new Set(messages.map((m: any) => m.authorName))).filter(Boolean);
+        const avatarMap: Record<string, string> = {};
+        
+        await Promise.all(uniqueAuthors.map(async (name) => {
+          const userDoc = await getDoc(doc(db, 'users', name.trim()));
+          if (userDoc.exists()) {
+            avatarMap[name] = userDoc.data().avatar || '';
+          }
+        }));
+
+        const enrichedMessages = messages.map((m: any) => ({
+          ...m,
+          authorAvatar: avatarMap[m.authorName] || m.authorAvatar
+        }));
+        
+        setClassMessages(enrichedMessages);
       }, (error) => {
         handleFirestoreError(error, OperationType.LIST, `classes/${activeClass.id}/messages`);
       });
@@ -2743,7 +2761,7 @@ export default function App() {
         }
       }
     });
-  };
+  }
 
   const reportAbuse = async (type: 'announcement' | 'comment' | 'activity' | 'chat-message', id: string, content: string, authorName: string, classId?: string, parentId?: string) => {
     if (!isLoggedIn) {
@@ -2791,54 +2809,91 @@ export default function App() {
     try {
       const annQ = query(collection(db, 'classes', classId, 'announcements'), orderBy('createdAt', 'desc'));
       const annSnap = await getDocs(annQ);
-      const announcements = annSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setClassAnnouncements(announcements);
+      const rawAnnouncements = annSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       // Fetch comments for each announcement
-      for (const ann of announcements) {
+      const rawComments: Record<string, any[]> = {};
+      for (const ann of rawAnnouncements) {
         const commQ = query(collection(db, 'classes', classId, 'announcements', ann.id, 'comments'), orderBy('createdAt', 'asc'));
         const commSnap = await getDocs(commQ);
-        setAnnouncementComments(prev => ({
-          ...prev,
-          [ann.id]: commSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        }));
+        rawComments[ann.id] = commSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
 
       const memSnap = await getDocs(collection(db, 'classes', classId, 'members'));
-      const members = memSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const rawMembers = memSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const assQ = query(collection(db, 'classes', classId, 'assignments'), orderBy('createdAt', 'desc'));
+      const assSnap = await getDocs(assQ);
+      const rawAssignments = assSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const rawSubmissions: any[] = [];
+      for (const ass of rawAssignments) {
+        const subSnap = await getDocs(collection(db, 'classes', classId, 'assignments', ass.id, 'submissions'));
+        subSnap.docs.forEach(doc => rawSubmissions.push({ id: doc.id, ...doc.data(), assignmentId: ass.id }));
+      }
+
+      // Collect all unique users whose avatars we need to fetch
+      const namesToFetch = new Set<string>();
+      rawMembers.forEach((m: any) => namesToFetch.add(m.id || m.name));
+      rawAnnouncements.forEach((a: any) => namesToFetch.add(a.authorName));
+      Object.values(rawComments).flat().forEach((c: any) => namesToFetch.add(c.authorName));
+      rawSubmissions.forEach((s: any) => namesToFetch.add(s.studentName));
       
-      // Fetch full profiles for avatars and helper status
-      const membersWithProfiles = await Promise.all(members.map(async (m: any) => {
-        const userDoc = await getDoc(doc(db, 'users', m.id));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          return { ...m, avatar: userData.avatar || null, isHelper: userData.isHelper || false };
+      const profileMap: Record<string, { avatar: string, isHelper: boolean }> = {};
+      await Promise.all(Array.from(namesToFetch).filter(Boolean).map(async (name) => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', name.trim()));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            profileMap[name] = { 
+              avatar: data.avatar || '', 
+              isHelper: data.isHelper || false 
+            };
+          }
+        } catch (e) {
+          console.error(`Error fetching profile for ${name}:`, e);
         }
-        return m;
       }));
-      
-      setClassMembers(membersWithProfiles);
+
+      // Enrich everything
+      const enrichedAnnouncements = rawAnnouncements.map((a: any) => ({
+        ...a,
+        authorAvatar: profileMap[a.authorName]?.avatar || a.authorAvatar
+      }));
+
+      const enrichedComments: Record<string, any[]> = {};
+      Object.entries(rawComments).forEach(([annId, comms]) => {
+        enrichedComments[annId] = comms.map((c: any) => ({
+          ...c,
+          authorAvatar: profileMap[c.authorName]?.avatar || c.authorAvatar
+        }));
+      });
+
+      const enrichedMembers = rawMembers.map((m: any) => {
+        const profile = profileMap[m.id || m.name];
+        return { 
+          ...m, 
+          name: m.name || m.id,
+          avatar: profile?.avatar || m.avatar,
+          isHelper: profile?.isHelper || m.isHelper || false
+        };
+      });
+
+      const enrichedSubmissions = rawSubmissions.map((s: any) => ({
+        ...s,
+        studentAvatar: profileMap[s.studentName]?.avatar || s.studentAvatar
+      }));
+
+      setClassAnnouncements(enrichedAnnouncements);
+      setAnnouncementComments(enrichedComments);
+      setClassMembers(enrichedMembers);
+      setClassAssignments(rawAssignments);
+      setClassSubmissions(enrichedSubmissions);
 
       const resQ = query(collection(db, 'classes', classId, 'resources'), orderBy('createdAt', 'desc'));
       const resSnap = await getDocs(resQ);
       setClassResources(resSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-
-      const assQ = query(collection(db, 'classes', classId, 'assignments'), orderBy('createdAt', 'desc'));
-      const assSnap = await getDocs(assQ);
-      const assignments = assSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setClassAssignments(assignments);
-
-      // Fetch all submissions for these assignments (for teachers) or just for current user (for students)
-      // For simplicity in this demo, we fetch all submissions linked to assignments in this class
-      const allSubmissions: any[] = [];
-      for (const ass of assignments) {
-        const subSnap = await getDocs(collection(db, 'classes', classId, 'assignments', ass.id, 'submissions'));
-        subSnap.docs.forEach(doc => allSubmissions.push({ id: doc.id, ...doc.data(), assignmentId: ass.id }));
-      }
-      setClassSubmissions(allSubmissions);
-
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `classes/${classId}`);
       console.error("Error fetching class details:", error);
     }
   };

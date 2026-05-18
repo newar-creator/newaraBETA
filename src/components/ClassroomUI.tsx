@@ -1191,7 +1191,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                         >
                           <div className="flex-shrink-0 mb-5">
                             {showHeader ? (
-                              <UserAvatar name={msg.authorName} className="w-7 h-7 border-2 border-transparent" />
+                              <UserAvatar name={msg.authorName} url={msg.authorAvatar} className="w-7 h-7 border-2 border-transparent" />
                             ) : (
                               <div className="w-7" />
                             )}
@@ -1263,20 +1263,20 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                     <Users2 size={24} /> Profesores
                   </h3>
                   <div className="space-y-1">
-                    {members.filter(m => m.role === 'Profesor').map(m => (
-                      <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
+                    {members.filter(m => m.role === 'Profesor').map((m, idx) => (
+                      <div key={m.id || m.name || idx} className="flex items-center gap-4 p-4 border-b border-white/5">
                         <div 
                           className="cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                          onClick={() => onViewProfile && onViewProfile(m.id || m.name, m.name)}
                         >
-                          <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                          <UserAvatar name={m.name} url={m.avatar} className="w-9 h-9" />
                         </div>
                         <div className="flex items-center gap-2">
                            <p 
                              className={`font-bold hover:underline cursor-pointer ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
-                             onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                             onClick={() => onViewProfile && onViewProfile(m.id || m.name, m.name)}
                            >
-                             {m.userName}
+                             {m.name}
                            </p>
                            {m.isHelper && (
                              <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
@@ -1302,20 +1302,20 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                     {members.filter(m => m.role === 'Estudiante').length === 0 ? (
                       <p className="text-center py-10 opacity-30 text-sm font-bold">Aún no hay alumnos unidos.</p>
                     ) : (
-                      members.filter(m => m.role === 'Estudiante').map(m => (
-                        <div key={m.userName} className="flex items-center gap-4 p-4 border-b border-white/5">
+                      members.filter(m => m.role === 'Estudiante').map((m, idx) => (
+                        <div key={m.id || m.name || idx} className="flex items-center gap-4 p-4 border-b border-white/5">
                           <div 
                             className="cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                            onClick={() => onViewProfile && onViewProfile(m.id || m.name, m.name)}
                           >
-                            <UserAvatar name={m.userName} url={m.avatar} className="w-9 h-9" />
+                            <UserAvatar name={m.name} url={m.avatar} className="w-9 h-9" />
                           </div>
                           <div className="flex items-center gap-2">
                              <p 
                                className={`font-bold hover:underline cursor-pointer ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}
-                               onClick={() => onViewProfile && onViewProfile(m.id || m.userName, m.userName)}
+                               onClick={() => onViewProfile && onViewProfile(m.id || m.name, m.name)}
                              >
-                               {m.userName}
+                               {m.name}
                              </p>
                              {m.isHelper && (
                                <div className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 border border-emerald-500/20">
