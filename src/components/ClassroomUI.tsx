@@ -247,6 +247,7 @@ interface ClassDetailProps {
   onArchive: () => void;
   onLeave: () => void;
   onViewProfile?: (userId: string, userName?: string) => void;
+  onUpdateClassMetadata: (data: { backgroundImage?: string }) => void;
   userName: string;
   initialTab?: 'anuncios' | 'tareas' | 'personas' | 'chat';
 }
@@ -520,7 +521,7 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
               onClick={onBack}
               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-[10px] md:text-xs font-black uppercase tracking-widest"
             >
-              <ArrowLeft size={16} /> Volver a clases
+              <ArrowLeft size={16} /> Volver
             </button>
             <div className="hidden md:flex gap-2">
                {isOwner ? (

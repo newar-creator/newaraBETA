@@ -83,7 +83,8 @@ import {
   Download,
   Filter,
   ListFilter,
-  Coins
+  Coins,
+  MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { useNavigate, useLocation, useParams, Routes, Route, Navigate } from 'react-router-dom';
@@ -1561,6 +1562,7 @@ export default function App() {
   const [galleryFilter, setGalleryFilter] = useState<'newest' | 'oldest' | 'most_views' | 'least_views' | 'most_likes' | 'least_likes'>('newest');
   const [showGalleryFilters, setShowGalleryFilters] = useState(false);
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
+  const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity', classId?: string, parentId?: string} | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [reports, setReports] = useState<any[]>([]);
@@ -3450,7 +3452,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion={disableAnimations ? "always" : "never"}>
-    <div className={`flex h-screen overflow-hidden font-sans relative flex-col lg:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
+    <div className={`flex h-screen w-screen overflow-hidden font-sans relative flex-col lg:flex-row transition-colors duration-500 ${theme === 'black' ? 'text-white' : ''}`}>
 
       {showWelcome && (
         <WelcomeTutorial 
@@ -3954,44 +3956,68 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {(isModerator || (selectedActivityDetail && (
-                      selectedActivityDetail.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
-                      selectedActivityDetail.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
-                    ))) && (
-                      <>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleEditActivity(selectedActivityDetail, e); }}
-                          className="aero-icon-button bg-blue-500/10 text-blue-500 shadow-lg shadow-blue-500/10"
-                          title="Editar"
-                        >
-                          <Edit3 size={18} />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title, selectedActivityDetail.creatorId); }}
-                          className="aero-icon-button bg-red-500/10 text-red-500 shadow-lg shadow-red-500/10"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </>
-                    )}
-                      {(isLoggedIn && userName !== 'Estudiante') && (
-                        <button 
-                          onClick={() => {
-                            setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name, creatorName: selectedActivityDetail.creatorName});
-                          }}
-                          className="aero-icon-button bg-red-500/10 text-red-500"
-                          title="Denunciar actividad"
-                        >
-                          <AlertTriangle size={20} />
-                        </button>
-                      )}
+                    <div className="relative">
                       <button 
-                        onClick={() => setSelectedActivityDetail(null)}
-                        className="aero-icon-button bg-white/10"
+                        onClick={() => setShowActivityMenu(!showActivityMenu)}
+                        className="aero-icon-button bg-gray-500/10 text-gray-500 hover:bg-gray-500/20"
+                        title="Más opciones"
                       >
-                        <X size={20} />
+                        <MoreVertical size={20} />
                       </button>
+                      {showActivityMenu && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-800 rounded-xl p-2 shadow-2xl border border-white/10 z-20 flex flex-col gap-1">
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedActivityDetail.id);
+                              playExternalBubble();
+                              setShowActivityMenu(false);
+                            }}
+                            className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-blue-400"
+                          >
+                            <Copy size={16} /> Copiar Código
+                          </button>
+                          {(isModerator || (selectedActivityDetail && (
+                            selectedActivityDetail.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
+                            selectedActivityDetail.creatorId?.trim().toLowerCase() === userName?.trim().toLowerCase()
+                          ))) && (
+                            <>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleEditActivity(selectedActivityDetail, e); setShowActivityMenu(false); }}
+                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-blue-400"
+                              >
+                                <Edit3 size={16} /> Editar
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title, selectedActivityDetail.creatorId); setShowActivityMenu(false); }}
+                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-red-400"
+                              >
+                                <Trash2 size={16} /> Eliminar
+                              </button>
+                            </>
+                          )}
+                          {(isLoggedIn && userName !== 'Estudiante') && (
+                            <button 
+                              onClick={() => {
+                                setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name, creatorName: selectedActivityDetail.creatorName});
+                                setShowActivityMenu(false);
+                              }}
+                              className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-red-400"
+                            >
+                              <AlertTriangle size={16} /> Denunciar
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setSelectedActivityDetail(null);
+                        setShowActivityMenu(false);
+                      }}
+                      className="aero-icon-button bg-white/10"
+                    >
+                      <X size={20} />
+                    </button>
                   </div>
                 </div>
 
@@ -4674,7 +4700,7 @@ export default function App() {
                   setShowMoreMobileMenu(false);
                   setShowMobileSubjects(false);
                 }} 
-                icon={<Home size={22} />} 
+                icon={<Home size={20} />} 
                 label={t('inicio')} 
                 theme={theme}
               />
@@ -4685,14 +4711,14 @@ export default function App() {
                   setShowMoreMobileMenu(false);
                   setShowMobileSubjects(false);
                 }} 
-                icon={<Users size={22} />} 
+                icon={<Users size={20} />} 
                 label="Clases" 
                 theme={theme}
               />
               <MobileTabButton 
                 active={false} 
                 onClick={handleCreateActivityClick} 
-                icon={<Plus size={22} strokeWidth={4} />} 
+                icon={<Plus size={20} strokeWidth={4} />} 
                 label="" 
                 theme={theme}
                 isCenter={true}
@@ -4704,7 +4730,7 @@ export default function App() {
                   setShowMoreMobileMenu(false);
                   setShowMobileSubjects(false);
                 }} 
-                icon={<Globe size={22} />} 
+                icon={<Globe size={20} />} 
                 label="Galería" 
                 theme={theme}
               />
@@ -4714,7 +4740,7 @@ export default function App() {
                   setShowMoreMobileMenu(!showMoreMobileMenu);
                   setShowMobileSubjects(false);
                 }} 
-                icon={<Menu size={22} />} 
+                icon={<Menu size={20} />} 
                 label={t('mas')} 
                 theme={theme}
               />
@@ -8722,7 +8748,7 @@ function MobileTabButton({ active, icon, label, onClick, theme = 'white', badge,
       className="flex-1 flex flex-col items-center justify-center relative py-1"
       whileTap={{ scale: 0.9 }}
     >
-      <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${
+      <div className={`relative p-1 rounded-xl transition-all duration-300 ${
         active 
           ? (isAero ? 'bg-blue-400 text-white shadow-lg' : isDark ? 'bg-blue-600/30 text-blue-400' : 'bg-blue-50 text-blue-600') 
           : (isDark ? 'text-white/40 hover:text-white/60' : 'text-sky-900/40 hover:text-sky-900/60')
