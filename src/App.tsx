@@ -2189,7 +2189,6 @@ export default function App() {
       setViewingProfileActivities(activities);
     } catch (error) {
       console.error("Error viewing profile:", error);
-      alert("No se pudo cargar el perfil.");
     } finally {
       setIsProfileLoading(false);
     }

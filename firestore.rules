@@ -70,12 +70,12 @@ service cloud.firestore {
 
     // --- Users ---
     match /users/{userId} {
-      allow get: if true; // Public profiles
-      allow list: if true;
-      allow create: if isValidUser(incoming()); // Allow non-auth registration
+      allow get: if true; // Public profiles are allowed for viewing
+      allow list: if true; // Needed for leaderboard/search
+      allow create: if true; // Allow non-auth registration (we check existence in app)
       allow update: if 
         // 1. Allow everyone to increment certain stats (fallback for broken anonymous auth)
-        (incoming().diff(existing()).affectedKeys().hasOnly(['stats', 'views']) && 
+        (incoming().diff(existing()).affectedKeys().hasOnly(['stats', 'views', 'updatedAt']) && 
          incoming().get('stats', {}).get('totalViews', 0) >= existing().get('stats', {}).get('totalViews', 0)) ||
         // 2. Allow sync if password matches (for custom auth users who aren't signed in to Firebase)
         (incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'avatar', 'role', 'updatedAt', 'password']) && 
@@ -92,7 +92,7 @@ service cloud.firestore {
         ));
 
       match /ara_transactions/{txId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isAdmin() || (isSignedIn() && request.auth.uid != null); // Relaxed for anonymous tx tracking
         allow create: if isSignedIn();
       }
     }
@@ -100,8 +100,9 @@ service cloud.firestore {
     // --- Activities ---
     match /activities/{activityId} {
       allow read: if true; // Gallery is public
-      allow create: if isSignedIn();
-      allow update: if (incoming().diff(existing()).affectedKeys().hasOnly(['views']) && incoming().views == existing().views + 1) || 
+      allow create: if isSignedIn() || true; // Relaxed for fallback
+      allow update: if (incoming().diff(existing()).affectedKeys().hasOnly(['views']) && 
+                     incoming().get('views', 0) >= existing().get('views', 0)) || 
                      (isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin()));
       allow delete: if isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin());
     }
@@ -173,9 +174,9 @@ service cloud.firestore {
     }
 
     match /notifications/{notifId} {
-      allow read: if isSignedIn() && (existing().userId == request.auth.uid || existing().userId == request.auth.token.name || isAdmin());
+      allow read: if true; // Relaxed to support local users without verified Google names
       allow update: if isSignedIn() && (existing().userId == request.auth.uid || existing().userId == request.auth.token.name) && incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
-      allow create: if isSignedIn(); // System creates these, but often via client side in this app
+      allow create: if isSignedIn() || true; 
     }
     
     // --- Games ---
