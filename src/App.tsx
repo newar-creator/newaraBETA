@@ -4068,26 +4068,41 @@ export default function App() {
                         <p className="text-xs font-bold text-blue-500">ID: {selectedActivityDetail.id}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5 z-30">
                     <div className="relative">
                       <button 
-                        onClick={() => setShowActivityMenu(!showActivityMenu)}
-                        className="aero-icon-button bg-gray-500/10 text-gray-500 hover:bg-gray-500/20"
+                        onClick={() => {
+                          playExternalBubble();
+                          setShowActivityMenu(!showActivityMenu);
+                        }}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 active:scale-95 transition-all duration-300 shadow-md cursor-pointer ${
+                          theme === 'black' 
+                            ? 'border-white/15 hover:border-blue-500 bg-white/5 text-white hover:text-blue-400 hover:bg-white/10 shadow-black/40' 
+                            : 'border-slate-200 hover:border-blue-500 bg-slate-50 text-sky-950 hover:text-blue-600 hover:bg-blue-50/50 shadow-slate-200/50'
+                        }`}
                         title="Más opciones"
                       >
                         <MoreVertical size={20} />
                       </button>
                       {showActivityMenu && (
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-800 rounded-xl p-2 shadow-2xl border border-white/10 z-20 flex flex-col gap-1">
+                        <div className={`absolute right-0 top-full mt-2 w-48 rounded-2xl p-2 md:p-2.5 shadow-2xl border-2 z-30 flex flex-col gap-1 ${
+                          theme === 'black'
+                            ? 'bg-zinc-950 border-white/10 text-white backdrop-blur-md'
+                            : 'bg-white border-slate-100 text-sky-950 backdrop-blur-md font-sans'
+                        }`}>
                           <button 
                             onClick={() => {
                               navigator.clipboard.writeText(selectedActivityDetail.id);
                               playExternalBubble();
                               setShowActivityMenu(false);
                             }}
-                            className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-blue-400"
+                            className={`flex items-center gap-2.5 w-full p-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 text-left ${
+                              theme === 'black'
+                                ? 'hover:bg-white/5 text-blue-400'
+                                : 'hover:bg-blue-50/50 text-blue-600'
+                            }`}
                           >
-                            <Copy size={16} /> Copiar Código
+                            <Copy size={14} /> Copiar Código
                           </button>
                           {(isModerator || (selectedActivityDetail && (
                             selectedActivityDetail.creatorName?.trim().toLowerCase() === userName?.trim().toLowerCase() ||
@@ -4096,15 +4111,23 @@ export default function App() {
                             <>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleEditActivity(selectedActivityDetail, e); setShowActivityMenu(false); }}
-                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-blue-400"
+                                className={`flex items-center gap-2.5 w-full p-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 text-left ${
+                                  theme === 'black'
+                                    ? 'hover:bg-white/5 text-teal-400'
+                                    : 'hover:bg-teal-50/50 text-teal-600'
+                                }`}
                               >
-                                <Edit3 size={16} /> Editar
+                                <Edit3 size={14} /> Editar
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteActivity(selectedActivityDetail.id, e, selectedActivityDetail.creatorName, selectedActivityDetail.title, selectedActivityDetail.creatorId); setShowActivityMenu(false); }}
-                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-red-400"
+                                className={`flex items-center gap-2.5 w-full p-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 text-left ${
+                                  theme === 'black'
+                                    ? 'hover:bg-white/5 text-rose-400'
+                                    : 'hover:bg-rose-50/50 text-rose-600'
+                                }`}
                               >
-                                <Trash2 size={16} /> Eliminar
+                                <Trash2 size={14} /> Eliminar
                               </button>
                             </>
                           )}
@@ -4114,9 +4137,13 @@ export default function App() {
                                 setShowReportModal({id: selectedActivityDetail.id, name: selectedActivityDetail.name, creatorName: selectedActivityDetail.creatorName});
                                 setShowActivityMenu(false);
                               }}
-                              className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-white/5 text-red-400"
+                              className={`flex items-center gap-2.5 w-full p-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 text-left ${
+                                theme === 'black'
+                                  ? 'hover:bg-white/5 text-orange-400'
+                                  : 'hover:bg-orange-50/50 text-orange-600'
+                              }`}
                             >
-                              <AlertTriangle size={16} /> Denunciar
+                              <AlertTriangle size={14} /> Denunciar
                             </button>
                           )}
                         </div>
@@ -4124,10 +4151,16 @@ export default function App() {
                     </div>
                     <button 
                       onClick={() => {
+                        playExternalBubble();
                         setSelectedActivityDetail(null);
                         setShowActivityMenu(false);
                       }}
-                      className="aero-icon-button bg-white/10"
+                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 active:scale-95 transition-all duration-300 shadow-md cursor-pointer ${
+                        theme === 'black' 
+                          ? 'border-white/15 hover:border-red-500 bg-white/5 text-white hover:text-red-400 hover:bg-white/10 shadow-black/40' 
+                          : 'border-slate-200 hover:border-red-500 bg-slate-50 text-sky-950 hover:text-red-600 hover:bg-red-50/50 shadow-slate-200/50'
+                      }`}
+                      title="Cerrar"
                     >
                       <X size={20} />
                     </button>
