@@ -830,7 +830,7 @@ export default function App() {
           // Silent anonymous sign-in for Firestore rules satisfaction
           await signInAnonymously(auth);
         } catch (e: any) {
-          console.warn("Background auth not available:", e.message);
+          // Silent failure if anonymous auth is disabled in console
         }
       }
       setIsAuthReady(true);
@@ -1005,105 +1005,6 @@ export default function App() {
       console.error("Check username error:", error);
     } finally {
       setIsCheckingAccount(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    setIsAuthLoading(true);
-    setAuthError(null);
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // If we are already logged in locally, we might want to link this Google account to our local name
-      const existingName = (isLoggedIn && userName && userName !== 'Estudiante') ? userName.trim() : null;
-      const googleIdentityName = (user.displayName || user.uid).trim();
-      
-      const bannedSnap = await getDoc(doc(db, 'banned_users', googleIdentityName));
-      if (bannedSnap.exists()) {
-        setAuthError("Esta cuenta ha sido eliminada por un moderador.");
-        setIsAuthLoading(false);
-        return;
-      }
-
-      // Check if this Google user is already associated with an existing account via email
-      let targetUserName = googleIdentityName;
-      if (user.email) {
-        const q = query(collection(db, 'users'), where('email', '==', user.email), limit(1));
-        const emailSnap = await getDocs(q);
-        if (!emailSnap.empty) {
-          targetUserName = emailSnap.docs[0].id;
-        }
-      }
-
-      // If we were logged in locally with a different name, and the Google account isn't linked yet, 
-      // we can ask to link or just switch. For now, let's prioritize the linked name or Google name.
-      if (existingName && existingName !== targetUserName) {
-        // Optional: Link logic. For now, we'll just switch to the Google-associated account
-        // but we'll update the Google-associated account with local data if it's empty
-      }
-      
-      // Check if user exists in our Firestore 'users' collection
-      const userDoc = await getDoc(doc(db, 'users', targetUserName));
-      
-      if (!userDoc.exists()) {
-        // Create user record if new
-        await setDoc(doc(db, 'users', targetUserName), {
-          name: targetUserName,
-          email: user.email,
-          avatar: user.photoURL || '',
-          bio: 'Explorador del conocimiento en NewAra.',
-          role: 'Estudiante',
-          createdAt: serverTimestamp(),
-          firebaseUid: user.uid
-        });
-      } else if (user.email) {
-        // Update existing record with email/uid if missing
-        await updateDoc(doc(db, 'users', targetUserName), {
-          email: user.email,
-          firebaseUid: user.uid
-        });
-      }
-
-      const userData = (await getDoc(doc(db, 'users', targetUserName))).data() || { 
-        name: targetUserName, 
-        role: 'Estudiante', 
-        avatar: user.photoURL || '',
-        bio: 'Explorador del conocimiento en NewAra.'
-      };
-
-      const finalName = userData.name.trim();
-      setUserName(finalName);
-      setUserRole(userData.role || 'Estudiante');
-      setUserAvatar(userData.avatar || user.photoURL || '');
-      setUserBio(userData.bio || '');
-      setIsLoggedIn(true);
-      setIsRegistering(false);
-      
-      localStorage.setItem('newara_user_name', finalName);
-      localStorage.setItem('newara_user_role', userData.role || 'Estudiante');
-      localStorage.setItem('newara_user_avatar', userData.avatar || user.photoURL || '');
-      localStorage.setItem('newara_logged_in', 'true');
-      
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
-      });
-
-      playSuccessSound();
-      setAuthRequiredMsg(null);
-    } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        return;
-      }
-      console.error("Google Login Error:", error);
-      setAuthError("Error al iniciar sesión con Google.");
-      playErrorSound();
-    } finally {
-      setIsAuthLoading(false);
     }
   };
 
@@ -7596,41 +7497,6 @@ export default function App() {
                             }`}
                             placeholder="Contraseña"
                           />
-                        </div>
-
-                        {/* Google Auth Status in Settings */}
-                        <div className="pt-4 space-y-2">
-                          <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>{t('seguridad')}</label>
-                          <div className={`p-4 rounded-2xl border transition-all ${theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/20'}`}>
-                             {firebaseUser && !firebaseUser.isAnonymous ? (
-                               <div className="flex items-center justify-between">
-                                 <div className="flex items-center gap-3">
-                                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                     <Mail size={20} />
-                                   </div>
-                                   <div className="flex flex-col">
-                                     <span className={`text-[10px] font-black uppercase tracking-widest ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>Cuenta Vinculada</span>
-                                     <span className={`text-xs font-bold ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>{firebaseUser.email}</span>
-                                   </div>
-                                 </div>
-                                 <div className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/40"></div>
-                               </div>
-                             ) : (
-                               <button 
-                                 onClick={handleGoogleLogin}
-                                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white border border-slate-200 text-slate-900 font-bold text-sm hover:bg-slate-50 transition-all active:scale-[0.98] shadow-sm shadow-slate-200/50"
-                               >
-                                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                 </svg>
-                                 Vincular con Gmail
-                               </button>
-                             )}
-                             <p className="mt-3 text-[9px] font-bold opacity-40 text-center uppercase tracking-tighter">Vincula tu cuenta para no perder tus datos al borrar caché</p>
-                          </div>
                         </div>
                       </div>
                     </div>
