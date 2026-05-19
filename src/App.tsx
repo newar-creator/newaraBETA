@@ -105,6 +105,7 @@ import { WelcomeTutorial } from './components/WelcomeTutorial';
 import { ArasHistory } from './components/ArasHistory';
 import { playExternalBubble, playWaterDrop, playSuccessSound, playErrorSound, playMinigameMusic, stopMinigameMusic, playGong, playWhoosh, playTick, playCheer } from './lib/sounds';
 import { ClassCard, ClassDetail } from './components/ClassroomUI';
+import { PREDEFINED_AVATARS } from './data/predefinedAvatars';
 
 const APP_VERSION = "1.2.1-FIX";
 const APP_LAST_BUILD = "2026-05-08 22:55 UTC";
@@ -865,6 +866,8 @@ export default function App() {
   const [userPassword, setUserPassword] = useState(() => (localStorage.getItem('newara_user_password') || ''));
   const [userBio, setUserBio] = useState(() => (localStorage.getItem('newara_user_bio') || 'Explorador del conocimiento en NewAra.'));
   const [userAvatar, setUserAvatar] = useState(() => (localStorage.getItem('newara_user_avatar') || ''));
+  const [showAvatarLibraryModal, setShowAvatarLibraryModal] = useState(false);
+  const [avatarCategoryFilter, setAvatarCategoryFilter] = useState('Todos');
   const [userAras, setUserAras] = useState<number>(() => {
     const saved = localStorage.getItem('newara_user_aras');
     return saved ? parseInt(saved, 10) : 300;
@@ -7343,50 +7346,69 @@ export default function App() {
                 <AeroCard title={t('perfil')} theme={theme}>
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-4 text-center sm:text-left">
-                      <div className="relative group">
-                        <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden">
-                          {userAvatar ? (
-                            <img 
-                              src={userAvatar} 
-                              alt="New Avatar" 
-                              className="w-full h-full object-cover rounded-full"
-                              referrerPolicy="no-referrer"
-                            />
-                          ) : (
-                            <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white'}`}>
-                              <User className="w-10 h-10 sm:w-8 sm:h-8" />
-                            </div>
-                          )}
+                      <div className="flex flex-col items-center gap-3 shrink-0">
+                        <div className="relative group/avatar">
+                          <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-md border border-white/40 shadow-xl overflow-hidden">
+                            {userAvatar ? (
+                              <img 
+                                src={userAvatar} 
+                                alt="New Avatar" 
+                                className="w-full h-full object-cover rounded-full"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 ${theme === 'black' ? 'bg-white/10 text-white' : 'bg-gradient-to-br from-blue-400 to-sky-600 text-white'}`}>
+                                <User className="w-10 h-10 sm:w-8 sm:h-8" />
+                              </div>
+                            )}
+                          </div>
+                          <input 
+                            type="file" 
+                            id="avatar-upload" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = async () => {
+                                  const compressed = await compressImage(reader.result as string);
+                                  setUserAvatar(compressed);
+                                  playSuccessSound();
+                                  // Auto-save if logged in
+                                  if (isLoggedIn) {
+                                    const userRef = doc(db, 'users', userName.trim());
+                                    await updateDoc(userRef, { avatar: compressed });
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <label 
+                            htmlFor="avatar-upload"
+                            className="absolute -bottom-1 -right-1 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-blue-500 text-white border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform shadow-lg"
+                            title="Subir imagen"
+                          >
+                            <Sparkles size={11} />
+                          </label>
                         </div>
-                        <input 
-                          type="file" 
-                          id="avatar-upload" 
-                          className="hidden" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = async () => {
-                                const compressed = await compressImage(reader.result as string);
-                                setUserAvatar(compressed);
-                                playSuccessSound();
-                                // Auto-save if logged in
-                                if (isLoggedIn) {
-                                  const userRef = doc(db, 'users', userName.trim());
-                                  await updateDoc(userRef, { avatar: compressed });
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            }
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAvatarLibraryModal(true);
+                            playExternalBubble();
                           }}
-                        />
-                        <label 
-                          htmlFor="avatar-upload"
-                          className="absolute -bottom-1 -right-1 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform shadow-lg"
+                          className={`text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl border transition-all active:scale-[0.97] flex items-center gap-1.5 shadow-sm ${
+                            theme === 'black' 
+                              ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white hover:border-white/20' 
+                              : 'bg-blue-50 border-blue-100 hover:bg-blue-100/70 text-blue-600'
+                          }`}
                         >
-                          <Sparkles size={14} />
-                        </label>
+                          <Library size={11} />
+                          Biblioteca
+                        </button>
                       </div>
                       
                       <div className="flex-1 w-full space-y-4 sm:space-y-3">
@@ -8030,6 +8052,122 @@ export default function App() {
                   />
                 </div>
               </AeroCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Predefined Avatar Library Modal */}
+      <AnimatePresence>
+        {showAvatarLibraryModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              className={`w-full max-w-xl rounded-[32px] border-4 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh] ${
+                theme === 'black' ? 'bg-slate-900/95 border-white/10 text-white' : 'bg-white border-blue-100 text-sky-950'
+              }`}
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                    <Sparkles className="text-yellow-400" size={24} />
+                    Avatar Clásico
+                  </h3>
+                  <p className="text-xs opacity-60 font-medium">Elige tu personaje e identidad para NewAra</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowAvatarLibraryModal(false);
+                    playExternalBubble();
+                  }}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    theme === 'black' ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  }`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Category Filter Tabs */}
+              <div className="px-6 py-3 border-b border-white/5 flex gap-2 overflow-x-auto scrollbar-none">
+                {['Todos', 'Académico', 'Ciencia', 'Tecnología', 'Creatividad'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setAvatarCategoryFilter(cat);
+                      playExternalBubble();
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                      avatarCategoryFilter === cat 
+                        ? (theme === 'black' ? 'bg-white text-black font-black' : 'bg-blue-600 text-white') 
+                        : (theme === 'black' ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200')
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Grid of Avatars */}
+              <div className="p-6 overflow-y-auto grid grid-cols-2 sm:grid-cols-4 gap-4 max-h-[50vh]">
+                {PREDEFINED_AVATARS.filter(av => avatarCategoryFilter === 'Todos' || av.category === avatarCategoryFilter).map(av => {
+                  const isCurrent = userAvatar === av.dataUrl;
+                  return (
+                    <motion.button
+                      key={av.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        setUserAvatar(av.dataUrl);
+                        playSuccessSound();
+                        setShowAvatarLibraryModal(false);
+                        
+                        // Auto-save if logged in
+                        if (isLoggedIn) {
+                          const userRef = doc(db, 'users', userName.trim());
+                          await updateDoc(userRef, { avatar: av.dataUrl });
+                        }
+                      }}
+                      className={`relative p-3 rounded-2xl border-2 flex flex-col items-center gap-2 group transition-all duration-300 ${
+                        isCurrent 
+                          ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10' 
+                          : (theme === 'black' ? 'border-white/5 bg-white/5 hover:border-white/20' : 'border-slate-100 bg-slate-50 hover:border-blue-200')
+                      }`}
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden shadow-md relative">
+                        <img 
+                          src={av.dataUrl} 
+                          alt={av.name} 
+                          className="w-full h-full object-cover rounded-full"
+                          referrerPolicy="no-referrer"
+                        />
+                        {isCurrent && (
+                          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                            <Check className="text-white drop-shadow-md" size={24} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-[11px] font-black tracking-tight ${isCurrent ? 'text-blue-500' : ''}`}>{av.name}</p>
+                        <p className="text-[8px] font-bold uppercase tracking-widest opacity-40">{av.category}</p>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Footer text */}
+              <div className="p-4 bg-black/10 border-t border-white/5 text-center text-[10px] font-medium opacity-50">
+                Al seleccionar un avatar de la biblioteca, se aplica instantáneamente a tu perfil.
+              </div>
             </motion.div>
           </motion.div>
         )}
