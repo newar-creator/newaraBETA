@@ -875,12 +875,14 @@ export default function App() {
   const [showDailyArasModal, setShowDailyArasModal] = useState(false);
   const [claimableDailyAras, setClaimableDailyAras] = useState(0);
   const [hasCheckedDaily, setHasCheckedDaily] = useState(false);
+  const [isClaimingDaily, setIsClaimingDaily] = useState(false);
 
   const claimDailyAras = async () => {
-    if (!isLoggedIn || !userName || userName === 'Estudiante') {
+    if (!isLoggedIn || !userName || userName === 'Estudiante' || isClaimingDaily) {
       setShowDailyArasModal(false);
       return;
     }
+    setIsClaimingDaily(true);
     try {
       const today = new Date().toISOString().split('T')[0];
       const userRef = doc(db, 'users', userName.trim());
@@ -893,6 +895,12 @@ export default function App() {
       const localClaimKey = `newara_daily_claim_${userName.trim()}`;
       localStorage.setItem(localClaimKey, today);
       
+      setUserAras(prev => {
+        const newAras = prev + claimableDailyAras;
+        localStorage.setItem('newara_user_aras', newAras.toString());
+        return newAras;
+      });
+
       await logAraTransaction(
         userName.trim(), 
         claimableDailyAras, 
@@ -905,6 +913,8 @@ export default function App() {
     } catch (error) {
       console.error("Error claiming daily Aras:", error);
       alert("Hubo un problema al reclamar tus Aras.");
+    } finally {
+      setIsClaimingDaily(false);
     }
   };
   const [isRegistering, setIsRegistering] = useState(false);
@@ -8359,6 +8369,7 @@ export default function App() {
               {/* Primary Claim Button */}
               <GlossyButton 
                 onClick={claimDailyAras}
+                loading={isClaimingDaily}
                 className="w-full py-4 text-xs font-black uppercase tracking-widest shadow-2xl shadow-orange-500/20"
               >
                 RECLAMAR AHORA
