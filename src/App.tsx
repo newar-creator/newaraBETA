@@ -912,7 +912,9 @@ export default function App() {
   }, [userName, userRole, userPassword, userBio, userAvatar, disableAnimations, isLoggedIn, language]);
 
   useEffect(() => {
-    const syncProfile = async () => {
+    let unsubscribe: (() => void) | undefined;
+
+    const setupSync = async () => {
       if (isLoggedIn && userName && userName !== 'Estudiante') {
         try {
           const bannedSnap = await getDoc(doc(db, 'banned_users', userName.trim()));
@@ -923,62 +925,73 @@ export default function App() {
           }
 
           const userRef = doc(db, 'users', userName.trim());
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            // Sync from Firestore as the source of truth
-            if (data.avatar) setUserAvatar(data.avatar);
-            if (data.role) setUserRole(data.role);
-            if (data.bio) setUserBio(data.bio);
-            if (data.aras !== undefined) {
-              setUserAras(data.aras);
-              localStorage.setItem('newara_user_aras', data.aras.toString());
+          
+          unsubscribe = onSnapshot(userRef, async (userDoc) => {
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              // Sync from Firestore as the source of truth in real-time
+              if (data.avatar) setUserAvatar(data.avatar);
+              if (data.role) setUserRole(data.role);
+              if (data.bio) setUserBio(data.bio);
+              if (data.aras !== undefined) {
+                setUserAras(data.aras);
+                localStorage.setItem('newara_user_aras', data.aras.toString());
+              } else {
+                setUserAras(300);
+                localStorage.setItem('newara_user_aras', '300');
+                updateDoc(userRef, { aras: 300 }).catch(console.error);
+              }
+              if (data.completedUnits) {
+                setCompletedUnits(data.completedUnits);
+                localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
+              }
+              
+              // Ensure name is always present in Firestore
+              if (!data.name) {
+                await updateDoc(userRef, { name: userName.trim() });
+              }
+
+              // Sync local storage too
+              if (data.bio) localStorage.setItem('newara_user_bio', data.bio);
+              if (data.role) localStorage.setItem('newara_user_role', data.role);
+              if (data.avatar) localStorage.setItem('newara_user_avatar', data.avatar);
+              if (data.name || userName) localStorage.setItem('newara_user_name', data.name || userName);
+
+              // Ensure stats structure exists for legacy users
+              if (!data.stats) {
+                await updateDoc(userRef, {
+                  stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
+                });
+              }
             } else {
-              setUserAras(300);
-              localStorage.setItem('newara_user_aras', '300');
-              updateDoc(userRef, { aras: 300 }).catch(console.error);
-            }
-            if (data.completedUnits) {
-              setCompletedUnits(data.completedUnits);
-              localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
-            }
-            
-            // Fix: Ensure name is always present in Firestore
-            if (!data.name) {
-              await updateDoc(userRef, { name: userName.trim() });
-            }
-
-            // Sync local storage too
-            if (data.bio) localStorage.setItem('newara_user_bio', data.bio);
-            if (data.role) localStorage.setItem('newara_user_role', data.role);
-            if (data.avatar) localStorage.setItem('newara_user_avatar', data.avatar);
-            if (data.name || userName) localStorage.setItem('newara_user_name', data.name || userName);
-
-            // Ensure stats structure exists for legacy users
-            if (!data.stats) {
-              await updateDoc(userRef, {
+              // Create profile for user if it doesn't exist but they are logged in
+              const hashedPassword = await hashPassword(userPassword);
+              await setDoc(userRef, {
+                name: userName.trim(),
+                password: hashedPassword,
+                role: userRole,
+                bio: userBio,
+                avatar: userAvatar,
+                createdAt: serverTimestamp(),
                 stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
               });
             }
-          } else {
-            // Create profile for user if it doesn't exist but they are logged in
-            const hashedPassword = await hashPassword(userPassword);
-            await setDoc(userRef, {
-              name: userName.trim(),
-              password: hashedPassword,
-              role: userRole,
-              bio: userBio,
-              avatar: userAvatar,
-              createdAt: serverTimestamp(),
-              stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
-            });
-          }
+          }, (error) => {
+            console.error("Profile real-time watch error:", error);
+          });
         } catch (error) {
-          console.error("Auto-sync error:", error);
+          console.error("Auto-sync error during setup:", error);
         }
       }
     };
-    syncProfile();
+
+    setupSync();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [isLoggedIn, userName]); 
 
   const logAraTransaction = async (userId: string, amount: number, type: string, details: string) => {
