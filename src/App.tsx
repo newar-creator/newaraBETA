@@ -9698,7 +9698,7 @@ function UsersManager({ theme, onViewProfile, onClose, currentUserName }: { them
 }
 
 function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onViewProfile: (id: string, name?: string) => void }) {
-  const [filter, setFilter] = useState<'views' | 'likes' | 'correct'>('correct');
+  const [filter, setFilter] = useState<'views' | 'likes' | 'correct' | 'aras'>('correct');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -9724,13 +9724,17 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
           
           // Count completed units (from array)
           const totalCorrect = (u.completedUnits?.length || 0) + (u.stats?.totalCorrect || 0);
+          
+          // Aras count
+          const totalAras = u.aras !== undefined ? u.aras : 150;
 
           return {
             ...u,
             computedStats: {
               views: totalViews,
               likes: totalLikes,
-              correct: totalCorrect
+              correct: totalCorrect,
+              aras: totalAras
             }
           };
         });
@@ -9738,6 +9742,7 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
         const getScore = (u: any) => {
           if (filter === 'views') return u.computedStats.views;
           if (filter === 'likes') return u.computedStats.likes;
+          if (filter === 'aras') return u.computedStats.aras;
           return u.computedStats.correct;
         };
 
@@ -9761,18 +9766,21 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
   const getStatValue = (u: any) => {
     if (filter === 'views') return u.computedStats.views;
     if (filter === 'likes') return u.computedStats.likes;
+    if (filter === 'aras') return u.computedStats.aras;
     return u.computedStats.correct;
   };
 
   const getMetricLabel = () => {
     if (filter === 'views') return 'Vistas';
     if (filter === 'likes') return 'Likes';
+    if (filter === 'aras') return 'Aras';
     return 'Correctos';
   };
 
   const getMetricIcon = (size = 14) => {
     if (filter === 'views') return <Globe size={size} />;
     if (filter === 'likes') return <Heart size={size} />;
+    if (filter === 'aras') return <Coins size={size} className="text-amber-500" />;
     return <CheckCircle2 size={size} />;
   };
 
@@ -9781,6 +9789,7 @@ function Leaderboard({ theme, onViewProfile }: { theme: 'white' | 'black', onVie
       <div className="flex justify-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
         {[
           { id: 'correct', label: 'Correctos', icon: <CheckCircle2 size={16} /> },
+          { id: 'aras', label: 'Aras', icon: <Coins size={16} className="text-amber-500" /> },
           { id: 'likes', label: 'Likes', icon: <Heart size={16} /> },
           { id: 'views', label: 'Vistas', icon: <Globe size={16} /> }
         ].map((btn) => (
