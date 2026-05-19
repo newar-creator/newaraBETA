@@ -870,8 +870,43 @@ export default function App() {
   const [avatarCategoryFilter, setAvatarCategoryFilter] = useState('Todos');
   const [userAras, setUserAras] = useState<number>(() => {
     const saved = localStorage.getItem('newara_user_aras');
-    return saved ? parseInt(saved, 10) : 300;
+    return saved ? parseInt(saved, 10) : 150;
   });
+  const [showDailyArasModal, setShowDailyArasModal] = useState(false);
+  const [claimableDailyAras, setClaimableDailyAras] = useState(0);
+  const [hasCheckedDaily, setHasCheckedDaily] = useState(false);
+
+  const claimDailyAras = async () => {
+    if (!isLoggedIn || !userName || userName === 'Estudiante') {
+      setShowDailyArasModal(false);
+      return;
+    }
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const userRef = doc(db, 'users', userName.trim());
+      
+      await updateDoc(userRef, {
+        lastDailyClaimDate: today,
+        aras: increment(claimableDailyAras)
+      });
+
+      const localClaimKey = `newara_daily_claim_${userName.trim()}`;
+      localStorage.setItem(localClaimKey, today);
+      
+      await logAraTransaction(
+        userName.trim(), 
+        claimableDailyAras, 
+        'daily_reward', 
+        `Recompensa diaria (${userRole === 'Profesor' ? 'Profesor' : 'Estudiante'})`
+      );
+
+      playSuccessSound();
+      setShowDailyArasModal(false);
+    } catch (error) {
+      console.error("Error claiming daily Aras:", error);
+      alert("Hubo un problema al reclamar tus Aras.");
+    }
+  };
   const [isRegistering, setIsRegistering] = useState(false);
   const [loginUserName, setLoginUserName] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -937,9 +972,9 @@ export default function App() {
                 setUserAras(data.aras);
                 localStorage.setItem('newara_user_aras', data.aras.toString());
               } else {
-                setUserAras(300);
-                localStorage.setItem('newara_user_aras', '300');
-                updateDoc(userRef, { aras: 300 }).catch(console.error);
+                setUserAras(150);
+                localStorage.setItem('newara_user_aras', '150');
+                updateDoc(userRef, { aras: 150 }).catch(console.error);
               }
               if (data.completedUnits) {
                 setCompletedUnits(data.completedUnits);
@@ -962,6 +997,17 @@ export default function App() {
                 await updateDoc(userRef, {
                   stats: { totalViews: 0, totalLikes: 0, totalCorrect: 0 }
                 });
+              }
+
+              // Check daily login reward (Profesor 50 Aras, Estudiante 10 Aras)
+              const todayStr = new Date().toISOString().split('T')[0];
+              const localClaimKey = `newara_daily_claim_${userName.trim()}`;
+              if (!hasCheckedDaily && data.lastDailyClaimDate !== todayStr && localStorage.getItem(localClaimKey) !== todayStr) {
+                setHasCheckedDaily(true);
+                const role = data.role || userRole || 'Estudiante';
+                const amount = role === 'Profesor' ? 50 : 10;
+                setClaimableDailyAras(amount);
+                setShowDailyArasModal(true);
               }
             } else {
               // Create profile for user if it doesn't exist but they are logged in
@@ -1189,12 +1235,12 @@ export default function App() {
           role: null, // Force selection on first login/right after register
           avatar: safeAvatar,
           createdAt: serverTimestamp(),
-          aras: 300
+          aras: 150
         });
         playSuccessSound();
         setUserName(loginUserName.trim());
         setUserPassword(loginPassword);
-        setUserAras(300);
+        setUserAras(150);
         setIsLoggedIn(true);
         setIsRegistering(false);
         setShowWelcome(false);
@@ -1309,6 +1355,7 @@ export default function App() {
     setActiveClass(null);
     setCompletedUnits([]);
     setActivityHistory([]);
+    setHasCheckedDaily(false);
     
     // Clear all user-related localStorage
     localStorage.removeItem('newara_user_name');
@@ -1562,13 +1609,48 @@ export default function App() {
   const [isTakingAction, setIsTakingAction] = useState(false);
 
   // Minigames Logic
-  const createMinigameSession = async (activity: any) => {
+  const createMinigameSession = async (activity: any, bypassConfirm = false) => {
     if (!isLoggedIn) {
       setAuthRequiredMsg("Inicia sesión para crear un servidor de minijuego y jugar con tus amigos.");
       return;
     }
+
+    if (userAras < 15) {
+      setConfirmModal({
+        show: true,
+        title: 'Aras Insuficientes',
+        message: 'No tienes suficientes Aras para crear un servidor de minijuegos (costo: 15 Aras). Elige actividades o completa misiones para ganar más.',
+        type: 'warning',
+        onConfirm: () => setConfirmModal(prev => ({ ...prev, show: false }))
+      });
+      return;
+    }
+
+    if (!bypassConfirm) {
+      setConfirmModal({
+        show: true,
+        title: 'Comprar servidor?',
+        message: 'Crear un servidor de minijuegos cuesta 15 Aras. ¿Deseas comprar el servidor?',
+        type: 'warning',
+        onConfirm: () => {
+          setConfirmModal(prev => ({ ...prev, show: false }));
+          createMinigameSession(activity, true);
+        }
+      });
+      return;
+    }
+
     setIsTakingAction(true);
     try {
+      const userRef = doc(db, 'users', userName.trim());
+      await updateDoc(userRef, { aras: increment(-15) });
+      setUserAras(prev => {
+        const newAras = prev - 15;
+        localStorage.setItem('newara_user_aras', newAras.toString());
+        return newAras;
+      });
+      await logAraTransaction(userName.trim(), -15, 'server_created', 'Creaste un servidor de minijuegos');
+
       const generateCode = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
@@ -3256,73 +3338,62 @@ export default function App() {
       return;
     }
 
-    if (!editingActivityId && userAras < 125) {
-      setCreationError("No tienes suficientes Aras para publicar una nueva actividad (costo: 125 Aras).");
-      playErrorSound();
-      return;
-    }
+      // Publishing activity is free (no cost, no check required)
 
-    let timeoutId: any;
-    setIsCreatingActivity(true);
+      let timeoutId: any;
+      setIsCreatingActivity(true);
 
-    try {
-      // Safety timeout
-      timeoutId = setTimeout(() => {
-        setIsCreatingActivity(false);
-        setCreationError("La conexión está tardando demasiado. Reintenta.");
-      }, 25000);
+      try {
+        // Safety timeout
+        timeoutId = setTimeout(() => {
+          setIsCreatingActivity(false);
+          setCreationError("La conexión está tardando demasiado. Reintenta.");
+        }, 25000);
 
-      const processedQuestions = activityQuestions.map(q => {
-        let finalCorrectAnswer = '';
-        if (q.type === 'writing' || q.type === 'written') {
-          finalCorrectAnswer = String(q.correct || '').trim();
-        } else {
-          const idx = Number(q.correct);
-          finalCorrectAnswer = q.options[idx] || q.options[0] || '';
+        const processedQuestions = activityQuestions.map(q => {
+          let finalCorrectAnswer = '';
+          if (q.type === 'writing' || q.type === 'written') {
+            finalCorrectAnswer = String(q.correct || '').trim();
+          } else {
+            const idx = Number(q.correct);
+            finalCorrectAnswer = q.options[idx] || q.options[0] || '';
+          }
+
+          return {
+            type: q.type === 'written' ? 'writing' : (q.type === 'boolean' ? 'true-false' : (q.type === 'multiple' ? 'multiple-choice' : (q.type || 'multiple-choice'))),
+            question: q.question.trim(),
+            options: q.options.filter(o => o.trim() !== ''),
+            correctAnswer: finalCorrectAnswer,
+            correct: q.correct // Keep for backwards compatibility and MC index
+          };
+        });
+
+        const activityData: any = {
+          name: activityName.trim(),
+          creatorName: userName.trim(),
+          creatorId: userName.trim(), // Force use of username
+          creatorAvatar: userAvatar || '',
+          creatorBio: userBio || '', // Keep bio with the activity for fallback
+          creatorRole: userRole || 'Explorador', // Keep role for fallback
+          questions: processedQuestions,
+          updatedAt: serverTimestamp(),
+        };
+
+        if (!editingActivityId) {
+          activityData.createdAt = serverTimestamp();
+          activityData.likes = [];
+          activityData.views = 0;
         }
 
-        return {
-          type: q.type === 'written' ? 'writing' : (q.type === 'boolean' ? 'true-false' : (q.type === 'multiple' ? 'multiple-choice' : (q.type || 'multiple-choice'))),
-          question: q.question.trim(),
-          options: q.options.filter(o => o.trim() !== ''),
-          correctAnswer: finalCorrectAnswer,
-          correct: q.correct // Keep for backwards compatibility and MC index
-        };
-      });
-
-      const activityData: any = {
-        name: activityName.trim(),
-        creatorName: userName.trim(),
-        creatorId: userName.trim(), // Force use of username
-        creatorAvatar: userAvatar || '',
-        creatorBio: userBio || '', // Keep bio with the activity for fallback
-        creatorRole: userRole || 'Explorador', // Keep role for fallback
-        questions: processedQuestions,
-        updatedAt: serverTimestamp(),
-      };
-
-      if (!editingActivityId) {
-        activityData.createdAt = serverTimestamp();
-        activityData.likes = [];
-        activityData.views = 0;
-      }
-
-      const docId = editingActivityId || generateShortCode();
-      const docRef = doc(db, 'activities', docId);
-      
-      if (editingActivityId) {
-        await updateDoc(docRef, activityData);
-      } else {
-        await setDoc(docRef, activityData);
-        const userRef = doc(db, 'users', userName.trim());
-        await updateDoc(userRef, { aras: increment(-125) });
-        setUserAras(prev => {
-          const newAras = prev - 125;
-          localStorage.setItem('newara_user_aras', newAras.toString());
-          return newAras;
-        });
-        logAraTransaction(userName.trim(), -125, 'activity_created', 'Publicaste una nueva actividad');
-      }
+        const docId = editingActivityId || generateShortCode();
+        const docRef = doc(db, 'activities', docId);
+        
+        if (editingActivityId) {
+          await updateDoc(docRef, activityData);
+        } else {
+          await setDoc(docRef, activityData);
+          logAraTransaction(userName.trim(), 0, 'activity_created', 'Publicaste una nueva actividad');
+        }
 
       if (timeoutId) clearTimeout(timeoutId);
       
@@ -6020,7 +6091,6 @@ export default function App() {
                              <div className="flex items-center gap-3">
                                PUBLICAR ACTIVIDAD <Share2 size={32} />
                              </div>
-                             <span className="text-xs md:text-sm tracking-widest opacity-80 font-black mt-1">CUESTA 125 ARAS</span>
                            </div>
                          )}
                       </GlossyButton>
@@ -8229,6 +8299,70 @@ export default function App() {
                   </GlossyButton>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Daily Aras Reward Modal */}
+      <AnimatePresence>
+        {showDailyArasModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`w-full max-w-sm p-8 rounded-[40px] border-4 shadow-2xl relative overflow-hidden text-center flex flex-col items-center gap-6 ${
+                theme === 'black' ? 'bg-slate-950 border-blue-500/30' : 'bg-white border-blue-500/25'
+              }`}
+            >
+              {/* Background Glow */}
+              <div className="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Icon Container */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/20 antialiased transform rotate-6">
+                  <Sparkles size={36} className="text-amber-100" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-teal-400 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-black animate-bounce font-mono">
+                  !
+                </div>
+              </div>
+
+              {/* Title & Info */}
+              <div className="space-y-2">
+                <h3 className={`text-2xl font-black uppercase tracking-tight leading-none ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                  ¡Regalo Diario!
+                </h3>
+                <p className={`text-xs font-bold opacity-60 leading-relaxed px-4 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                  ¡Hola {userName}! Tienes disponible tu recompensa diaria por ingresar hoy como <b className="text-orange-500 font-extrabold uppercase">{userRole === 'Profesor' ? 'Profesor' : 'Estudiante'}</b>.
+                </p>
+              </div>
+
+              {/* Reward Amount Container */}
+              <div className={`w-full py-5 rounded-3xl border-2 flex flex-col items-center justify-center relative overflow-hidden ${
+                theme === 'black' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-100'
+              }`}>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Recibes</span>
+                <span className="text-4xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent flex items-center gap-2">
+                  +{claimableDailyAras} ARAS
+                </span>
+                <span className="text-[8px] font-bold opacity-30 mt-1 uppercase tracking-widest">¡Vuelve mañana para ganar más!</span>
+              </div>
+
+              {/* Primary Claim Button */}
+              <GlossyButton 
+                onClick={claimDailyAras}
+                className="w-full py-4 text-xs font-black uppercase tracking-widest shadow-2xl shadow-orange-500/20"
+              >
+                RECLAMAR AHORA
+              </GlossyButton>
             </motion.div>
           </motion.div>
         )}
