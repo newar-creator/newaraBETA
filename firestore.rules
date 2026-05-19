@@ -13,7 +13,11 @@ service cloud.firestore {
     }
 
     function isOwner(userId) {
-      return isSignedIn() && (request.auth.uid == userId || request.auth.token.name == userId);
+      return isSignedIn() && (
+        request.auth.uid == userId || 
+        request.auth.token.name == userId ||
+        request.auth.token.get('email', '') == userId
+      );
     }
 
     function isAdmin() {
@@ -66,35 +70,46 @@ service cloud.firestore {
 
     // --- Users ---
     match /users/{userId} {
-      allow get: if isSignedIn(); // Restricted to signed-in users
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidUser(incoming()) && userId == request.auth.token.name;
-      allow update: if isSignedIn() && (
-        // Self update (limited fields)
-        (userId == request.auth.token.name && 
-         incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'avatar', 'joinedClasses', 'stats', 'aras', 'password'])) ||
-         // Allow others to donate (increment aras) - high risk but current architecture requires it
-         (incoming().diff(existing()).affectedKeys().hasOnly(['aras']) && incoming().aras > existing().aras) ||
-         isAdmin()
-      );
+      allow get: if true; // Public profiles
+      allow list: if true;
+      allow create: if isValidUser(incoming()); // Allow non-auth registration
+      allow update: if 
+        // 1. Allow everyone to increment certain stats (fallback for broken anonymous auth)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['stats', 'views']) && 
+         incoming().get('stats', {}).get('totalViews', 0) >= existing().get('stats', {}).get('totalViews', 0)) ||
+        // 2. Allow sync if password matches (for custom auth users who aren't signed in to Firebase)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'avatar', 'role', 'updatedAt', 'password']) && 
+         (incoming().get('password', '') == existing().get('password', '') || 
+          incoming().get('password', '') == existing().get('password_plain', ''))) ||
+        // 3. Auth-required updates
+        (isSignedIn() && (
+          (
+            (isOwner(userId) || (existing().get('firebaseUid', '') == request.auth.uid)) && 
+             incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'avatar', 'joinedClasses', 'stats', 'aras', 'password', 'firebaseUid', 'updatedAt'])
+          ) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['aras']) && incoming().aras > existing().aras) ||
+          isAdmin()
+        ));
 
       match /ara_transactions/{txId} {
         allow read: if isOwner(userId) || isAdmin();
-        allow create: if isSignedIn(); // We should ideally validate this against the donor
+        allow create: if isSignedIn();
       }
     }
 
     // --- Activities ---
     match /activities/{activityId} {
-      allow read: if isSignedIn(); // Restricted to signed-in users
+      allow read: if true; // Gallery is public
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin());
+      allow update: if (incoming().diff(existing()).affectedKeys().hasOnly(['views']) && incoming().views == existing().views + 1) || 
+                     (isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin()));
+      allow delete: if isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin());
     }
 
     // --- Classrooms ---
     match /classes/{classId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow get: if true; // Needed to view class info or join by code
+      allow list: if true; // Allow public listing (discovery)
       allow create: if isSignedIn() && isValidClass(incoming());
       allow update, delete: if isSignedIn() && (existing().ownerName == request.auth.token.name || isAdmin());
 
@@ -147,7 +162,8 @@ service cloud.firestore {
     }
 
     match /banned_users/{userId} {
-      allow read: if isSignedIn();
+      allow get: if true;
+      allow list: if isSignedIn();
       allow write: if isAdmin();
     }
 
