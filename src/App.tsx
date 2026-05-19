@@ -7485,18 +7485,25 @@ export default function App() {
 
                         <div className="space-y-1 text-left">
                           <label className={`text-[10px] font-black uppercase tracking-wider opacity-60 ml-2 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tu Contraseña</label>
-                          <input 
-                            type="password" 
-                            disabled={!isLoggedIn}
-                            value={userPassword}
-                            onChange={(e) => setUserPassword(e.target.value)}
-                            className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                              !isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''
-                            } ${
-                              theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white/60 border-white/40 text-sky-950'
-                            }`}
-                            placeholder="Contraseña"
-                          />
+                          <div className="relative group/passwd">
+                            <input 
+                              type="password" 
+                              disabled={true}
+                              readOnly={true}
+                              value={userPassword}
+                              className={`w-full px-4 py-3 sm:px-3 sm:py-2 rounded-xl border text-sm font-bold transition-all opacity-50 cursor-not-allowed ${
+                                theme === 'black' ? 'bg-white/5 border-white/20 text-white' : 'bg-white/60 border-white/40 text-sky-950'
+                              }`}
+                              placeholder="Contraseña"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[8px] font-black uppercase tracking-tighter text-red-500 opacity-0 group-hover/passwd:opacity-100 transition-opacity">
+                              <Lock size={10} />
+                              No Editable
+                            </div>
+                          </div>
+                          <p className={`text-[8px] font-bold mt-1 ml-2 uppercase tracking-tighter opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>
+                            Protegido: La contraseña no puede ser modificada por seguridad.
+                          </p>
                         </div>
                       </div>
                     </div>
