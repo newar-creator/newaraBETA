@@ -1,85 +1,177 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Helpers
+    
+    // --- Phase 3: Primitive Definitions ---
     function isSignedIn() {
       return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      // Assuming for now, though custom login might not have this
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'github.com');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && (request.auth.uid == userId || request.auth.token.name == userId);
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.name))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.\\@]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'createdAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             (data.get('aras', 0) is number);
+    }
+
+    function isValidClass(data) {
+      return data.keys().hasAll(['name', 'code', 'ownerName', 'createdAt', 'isArchived']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.ownerName is string &&
+             data.code is string && data.code.size() == 6;
+    }
+
+    function isMember(classId) {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.token.name)) ||
+        get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name
+        // Fallback for UID based logins if name is not in token
+        || (request.auth.token.name == null && exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.uid)))
+      );
+    }
+
+    // --- Catch-all deny ---
+    match /{document=**} {
+      allow read, write: if false;
     }
 
     // --- Users ---
     match /users/{userId} {
-      allow read, write: if true;
-      match /ara_transactions/{transactionId} {
-        allow read, write: if true;
+      allow get: if isSignedIn(); // Restricted to signed-in users
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidUser(incoming()) && userId == request.auth.token.name;
+      allow update: if isSignedIn() && (
+        // Self update (limited fields)
+        (userId == request.auth.token.name && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'avatar', 'joinedClasses', 'stats', 'aras', 'password'])) ||
+         // Allow others to donate (increment aras) - high risk but current architecture requires it
+         (incoming().diff(existing()).affectedKeys().hasOnly(['aras']) && incoming().aras > existing().aras) ||
+         isAdmin()
+      );
+
+      match /ara_transactions/{txId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isSignedIn(); // We should ideally validate this against the donor
       }
     }
 
     // --- Activities ---
     match /activities/{activityId} {
-      allow read, write: if true;
+      allow read: if isSignedIn(); // Restricted to signed-in users
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (existing().creatorName == request.auth.token.name || isAdmin());
     }
 
     // --- Classrooms ---
     match /classes/{classId} {
-      allow read, write: if true;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidClass(incoming());
+      allow update, delete: if isSignedIn() && (existing().ownerName == request.auth.token.name || isAdmin());
 
-      // SPECIFICALLY ALLOW MESSAGES
-      match /messages/{messageId} {
-        allow get, list, create, update, delete: if true;
+      match /members/{memberId} {
+        allow read: if isMember(classId) || isAdmin();
+        allow create: if isSignedIn();
+        allow delete: if isSignedIn() && (memberId == request.auth.token.name || get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
       }
 
       match /announcements/{annId} {
-        allow read, write: if true;
+        allow read: if isMember(classId) || isAdmin();
+        allow create: if isMember(classId);
+        allow update, delete: if isSignedIn() && (existing().authorName == request.auth.token.name || get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
+
         match /comments/{commentId} {
-          allow read, write: if true;
+          allow read: if isMember(classId) || isAdmin();
+          allow create: if isMember(classId);
+          allow update, delete: if isSignedIn() && (existing().authorName == request.auth.token.name || isAdmin());
         }
       }
 
-      match /members/{memberId} {
-        allow read, write: if true;
+      match /messages/{msgId} {
+        allow read: if isMember(classId) || isAdmin();
+        allow create: if isMember(classId);
+        allow delete: if isSignedIn() && (existing().authorName == request.auth.token.name || get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
       }
 
       match /resources/{resId} {
-        allow read, write: if true;
+        allow read: if isMember(classId) || isAdmin();
+        allow create, update, delete: if isSignedIn() && (get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
       }
 
       match /assignments/{assId} {
-        allow read, write: if true;
+        allow read: if isMember(classId) || isAdmin();
+        allow create, update, delete: if isSignedIn() && (get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
+
         match /submissions/{subId} {
-          allow read, write: if true;
+          // Students read own, teachers read all
+          allow read: if isSignedIn() && (existing().studentName == request.auth.token.name || get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
+          allow create: if isMember(classId);
+          allow update: if isSignedIn() && (get(/databases/$(database)/documents/classes/$(classId)).data.ownerName == request.auth.token.name || isAdmin());
         }
       }
     }
 
-    // --- Other ---
-    match /admins/{adminId} {
-      allow read, write: if true;
-    }
-
+    // --- Moderation ---
     match /reports/{reportId} {
-      allow read, write: if true;
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
     }
 
     match /banned_users/{userId} {
-      allow read: if true;
-      allow write: if true; // Keeping it consistent with other permissive rules for now
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    match /notifications/{notificationId} {
-      allow read, write: if true;
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Manual setup only
     }
 
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && (existing().userId == request.auth.uid || existing().userId == request.auth.token.name || isAdmin());
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid || existing().userId == request.auth.token.name) && incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+      allow create: if isSignedIn(); // System creates these, but often via client side in this app
+    }
+    
+    // --- Games ---
     match /gameSessions/{sessionId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (existing().hostName == request.auth.token.name || isAdmin());
+      
       match /players/{playerName} {
-        allow read, write: if true;
+        allow read: if isSignedIn();
+        allow write: if isSignedIn(); // Hardened from 'true'
       }
-    }
-
-    // Default deny at the end
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }

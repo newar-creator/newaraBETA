@@ -173,6 +173,7 @@ const handleFirestoreError = (error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
 };
 
 type View = 'home' | 'subject' | 'unit-study' | 'settings' | 'materias' | 'create-activity' | 'play-activity' | 'gallery' | 'leaderboard' | 'reports' | 'classes' | 'class-detail' | 'minigames' | 'horario' | 'users' | 'aras';

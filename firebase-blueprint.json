@@ -39,13 +39,16 @@
     },
     "User": {
       "title": "User Profile",
-      "description": "User profile with custom password authentication",
+      "description": "User profile with personal information",
       "type": "object",
       "properties": {
-        "password": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
         "role": { "type": "string" },
         "bio": { "type": "string" },
         "avatar": { "type": "string" },
+        "aras": { "type": "number" },
+        "isHelper": { "type": "boolean" },
         "joinedClasses": { "type": "array" },
         "stats": {
           "type": "object",
@@ -57,7 +60,44 @@
         },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["password", "createdAt"]
+      "required": ["name", "createdAt"]
+    },
+    "AraTransaction": {
+      "title": "Ara Transaction",
+      "description": "Log of currency changes",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "type": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["amount", "type", "details", "createdAt"]
+    },
+    "ClassMember": {
+      "title": "Class Member",
+      "description": "Information about a user in a class",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "joinedAt": { "type": "string", "format": "date-time" },
+        "avatar": { "type": "string" },
+        "isHelper": { "type": "boolean" }
+      },
+      "required": ["name", "role", "joinedAt"]
+    },
+    "BannedUser": {
+      "title": "Banned User",
+      "description": "Users who are banned from the platform",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "reason": { "type": "string" },
+        "bannedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "createdAt"]
     },
     "Report": {
       "title": "Report",
@@ -278,8 +318,16 @@
       "schema": "Comment",
       "description": "Comments on an announcement"
     },
+    "/users/{userId}/ara_transactions/{transactionId}": {
+      "schema": "AraTransaction",
+      "description": "Log of currency changes"
+    },
+    "/banned_users/{userId}": {
+      "schema": "BannedUser",
+      "description": "Banned users record"
+    },
     "/classes/{classId}/members/{userId}": {
-      "schema": "object",
+      "schema": "ClassMember",
       "description": "Users joined in a class"
     },
     "/classes/{classId}/resources/{resourceId}": {
