@@ -3181,8 +3181,11 @@ export default function App() {
   const startExercise = (unitIndex: number) => {
     if (!selectedSubject) return;
     const unit = selectedSubject.units[unitIndex];
-    // Shuffle questions
-    const randomizedQuestions = shuffleArray(unit.exercises).map(ex => {
+    
+    // Shuffle all 20 questions and select exactly 10 of them
+    const selectedTenQuestions = shuffleArray(unit.exercises).slice(0, 10);
+    
+    const randomizedQuestions = selectedTenQuestions.map(ex => {
       if (ex.type === 'writing') {
         return { ...ex };
       }

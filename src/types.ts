@@ -64,7 +64,7 @@ export interface ResourceCode {
   createdAt: any;
 }
 
-export const SUBJECTS: Subject[] = [
+const RAW_SUBJECTS: Subject[] = [
   {
     id: 'italiano',
     name: 'Italiano',
@@ -1020,3 +1020,133 @@ export const SUBJECTS: Subject[] = [
     ]
   }
 ];
+
+function enrichSubjects(raw: Subject[]): Subject[] {
+  return raw.map(subject => {
+    return {
+      ...subject,
+      units: subject.units.map(unit => {
+        const exercises = [...unit.exercises];
+        const meanings = unit.meanings || [];
+        
+        // Helper to get random definitions for wrong options
+        const getWrongDefinitions = (currentTerm: string, count: number): string[] => {
+          let candidates = meanings
+            .filter(m => m.term !== currentTerm)
+            .map(m => m.definition);
+            
+          const fallbackDefinitions = [
+            "Concepto fundamental del área de estudio.",
+            "Elemento clave utilizado en la práctica cotidiana.",
+            "Regla o principio general aplicable al contexto.",
+            "Proceso sistemático de análisis y comprensión.",
+            "Herramienta de aprendizaje y desarrollo de habilidades.",
+            "Definición complementaria del tema de estudio.",
+            "Término secundario relacionado con la lección."
+          ];
+          
+          let index = 0;
+          while (candidates.length < count) {
+            const fallback = fallbackDefinitions[index % fallbackDefinitions.length];
+            if (!candidates.includes(fallback)) {
+              candidates.push(fallback);
+            }
+            index++;
+          }
+          
+          return candidates.sort(() => Math.random() - 0.5).slice(0, count);
+        };
+
+        // 1. Generate Multiple Choice questions from meanings
+        meanings.forEach((m) => {
+          if (exercises.length >= 20) return;
+          const wrong = getWrongDefinitions(m.term, 3);
+          const options = [m.definition, ...wrong].sort(() => Math.random() - 0.5);
+          const correctIdx = options.indexOf(m.definition);
+          
+          exercises.push({
+            type: 'multiple-choice',
+            question: `¿Cuál es el significado del término "${m.term}" en esta lección?`,
+            options: options,
+            correct: correctIdx
+          });
+        });
+
+        // 2. Generate Writing questions from meanings
+        meanings.forEach((m) => {
+          if (exercises.length >= 20) return;
+          exercises.push({
+            type: 'writing',
+            question: `Escribe el término que corresponde a la definición: "${m.definition}"`,
+            options: [],
+            correct: m.term.toLowerCase().trim(),
+            placeholder: 'Escribe el término...'
+          });
+        });
+
+        // 3. Generate True/False questions from meanings
+        meanings.forEach((m, idx) => {
+          if (exercises.length >= 20) return;
+          const isTrue = Math.random() > 0.5;
+          if (isTrue) {
+            exercises.push({
+              type: 'true-false',
+              question: `¿Es verdadero o falso que "${m.term}" se define como: "${m.definition}"?`,
+              options: ['Verdadero', 'Falso'],
+              correct: 0
+            });
+          } else {
+            const otherMeaning = meanings[(idx + 1) % meanings.length];
+            if (otherMeaning && otherMeaning.term !== m.term) {
+              exercises.push({
+                type: 'true-false',
+                question: `¿Es verdadero o falso que "${m.term}" se define como: "${otherMeaning.definition}"?`,
+                options: ['Verdadero', 'Falso'],
+                correct: 1
+              });
+            }
+          }
+        });
+
+        // 4. If we still need more questions to reach 20, make variations of existing exercises
+        let fallbackCounter = 1;
+        const baseLength = unit.exercises.length;
+        while (exercises.length < 20) {
+          if (baseLength > 0) {
+            const randomExisting = unit.exercises[Math.floor(Math.random() * baseLength)];
+            if (randomExisting.type === 'writing') {
+              exercises.push({
+                ...randomExisting,
+                question: `${randomExisting.question} (Pregunta alternativa #${fallbackCounter++})`
+              });
+            } else if (randomExisting.type === 'true-false') {
+              exercises.push({
+                ...randomExisting,
+                question: `Repasando: ${randomExisting.question}`
+              });
+            } else {
+              exercises.push({
+                ...randomExisting,
+                question: `De nuevo: ${randomExisting.question}`
+              });
+            }
+          } else {
+            exercises.push({
+              type: 'true-false',
+              question: `¿Es importante estudiar constantemente los conceptos fundamentales de "${unit.title}"?`,
+              options: ['Verdadero', 'Falso'],
+              correct: 0
+            });
+          }
+        }
+
+        return {
+          ...unit,
+          exercises: exercises.slice(0, 20)
+        };
+      })
+    };
+  });
+}
+
+export const SUBJECTS = enrichSubjects(RAW_SUBJECTS);
