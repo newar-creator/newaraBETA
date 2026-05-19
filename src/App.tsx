@@ -1611,6 +1611,11 @@ export default function App() {
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<any>(null);
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState<{id: string, name: string, creatorName?: string, type?: 'announcement' | 'comment' | 'activity', classId?: string, parentId?: string} | null>(null);
+  const [showRoleWarning, setShowRoleWarning] = useState(false);
+  const triggerRoleWarning = () => {
+    playErrorSound();
+    setShowRoleWarning(true);
+  };
   const [reportReason, setReportReason] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
@@ -1626,7 +1631,7 @@ export default function App() {
     }
 
     if (userRole !== 'Profesor') {
-      alert("Tú no eres profesor.");
+      triggerRoleWarning();
       return;
     }
 
@@ -4264,7 +4269,7 @@ export default function App() {
                     <GlossyButton 
                       onClick={() => {
                         if (userRole === 'Estudiante') {
-                          alert("Tú no eres profesor.");
+                          triggerRoleWarning();
                           return;
                         }
                         createMinigameSession(selectedActivityDetail);
@@ -5179,7 +5184,7 @@ export default function App() {
                   <GlossyButton 
                     onClick={() => {
                       if (userRole === 'Estudiante') {
-                        alert("Tú no eres profesor.");
+                        triggerRoleWarning();
                         return;
                       }
                       setShowCreateClassModal(true);
@@ -5426,7 +5431,7 @@ export default function App() {
                       <button 
                         onClick={() => {
                           if (userRole === 'Estudiante') {
-                            alert("Tú no eres profesor.");
+                            triggerRoleWarning();
                             return;
                           }
                           navigateTo('minigames');
@@ -5549,7 +5554,7 @@ export default function App() {
                                   <button
                                     onClick={() => {
                                       if (userRole === 'Estudiante') {
-                                        alert("Tú no eres profesor.");
+                                        triggerRoleWarning();
                                         return;
                                       }
                                       createMinigameSession(activity);
@@ -6256,7 +6261,7 @@ export default function App() {
                      type="button"
                      onClick={() => {
                        if (userRole === 'Estudiante') {
-                         alert("Tú no eres profesor.");
+                         triggerRoleWarning();
                          return;
                        }
                        setShowGalleryTutorial(true);
@@ -7255,7 +7260,7 @@ export default function App() {
                                     onClick={(e) => { 
                                       e.stopPropagation(); 
                                       if (userRole === 'Estudiante') {
-                                        alert("Tú no eres profesor.");
+                                        triggerRoleWarning();
                                         return;
                                       }
                                       createMinigameSession(activity); 
@@ -8405,6 +8410,45 @@ export default function App() {
                     className={`flex-1 py-3 text-[10px] ${confirmModal.type === 'danger' ? 'bg-red-500' : ''}`}
                   >
                     Confirmar
+                  </GlossyButton>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Role Warning Skeumorphic Modal */}
+      <AnimatePresence>
+        {showRoleWarning && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`w-full max-w-sm p-6 rounded-[32px] border-4 shadow-2xl relative overflow-hidden ${
+                theme === 'black' ? 'bg-slate-900 border-white/20' : 'bg-white border-white'
+              }`}
+            >
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-500">
+                  <AlertTriangle size={24} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className={`text-xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Acceso Restringido</h3>
+                  <p className={`text-sm font-medium opacity-60 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Tú no eres profesor.</p>
+                </div>
+                <div className="w-full mt-2">
+                  <GlossyButton 
+                    onClick={() => setShowRoleWarning(false)}
+                    className="w-full py-3 text-[10px] bg-sky-500 text-white shadow-xl shadow-sky-500/20 active:scale-95"
+                  >
+                    Entendido
                   </GlossyButton>
                 </div>
               </div>
