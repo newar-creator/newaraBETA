@@ -1625,6 +1625,11 @@ export default function App() {
       return;
     }
 
+    if (userRole !== 'Profesor') {
+      alert("Tú no eres profesor.");
+      return;
+    }
+
     if (userAras < 15) {
       setConfirmModal({
         show: true,
@@ -4256,14 +4261,23 @@ export default function App() {
                       ¡JUGAR! <Play size={20} fill="currentColor" />
                     </GlossyButton>
 
-                    {userRole === 'Profesor' && (
-                      <GlossyButton 
-                        onClick={() => createMinigameSession(selectedActivityDetail)}
-                        className="flex-1 py-4 text-[10px] md:text-sm font-black tracking-[0.2em] gap-3 bg-gradient-to-br from-amber-400 to-orange-500"
-                      >
-                        HOST <Gamepad2 size={20} />
-                      </GlossyButton>
-                    )}
+                    <GlossyButton 
+                      onClick={() => {
+                        if (userRole === 'Estudiante') {
+                          alert("Tú no eres profesor.");
+                          return;
+                        }
+                        createMinigameSession(selectedActivityDetail);
+                      }}
+                      className={`flex-1 py-4 text-[10px] md:text-sm font-black tracking-[0.2em] gap-3 transition-all ${
+                        userRole === 'Estudiante'
+                          ? 'opacity-40 filter grayscale bg-slate-500/20 text-slate-400 border border-slate-300/30 cursor-not-allowed active:scale-95'
+                          : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg'
+                      }`}
+                      title="Tú no eres profesor."
+                    >
+                      HOST <Gamepad2 size={20} />
+                    </GlossyButton>
                 </div>
 
                 {selectedActivityDetail && (
@@ -5162,11 +5176,23 @@ export default function App() {
                    </p>
                 </div>
                 <div className="flex gap-3">
-                  {userRole === 'Profesor' && (
-                    <GlossyButton onClick={() => setShowCreateClassModal(true)} className="px-6 py-3 bg-sky-500 text-white flex items-center gap-2">
-                       <Plus size={20} /> {t('crearClase')}
-                    </GlossyButton>
-                  )}
+                  <GlossyButton 
+                    onClick={() => {
+                      if (userRole === 'Estudiante') {
+                        alert("Tú no eres profesor.");
+                        return;
+                      }
+                      setShowCreateClassModal(true);
+                    }} 
+                    className={`px-6 py-3 text-white flex items-center gap-2 transition-all ${
+                      userRole === 'Estudiante'
+                        ? 'opacity-40 filter grayscale bg-slate-500/20 text-slate-400 border border-slate-300/20 active:scale-95 cursor-not-allowed'
+                        : 'bg-sky-500 shadow-lg'
+                    }`}
+                    title="Tú no eres profesor."
+                  >
+                     <Plus size={20} /> {t('crearClase')}
+                  </GlossyButton>
                    <GlossyButton onClick={() => setShowJoinClassModal(true)} className="px-6 py-3 bg-zinc-900 text-white flex items-center gap-2 border border-white/10">
                       <Users size={20} /> {t('unirseCodigo')}
                    </GlossyButton>
@@ -5391,21 +5417,30 @@ export default function App() {
                       Puntos por respuesta correcta: <span className="font-black text-amber-500">+450</span>
                     </div>
 
-                    {userRole === 'Profesor' && (
-                      <div className="pt-4 border-t border-white/10 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="h-[1px] flex-1 bg-white/10" />
-                          <span className="text-[9px] font-black opacity-30 uppercase tracking-tighter">O crear un servidor</span>
-                          <div className="h-[1px] flex-1 bg-white/10" />
-                        </div>
-                        <button 
-                          onClick={() => navigateTo('minigames')}
-                          className="w-full py-3 rounded-2xl bg-orange-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                        >
-                          <Server size={16} /> Panel de Control
-                        </button>
+                    <div className="pt-4 border-t border-white/10 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-[1px] flex-1 bg-white/10" />
+                        <span className="text-[9px] font-black opacity-30 uppercase tracking-tighter">O crear un servidor</span>
+                        <div className="h-[1px] flex-1 bg-white/10" />
                       </div>
-                    )}
+                      <button 
+                        onClick={() => {
+                          if (userRole === 'Estudiante') {
+                            alert("Tú no eres profesor.");
+                            return;
+                          }
+                          navigateTo('minigames');
+                        }}
+                        className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                          userRole === 'Estudiante'
+                            ? 'bg-slate-500/20 text-slate-400 border border-slate-300/10 opacity-50 active:scale-95 cursor-not-allowed'
+                            : 'bg-orange-500 text-white shadow-xl shadow-orange-500/20 active:scale-95'
+                        }`}
+                        title="Tú no eres profesor."
+                      >
+                        <Server size={16} /> Panel de Control
+                      </button>
+                    </div>
                   </div>
                 </AeroCard>
 
@@ -5512,9 +5547,19 @@ export default function App() {
                                     <p className="text-[9px] opacity-40 font-bold uppercase">{activity.id}</p>
                                   </div>
                                   <button
-                                    onClick={() => createMinigameSession(activity)}
-                                    className="p-2 rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all flex-shrink-0"
-                                    title="Hostear Minijuego"
+                                    onClick={() => {
+                                      if (userRole === 'Estudiante') {
+                                        alert("Tú no eres profesor.");
+                                        return;
+                                      }
+                                      createMinigameSession(activity);
+                                    }}
+                                    className={`p-2 rounded-xl transition-all flex-shrink-0 ${
+                                      userRole === 'Estudiante'
+                                        ? 'bg-slate-500/20 text-slate-400 border border-slate-300/10 opacity-40 cursor-not-allowed active:scale-95'
+                                        : 'bg-blue-500 text-white shadow-lg shadow-blue-500/20 active:scale-90'
+                                    }`}
+                                    title="Tú no eres profesor."
                                   >
                                     <Gamepad2 size={16} />
                                   </button>
@@ -6205,21 +6250,29 @@ export default function App() {
                  >
                    Volver al inicio
                  </button>
-                 {userRole === 'Profesor' && (
-                   <div className="flex flex-col items-center gap-2 pt-4">
-                     <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">O crear un servidor</span>
-                     <button 
-                       onClick={() => {
-                         setShowGalleryTutorial(true);
-                         navigateTo('gallery');
-                       }}
-                       className="px-10 py-5 rounded-3xl bg-orange-500 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
-                     >
-                       <Server size={18} className="group-hover:rotate-12 transition-transform" /> 
-                       <span>Crear Servidor</span>
-                     </button>
-                   </div>
-                 )}
+                 <div className="flex flex-col items-center gap-2 pt-4 w-full">
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">O crear un servidor</span>
+                   <button 
+                     type="button"
+                     onClick={() => {
+                       if (userRole === 'Estudiante') {
+                         alert("Tú no eres profesor.");
+                         return;
+                       }
+                       setShowGalleryTutorial(true);
+                       navigateTo('gallery');
+                     }}
+                     className={`px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group border ${
+                       userRole === 'Estudiante'
+                         ? 'bg-slate-500/20 border-slate-300/10 text-slate-400 cursor-not-allowed opacity-50'
+                         : 'bg-orange-500 border-transparent text-white shadow-2xl shadow-orange-500/30 active:scale-95'
+                     }`}
+                     title="Tú no eres profesor."
+                   >
+                     <Server size={18} className={userRole === 'Estudiante' ? "" : "group-hover:rotate-12 transition-transform"} /> 
+                     <span>Crear Servidor</span>
+                   </button>
+                 </div>
                </div>
             </motion.div>
           )}
@@ -7198,14 +7251,24 @@ export default function App() {
                                   >
                                     Ver más
                                   </GlossyButton>
-                                  {userRole === 'Profesor' && (
-                                    <GlossyButton 
-                                      onClick={(e) => { e.stopPropagation(); createMinigameSession(activity); }}
-                                      className="flex-1 px-1 md:px-3 py-1.5 md:py-2 rounded-xl text-[8px] md:text-[10px] whitespace-nowrap overflow-hidden text-ellipsis bg-gradient-to-br from-amber-400 to-orange-500"
-                                    >
-                                      HOST <Gamepad2 size={12} className="inline-block ml-0.5 md:ml-1 scale-75 md:scale-100" />
-                                    </GlossyButton>
-                                  )}
+                                  <GlossyButton 
+                                    onClick={(e) => { 
+                                      e.stopPropagation(); 
+                                      if (userRole === 'Estudiante') {
+                                        alert("Tú no eres profesor.");
+                                        return;
+                                      }
+                                      createMinigameSession(activity); 
+                                    }}
+                                    className={`flex-1 px-1 md:px-3 py-1.5 md:py-2 rounded-xl text-[8px] md:text-[10px] whitespace-nowrap overflow-hidden text-ellipsis transition-all ${
+                                      userRole === 'Estudiante'
+                                        ? 'opacity-40 filter grayscale bg-slate-500/20 text-slate-400 border border-slate-300/30 active:scale-95 cursor-not-allowed'
+                                        : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg'
+                                    }`}
+                                    title="Tú no eres profesor."
+                                  >
+                                    HOST <Gamepad2 size={12} className="inline-block ml-0.5 md:ml-1 scale-75 md:scale-100" />
+                                  </GlossyButton>
                                </div>
                                <GlossyButton 
                                  onClick={(e) => { e.stopPropagation(); handleLoadActivity(activity.id); }}
