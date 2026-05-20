@@ -855,6 +855,25 @@ export const ClassDetail: React.FC<ClassDetailProps> = ({
                                theme === 'black' ? 'bg-white/5 border border-white/10 text-white' : 'bg-sky-50/50 border border-sky-100 text-sky-950'
                              }`}
                            />
+                           <button
+                             id={`send-comment-btn-${ann.id}`}
+                             onClick={() => {
+                               if (newComments[ann.id]?.trim()) {
+                                 onPostComment(ann.id, newComments[ann.id]);
+                                 setNewComments(prev => ({ ...prev, [ann.id]: '' }));
+                                 playExternalBubble();
+                               }
+                             }}
+                             disabled={!newComments[ann.id]?.trim()}
+                             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+                               newComments[ann.id]?.trim()
+                                 ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20 hover:scale-105 active:scale-95 cursor-pointer'
+                                 : 'bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-white/25 cursor-not-allowed'
+                             }`}
+                             title="Enviar comentario"
+                           >
+                             <Send size={12} />
+                           </button>
                         </div>
                       </div>
                     </AeroCard>

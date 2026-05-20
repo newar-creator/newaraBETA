@@ -44,6 +44,7 @@ import {
   Plus,
   X,
   AlertTriangle,
+  Bug,
   Search,
   SearchX,
   Trash2,
@@ -1630,6 +1631,41 @@ export default function App() {
   const [isReporting, setIsReporting] = useState(false);
   const [isTakingAction, setIsTakingAction] = useState(false);
 
+  const [bugText, setBugText] = useState('');
+  const [showBugReportModal, setShowBugReportModal] = useState(false);
+  const [isReportingBug, setIsReportingBug] = useState(false);
+  const [bugSuccess, setBugSuccess] = useState(false);
+  const [copiedReportId, setCopiedReportId] = useState<string | null>(null);
+
+  const submitBugReport = async (text: string) => {
+    if (!text.trim()) return;
+    setIsReportingBug(true);
+    setBugSuccess(false);
+    try {
+      await addDoc(collection(db, 'reports'), {
+        targetType: 'bug',
+        targetId: 'bug_' + Date.now(),
+        targetName: 'Bug Reportado',
+        creatorName: userName || 'Estudiante',
+        classId: "",
+        parentId: "",
+        reporterName: userName || 'Estudiante',
+        reason: text.trim(),
+        createdAt: serverTimestamp(),
+        status: 'pending'
+      });
+      setBugText('');
+      setBugSuccess(true);
+      playSuccessSound();
+      setTimeout(() => setBugSuccess(false), 5000);
+    } catch (err) {
+      console.error("Error reporting bug:", err);
+      alert("Error al enviar el reporte.");
+    } finally {
+      setIsReportingBug(false);
+    }
+  };
+
   // Minigames Logic
   const createMinigameSession = async (activity: any, bypassConfirm = false) => {
     if (!isLoggedIn) {
@@ -2239,9 +2275,11 @@ export default function App() {
 
     setConfirmModal({
       show: true,
-      title: '¿ELIMINAR CONTENIDO?',
-      message: `Esta acción es irreversible. Se eliminará el/la ${targetType} de forma permanente.`,
-      type: 'danger',
+      title: targetType === 'bug' ? '¿COMPLETAR REPORTE?' : '¿ELIMINAR CONTENIDO?',
+      message: targetType === 'bug' 
+        ? '¿Estás seguro de marcar este reporte de bug como resuelto/completado?' 
+        : `Esta acción es irreversible. Se eliminará el/la ${targetType} de forma permanente.`,
+      type: targetType === 'bug' ? 'warning' : 'danger',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, show: false }));
         setIsTakingAction(true);
@@ -2270,7 +2308,7 @@ export default function App() {
           }
           
           playSuccessSound();
-          alert("Eliminado con éxito.");
+          alert(targetType === 'bug' ? "Reporte completado con éxito." : "Eliminado con éxito.");
         } catch (error) {
           console.error("Error deleting target:", error);
           alert("Hubo un error al eliminar el contenido. Es posible que ya no exista o haya un problema de permisos.");
@@ -5217,14 +5255,71 @@ export default function App() {
                   <p className="font-black uppercase tracking-widest text-xs">{t('sincronizandoAulas')}</p>
                 </div>
               ) : userClasses.length === 0 ? (
-                <div className="text-center py-32 space-y-6 opacity-30">
-                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border-2 border-dashed border-white/20">
-                     <Users2 size={48} />
-                   </div>
-                   <div className="space-y-2">
-                     <h3 className="text-xl font-bold italic">{t('noClasesAun')}</h3>
-                     <p className="text-sm">{t('creaAunaClase')}</p>
-                   </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                  <div className={`p-8 rounded-[40px] border-4 shadow-xl flex flex-col items-center text-center justify-center py-16 ${
+                    theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-blue-50 text-sky-950'
+                  }`}>
+                    <div className="w-16 h-16 bg-sky-500/10 text-sky-500 rounded-3xl flex items-center justify-center mb-6">
+                      <Users2 size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black mb-2">{t('noClasesAun')}</h3>
+                    <p className="text-sm opacity-60 max-w-sm font-medium">{t('creaAunaClase')}</p>
+                  </div>
+
+                  <div className={`p-8 rounded-[40px] border-4 shadow-xl ${
+                    theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-blue-50 text-sky-950'
+                  }`}>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center">
+                        <Bug size={24} className="animate-bounce" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black leading-tight">¿Encontraste un Bug? 🐛</h3>
+                        <p className="text-xs font-semibold opacity-50">Reporta errores para que la IA los solucione inmediatamente</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-2">Descripción del Problema</label>
+                        <textarea
+                          rows={4}
+                          value={bugText}
+                          onChange={(e) => setBugText(e.target.value)}
+                          placeholder="Describe detalladamente el bug o error que experimentas..."
+                          className={`w-full p-4 mt-1 rounded-2xl border text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none transition-all ${
+                            theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-sky-950'
+                          }`}
+                        />
+                      </div>
+
+                      <GlossyButton
+                        onClick={() => submitBugReport(bugText)}
+                        disabled={isReportingBug || !bugText.trim()}
+                        className="w-full py-3 bg-amber-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                      >
+                        {isReportingBug ? (
+                          <>
+                            <RefreshCw className="animate-spin" size={16} /> Enviando Reporte...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} /> Enviar Reporte de Bug
+                          </>
+                        )}
+                      </GlossyButton>
+
+                      {bugSuccess && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-center text-xs font-bold animate-pulse"
+                        >
+                          ¡Reporte enviado exitosamente! 👍 Los moderadores podrán copiarlo en el chat para solucionarlo.
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -5337,15 +5432,33 @@ export default function App() {
               transition={disableAnimations ? { duration: 0 } : { duration: 0.4 }}
               className="space-y-8 max-w-7xl mx-auto"
             >
-              <div className="flex items-center gap-3 p-4 bg-red-500/10 border-2 border-red-500/20 rounded-[28px] overflow-hidden relative group">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-red-500/10 border-2 border-red-500/20 rounded-[32px] overflow-hidden relative group">
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
-                <AlertTriangle size={24} className="text-red-500 relative z-10 shrink-0" />
-                <div className="relative z-10">
-                  <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">NewAra BETA ahora es newen.araoz.ar</p>
-                  <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                    Avisa a Newen.Araoz para denunciar bugs.
-                  </p>
+                
+                <div className="flex items-center gap-3 relative z-10 min-w-0">
+                  <AlertTriangle size={24} className="text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600">NewAra BETA ahora es newen.araoz.ar</p>
+                    <p className={`text-[10px] font-bold opacity-70 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
+                      Avisa a Newen.Araoz para denunciar cualquier tipo de bug.
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  id="btn-denunciar-bug-inicio"
+                  onClick={() => {
+                    playSuccessSound();
+                    setShowBugReportModal(true);
+                  }}
+                  className="relative z-10 shrink-0 w-full sm:w-auto px-6 py-3 rounded-2xl bg-red-500 text-white font-black hover:bg-red-600 active:scale-95 transition-all shadow-lg shadow-red-500/30 flex items-center justify-center gap-3 group/btn cursor-pointer"
+                >
+                  <Bug size={18} className="animate-pulse text-white group-hover/btn:rotate-12 transition-transform" />
+                  <div className="text-left leading-tight">
+                    <div className="text-[10px] font-black uppercase tracking-wider opacity-95">¿HAY UN BUG?</div>
+                    <div className="text-xs font-bold">¡Denuncialo aquí!</div>
+                  </div>
+                </button>
               </div>
 
               <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -7429,30 +7542,64 @@ export default function App() {
                           }`}
                         >
                           <div className="flex items-center gap-4 flex-1">
-                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
+                               targetType === 'bug' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                targetType === 'activity' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
                                targetType === 'chat-message' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
                                'bg-amber-500/10 text-amber-500 border-amber-500/20'
                              }`}>
-                               {targetType === 'activity' ? <AlertTriangle size={24} /> : 
+                               {targetType === 'bug' ? <Bug size={24} className="animate-pulse" /> :
+                                targetType === 'activity' ? <AlertTriangle size={24} /> : 
                                 targetType === 'chat-message' ? <Send size={24} /> :
                                 <MessageSquare size={24} />}
                              </div>
                              <div className="min-w-0 flex-1">
                                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">
-                                 {targetType === 'activity' ? 'Actividad' : 
+                                 {targetType === 'bug' ? '🐛 Denuncia de Bug' :
+                                  targetType === 'activity' ? 'Actividad' : 
                                   targetType === 'chat-message' ? 'Chat de Clase' :
-                                  'Anuncio de Clase'} • Por {report.creatorName || report.authorName}
+                                  'Anuncio de Clase'} • Por {report.reporterName || report.creatorName || report.authorName}
                                </p>
                                <h3 className={`font-black text-lg leading-tight truncate ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>
-                                 {report.reporterName} : <span className="text-red-500">{report.reason}</span>
+                                 {targetType === 'bug' ? 'Error Reportado' : `${report.reporterName} : `}
+                                 {targetType !== 'bug' && <span className="text-red-500">{report.reason}</span>}
                                </h3>
-                               <div className={`mt-2 p-3 rounded-xl text-xs font-bold ${theme === 'black' ? 'bg-white/5' : 'bg-slate-50'}`}>
-                                 "{targetName}"
+                               <div className={`mt-2 p-3 rounded-xl text-xs font-bold flex items-center justify-between gap-4 ${theme === 'black' ? 'bg-white/5' : 'bg-slate-50'}`}>
+                                 <span className="break-words max-w-[80%]">
+                                   "{targetType === 'bug' ? report.reason : targetName}"
+                                 </span>
+                                 <button
+                                   id={`copy-btn-${report.id}`}
+                                   onClick={() => {
+                                     const textToCopy = targetType === 'bug' ? report.reason : targetName;
+                                     navigator.clipboard.writeText(textToCopy);
+                                     playSuccessSound();
+                                     setCopiedReportId(report.id);
+                                     setTimeout(() => setCopiedReportId(null), 2000);
+                                   }}
+                                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer border transition-all shrink-0 ${
+                                     copiedReportId === report.id
+                                       ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm'
+                                       : theme === 'black'
+                                         ? 'bg-white/5 text-white/50 border-white/10 hover:bg-white/10'
+                                         : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 shadow-sm'
+                                   }`}
+                                 >
+                                   {copiedReportId === report.id ? (
+                                     <>
+                                       <Check size={12} className="text-emerald-500" />
+                                       <span>Copiado</span>
+                                     </>
+                                   ) : (
+                                     <>
+                                       <Copy size={12} />
+                                       <span>Copiar</span>
+                                     </>
+                                   )}
+                                 </button>
                                </div>
                              </div>
-                          </div>
-
+                            </div>
                           <div className="flex flex-wrap items-center gap-2">
                             {targetType === 'activity' && (
                               <>
@@ -7504,11 +7651,16 @@ export default function App() {
                               Ignorar
                             </button>
 
-                            <button 
+                                                        <button 
+                              id={`action-btn-${report.id}`}
                               onClick={() => handleDeleteTargetAndReport(report)}
-                              className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
+                              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                                targetType === 'bug' 
+                                  ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white' 
+                                  : 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white'
+                              }`}
                             >
-                              Borrar {targetType === 'activity' ? 'Actividad' : targetType === 'chat-message' ? 'Mensaje' : 'Anuncio'}
+                              {targetType === 'bug' ? 'Completar' : `Borrar ${targetType === 'activity' ? 'Actividad' : targetType === 'chat-message' ? 'Mensaje' : 'Anuncio'}`}
                             </button>
 
                             <button 
@@ -8591,6 +8743,103 @@ export default function App() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bug Report Modal */}
+      <AnimatePresence>
+        {showBugReportModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`w-full max-w-sm p-6 rounded-[32px] border-4 shadow-2xl relative overflow-hidden ${
+                theme === 'black' ? 'bg-slate-900 border-white/20' : 'bg-white border-white'
+              }`}
+            >
+              {bugSuccess ? (
+                <div className="flex flex-col items-center text-center py-6 gap-4 animate-fade-in">
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, rotate: 360 }}
+                    type="button"
+                    className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center"
+                  >
+                    <CheckCircle2 size={36} />
+                  </motion.div>
+                  <div>
+                    <h3 className={`text-xl font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>¡Reportado con éxito!</h3>
+                    <p className={`text-xs font-bold mt-1 opacity-70 ${theme === 'black' ? 'text-white/70' : 'text-sky-900/70'}`}>
+                      Muchas gracias por colaborar con NewAra. Nuestro equipo de mantenimiento ya está al tanto.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowBugReportModal(false);
+                    }}
+                    className="mt-2 px-6 py-2 rounded-xl bg-emerald-500 text-white text-xs font-black uppercase tracking-wider hover:bg-emerald-600 transition-all cursor-pointer"
+                  >
+                    Entendido
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center animate-pulse">
+                      <Bug size={20} />
+                    </div>
+                    <div>
+                      <h3 className={`text-lg font-black ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Reportar Bug 🐛</h3>
+                      <p className={`text-[10px] font-black opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-900'}`}>Denunciar error en NewAra</p>
+                    </div>
+                  </div>
+
+                  <p className={`text-xs font-bold ${theme === 'black' ? 'text-white/60' : 'text-sky-900/60'}`}>
+                    Describe detalladamente el bug, el error o la sugerencia para que nuestro equipo lo revise de inmediato.
+                  </p>
+
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-black uppercase tracking-wider opacity-40 ${theme === 'black' ? 'text-white' : 'text-sky-950'}`}>Detalles del Bug</label>
+                    <textarea 
+                      value={bugText}
+                      onChange={(e) => setBugText(e.target.value)}
+                      placeholder="Ej: Cuando intento unirme al minijuego, la pantalla queda cargando..."
+                      className={`w-full p-4 rounded-2xl border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-red-500 transition-all min-h-[120px] resize-none ${
+                        theme === 'black' ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-sky-950'
+                      }`}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 w-full">
+                    <button 
+                      onClick={() => { setShowBugReportModal(false); setBugText(''); }}
+                      disabled={isReportingBug}
+                      className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        theme === 'black' ? 'bg-white/5 text-white/40 hover:bg-white/10' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      } cursor-pointer`}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        await submitBugReport(bugText);
+                      }}
+                      disabled={isReportingBug || !bugText.trim()}
+                      className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-red-500 text-white shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 disabled:grayscale cursor-pointer`}
+                    >
+                      {isReportingBug ? 'Reportando...' : 'Enviar Reporte'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
