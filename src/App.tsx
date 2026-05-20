@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Leaf, 
@@ -292,6 +292,7 @@ export default function App() {
   const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null);
   const [activeClass, setActiveClass] = useState<any | null>(null);
   const [userClasses, setUserClasses] = useState<any[]>([]);
+  const lastJoinedClassesRef = useRef<string[]>([]);
   const [unitSearch, setUnitSearch] = useState('');
 
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -990,6 +991,12 @@ export default function App() {
                 setCompletedUnits(data.completedUnits);
                 localStorage.setItem('newara_completed_units', JSON.stringify(data.completedUnits));
               }
+
+              const joinedClassesIds = data.joinedClasses || [];
+              if (JSON.stringify(lastJoinedClassesRef.current) !== JSON.stringify(joinedClassesIds)) {
+                lastJoinedClassesRef.current = joinedClassesIds;
+                fetchUserClasses();
+              }
               
               // Ensure name is always present in Firestore
               if (!data.name) {
@@ -1440,13 +1447,13 @@ export default function App() {
   }, [isLoggedIn, userName]);
 
   useEffect(() => {
-    if (activeClass && isAuthReady && auth.currentUser) {
+    if (activeClass) {
       fetchClassDetails(activeClass.id);
     }
-  }, [activeClass, isAuthReady, auth.currentUser]);
+  }, [activeClass]);
 
   useEffect(() => {
-    if (activeClass && currentView === 'class-detail' && isAuthReady && auth.currentUser) {
+    if (activeClass && currentView === 'class-detail') {
       const msgQ = query(
         collection(db, 'classes', activeClass.id, 'messages'), 
         orderBy('createdAt', 'asc'), 
@@ -1504,7 +1511,7 @@ export default function App() {
   }, [disableAnimations]);
 
   useEffect(() => {
-    if (isLoggedIn && userName && userName !== 'Estudiante' && isAuthReady && auth.currentUser) {
+    if (isLoggedIn && userName && userName !== 'Estudiante') {
       const checkDailyRewards = async () => {
         const today = new Date().toISOString().split('T')[0];
         const rewardKey = `last_daily_rank_reward_${userName}`;
@@ -1577,7 +1584,7 @@ export default function App() {
       const to = setTimeout(() => { checkDailyRewards(); }, 3000);
       return () => clearTimeout(to);
     }
-  }, [isLoggedIn, userName, isAuthReady, auth.currentUser]);
+  }, [isLoggedIn, userName]);
 
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   const [activeExercise, setActiveExercise] = useState<{unitIndex: number, subjectId: string, currentQuestion: number, activityCode?: string} | null>(null);
@@ -2477,7 +2484,7 @@ export default function App() {
   }, [isMinigameHost, minigameSessionId, minigameSession?.status]);
 
   const fetchUserClasses = async () => {
-    if (!isLoggedIn || !isAuthReady || !auth.currentUser) return;
+    if (!isLoggedIn) return;
     setIsClassesLoading(true);
     try {
       const ownedQuery = query(collection(db, 'classes'), where('ownerName', '==', userName.trim()));
@@ -2975,7 +2982,7 @@ export default function App() {
   };
 
   const fetchNotifications = async () => {
-    if (!isLoggedIn || !userName || userName === 'Estudiante' || !isAuthReady || !auth.currentUser) return;
+    if (!isLoggedIn || !userName || userName === 'Estudiante') return;
     try {
       const q = query(
         collection(db, 'notifications'), 
